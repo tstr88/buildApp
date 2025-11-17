@@ -40,7 +40,6 @@ services:
   - type: web
     name: buildapp-frontend
     runtime: static
-    plan: starter
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
