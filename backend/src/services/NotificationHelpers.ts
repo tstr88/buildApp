@@ -3,9 +3,9 @@
  * Easy-to-use functions for creating notifications with proper templates
  */
 
-import { pool } from '../config/database';
+import pool from '../config/database';
 import { NotificationTemplates, NotificationData } from './NotificationTemplates';
-import { NotificationService } from './NotificationService';
+import { NotificationService, NotificationType } from './NotificationService';
 
 const notificationService = new NotificationService();
 
@@ -74,7 +74,7 @@ export async function createNotification(params: CreateNotificationParams): Prom
       // Just send push notification
       await notificationService.send({
         userId,
-        type: 'push',
+        type: NotificationType.PUSH,
         recipient: '',
         title,
         message,
