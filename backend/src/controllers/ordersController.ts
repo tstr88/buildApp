@@ -1,0 +1,447 @@
+/**
+ * Orders Controller
+ * Handles direct order creation and management
+ */
+
+import { Request, Response } from 'express';
+import pool from '../config/database';
+import { emitOrderCreated } from '../websocket';
+
+/**
+ * POST /api/buyers/orders/direct
+ * Create a direct order with immediate checkout
+ */
+export async function createDirectOrder(req: Request, res: Response): Promise<void> {
+  const client = await pool.connect();
+
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        error: 'Authentication required',
+      });
+      return;
+    }
+
+    const userId = req.user.id;
+    const {
+      supplier_id,
+      project_id,
+      items, // Array of { sku_id, description, quantity, unit, unit_price }
+      pickup_or_delivery,
+      delivery_address,
+      delivery_latitude,
+      delivery_longitude,
+      promised_window_start,
+      promised_window_end,
+      payment_terms,
+      negotiable,
+      notes,
+    } = req.body;
+
+    // Validation
+    if (!supplier_id || !items || items.length === 0) {
+      res.status(400).json({
+        success: false,
+        error: 'Supplier ID and items are required',
+      });
+      return;
+    }
+
+    if (!pickup_or_delivery || !['pickup', 'delivery'].includes(pickup_or_delivery)) {
+      res.status(400).json({
+        success: false,
+        error: 'Valid pickup_or_delivery option required (pickup or delivery)',
+      });
+      return;
+    }
+
+    if (pickup_or_delivery === 'delivery' && !delivery_address) {
+      res.status(400).json({
+        success: false,
+        error: 'Delivery address required for delivery orders',
+      });
+      return;
+    }
+
+    await client.query('BEGIN');
+
+    // Verify supplier exists and is active
+    const supplierCheck = await client.query(
+      'SELECT id, business_name_en, business_name_ka, min_order_value, payment_terms FROM suppliers WHERE id = $1 AND is_active = true',
+      [supplier_id]
+    );
+
+    if (supplierCheck.rows.length === 0) {
+      await client.query('ROLLBACK');
+      res.status(404).json({
+        success: false,
+        error: 'Supplier not found or inactive',
+      });
+      return;
+    }
+
+    const supplier = supplierCheck.rows[0];
+
+    // Verify all SKUs belong to this supplier and are available for direct order
+    const skuIds = items.filter((item: any) => item.sku_id).map((item: any) => item.sku_id);
+
+    if (skuIds.length > 0) {
+      const skuCheck = await client.query(
+        `SELECT id, name_ka, name_en, direct_order_available, delivery_options, base_price
+         FROM skus
+         WHERE id = ANY($1) AND supplier_id = $2 AND is_active = true`,
+        [skuIds, supplier_id]
+      );
+
+      if (skuCheck.rows.length !== skuIds.length) {
+        await client.query('ROLLBACK');
+        res.status(400).json({
+          success: false,
+          error: 'Some SKUs are invalid, inactive, or from different supplier',
+        });
+        return;
+      }
+
+      // Verify all SKUs support direct orders
+      const nonDirectSKUs = skuCheck.rows.filter((sku: any) => !sku.direct_order_available);
+      if (nonDirectSKUs.length > 0) {
+        await client.query('ROLLBACK');
+        res.status(400).json({
+          success: false,
+          error: 'Some SKUs are not available for direct orders',
+        });
+        return;
+      }
+
+      // Verify delivery option is supported
+      const unsupportedDelivery = skuCheck.rows.filter((sku: any) => {
+        if (pickup_or_delivery === 'pickup' && sku.delivery_options === 'delivery') return true;
+        if (pickup_or_delivery === 'delivery' && sku.delivery_options === 'pickup') return true;
+        return false;
+      });
+
+      if (unsupportedDelivery.length > 0) {
+        await client.query('ROLLBACK');
+        res.status(400).json({
+          success: false,
+          error: `Some SKUs do not support ${pickup_or_delivery} option`,
+        });
+        return;
+      }
+    }
+
+    // Calculate totals
+    let total_amount = 0;
+    const processedItems = items.map((item: any) => {
+      const subtotal = (item.unit_price || 0) * (item.quantity || 0);
+      total_amount += subtotal;
+      return {
+        sku_id: item.sku_id || null,
+        description: item.description,
+        quantity: item.quantity,
+        unit: item.unit,
+        unit_price: item.unit_price,
+        total: subtotal,
+      };
+    });
+
+    // Check minimum order value
+    if (supplier.min_order_value && total_amount < parseFloat(supplier.min_order_value)) {
+      await client.query('ROLLBACK');
+      res.status(400).json({
+        success: false,
+        error: `Order total (${total_amount}) is below minimum order value (${supplier.min_order_value})`,
+      });
+      return;
+    }
+
+    const delivery_fee = 0; // TODO: Calculate based on supplier settings
+    const tax_amount = 0; // TODO: Calculate based on tax rules
+    const grand_total = total_amount + delivery_fee + tax_amount;
+
+    // Normalize payment_terms - ensure it's a valid enum value
+    let normalizedPaymentTerms = payment_terms || 'cod';
+    if (typeof normalizedPaymentTerms !== 'string') {
+      normalizedPaymentTerms = 'cod';
+    }
+    // Ensure it's a valid payment_terms enum value
+    const validPaymentTerms = ['cod', 'net_7', 'net_15', 'net_30', 'prepaid'];
+    if (!validPaymentTerms.includes(normalizedPaymentTerms)) {
+      normalizedPaymentTerms = 'cod';
+    }
+
+    // Create the order
+    const orderResult = await client.query(
+      `INSERT INTO orders (
+        buyer_id,
+        supplier_id,
+        project_id,
+        order_type,
+        items,
+        total_amount,
+        delivery_fee,
+        tax_amount,
+        grand_total,
+        pickup_or_delivery,
+        delivery_address,
+        delivery_latitude,
+        delivery_longitude,
+        promised_window_start,
+        promised_window_end,
+        payment_terms,
+        negotiable,
+        status,
+        notes
+      ) VALUES (
+        $1, $2, $3, 'material', $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
+        'pending'::order_status,
+        $17
+      )
+      RETURNING id, order_number, created_at`,
+      [
+        userId,
+        supplier_id,
+        project_id,
+        JSON.stringify(processedItems),
+        total_amount,
+        delivery_fee,
+        tax_amount,
+        grand_total,
+        pickup_or_delivery,
+        delivery_address,
+        delivery_latitude,
+        delivery_longitude,
+        promised_window_start,
+        promised_window_end,
+        normalizedPaymentTerms,
+        negotiable || false,
+        notes,
+      ]
+    );
+
+    const order = orderResult.rows[0];
+
+    // Get supplier's user_id for WebSocket notification
+    const supplierUserResult = await client.query(
+      'SELECT user_id FROM suppliers WHERE id = $1',
+      [supplier_id]
+    );
+    const supplierUserId = supplierUserResult.rows[0]?.user_id;
+
+    await client.query('COMMIT');
+
+    // Emit WebSocket event to supplier
+    if (supplierUserId) {
+      emitOrderCreated({
+        order_number: order.order_number,
+        order_id: order.id,
+        buyer_id: userId,
+        total_amount,
+        pickup_or_delivery,
+        status: 'pending',
+      }, supplierUserId);
+    }
+
+    res.status(201).json({
+      success: true,
+      data: {
+        id: order.id,
+        order_number: order.order_number,
+        created_at: order.created_at,
+        total_amount,
+        grand_total,
+      },
+      message: 'Direct order created successfully',
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Create direct order error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create direct order',
+    });
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * GET /api/buyers/orders
+ * Get buyer's orders
+ */
+export async function getOrders(req: Request, res: Response): Promise<void> {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        error: 'Authentication required',
+      });
+      return;
+    }
+
+    const userId = req.user.id;
+    const { status, limit = 50, offset = 0 } = req.query;
+
+    let query = `
+      SELECT
+        o.id,
+        o.order_number,
+        o.supplier_id,
+        o.project_id,
+        o.order_type,
+        o.total_amount,
+        o.delivery_fee,
+        o.grand_total,
+        o.pickup_or_delivery,
+        o.promised_window_start,
+        o.promised_window_end,
+        o.payment_terms,
+        o.status,
+        o.created_at,
+        o.updated_at,
+        COALESCE(s.business_name_en, s.business_name_ka) as supplier_name,
+        p.name as project_name
+      FROM orders o
+      LEFT JOIN suppliers s ON o.supplier_id = s.id
+      LEFT JOIN projects p ON o.project_id = p.id
+      WHERE o.buyer_id = $1
+    `;
+
+    const params: any[] = [userId];
+    let paramCount = 1;
+
+    if (status) {
+      paramCount++;
+      query += ` AND o.status = $${paramCount}`;
+      params.push(status);
+    }
+
+    query += ` ORDER BY o.created_at DESC LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}`;
+    params.push(limit, offset);
+
+    const result = await pool.query(query, params);
+
+    res.json({
+      success: true,
+      data: result.rows,
+      message: 'Orders retrieved successfully',
+    });
+  } catch (error) {
+    console.error('Get orders error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve orders',
+    });
+  }
+}
+
+/**
+ * GET /api/buyers/orders/:id
+ * Get order detail
+ */
+export async function getOrderById(req: Request, res: Response): Promise<void> {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        error: 'Authentication required',
+      });
+      return;
+    }
+
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    console.log('[getOrderById] Looking for order:', { orderId: id, userId });
+
+    const query = `
+      SELECT
+        o.*,
+        COALESCE(s.business_name_en, s.business_name_ka) as supplier_name,
+        s.depot_address as supplier_address,
+        u.phone as supplier_phone,
+        u.email as supplier_email,
+        p.name as project_name,
+        p.address as project_address
+      FROM orders o
+      LEFT JOIN suppliers s ON o.supplier_id = s.id
+      LEFT JOIN users u ON s.user_id = u.id
+      LEFT JOIN projects p ON o.project_id = p.id
+      WHERE o.order_number = $1 AND o.buyer_id = $2
+    `;
+
+    const result = await pool.query(query, [id, userId]);
+
+    console.log('[getOrderById] Query result:', result.rows.length, 'rows');
+
+    if (result.rows.length === 0) {
+      console.log('[getOrderById] Order not found for:', { orderId: id, userId });
+      res.status(404).json({
+        success: false,
+        error: 'Order not found',
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: result.rows[0],
+      message: 'Order retrieved successfully',
+    });
+  } catch (error) {
+    console.error('Get order error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve order',
+    });
+  }
+}
+
+/**
+ * GET /api/suppliers/:supplierId/available-windows
+ * Get available delivery/pickup windows for a supplier
+ */
+export async function getAvailableWindows(_req: Request, res: Response): Promise<void> {
+  try {
+    // TODO: Use _req.params.supplierId to fetch supplier-specific windows
+
+    // For now, return predefined windows
+    // In production, this would check supplier's calendar and availability
+    const windows = [
+      {
+        id: 'same-day-morning',
+        label: 'Same-day Morning',
+        start: new Date(new Date().setHours(8, 0, 0, 0)).toISOString(),
+        end: new Date(new Date().setHours(12, 0, 0, 0)).toISOString(),
+        available: true,
+      },
+      {
+        id: 'same-day-afternoon',
+        label: 'Same-day Afternoon',
+        start: new Date(new Date().setHours(13, 0, 0, 0)).toISOString(),
+        end: new Date(new Date().setHours(17, 0, 0, 0)).toISOString(),
+        available: true,
+      },
+      {
+        id: 'next-day',
+        label: 'Next-day',
+        start: new Date(new Date(Date.now() + 86400000).setHours(8, 0, 0, 0)).toISOString(),
+        end: new Date(new Date(Date.now() + 86400000).setHours(17, 0, 0, 0)).toISOString(),
+        available: true,
+      },
+    ];
+
+    res.json({
+      success: true,
+      data: windows,
+      message: 'Available windows retrieved successfully',
+    });
+  } catch (error) {
+    console.error('Get available windows error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve available windows',
+    });
+  }
+}

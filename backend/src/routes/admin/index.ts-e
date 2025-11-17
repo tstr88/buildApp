@@ -1,0 +1,26 @@
+/**
+ * Admin API routes
+ */
+
+import { Router } from 'express';
+import { authenticate, requireRole } from '../../middleware/auth';
+import { asyncHandler } from '../../middleware/asyncHandler';
+import { success } from '../../utils/responseHelpers';
+
+const router = Router();
+router.use(authenticate);
+router.use(requireRole('admin'));
+
+router.get('/templates', asyncHandler(async (req, res) => {
+  success(res, [], 'Templates retrieved successfully');
+}));
+
+router.post('/templates', asyncHandler(async (req, res) => {
+  success(res, {}, 'Template created successfully', 201);
+}));
+
+router.get('/stats', asyncHandler(async (req, res) => {
+  success(res, {}, 'Statistics retrieved successfully');
+}));
+
+export default router;

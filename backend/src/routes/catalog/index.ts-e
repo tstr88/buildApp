@@ -1,0 +1,27 @@
+/**
+ * Catalog API routes
+ */
+
+import { Router } from 'express';
+import { asyncHandler } from '../../middleware/asyncHandler';
+import { success, paginated } from '../../utils/responseHelpers';
+
+const router = Router();
+
+router.get('/browse', asyncHandler(async (req, res) => {
+  paginated(res, [], 1, 0, 20, 'Catalog items retrieved successfully');
+}));
+
+router.get('/search', asyncHandler(async (req, res) => {
+  paginated(res, [], 1, 0, 20, 'Search results retrieved successfully');
+}));
+
+router.get('/:skuId', asyncHandler(async (req, res) => {
+  success(res, {}, 'Catalog item retrieved successfully');
+}));
+
+router.get('/categories', asyncHandler(async (req, res) => {
+  success(res, [], 'Categories retrieved successfully');
+}));
+
+export default router;

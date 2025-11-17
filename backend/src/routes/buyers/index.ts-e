@@ -1,0 +1,100 @@
+/**
+ * Buyers API routes
+ * Endpoints for buyer-specific functionality
+ */
+
+import { Router } from 'express';
+import { authenticate } from '../../middleware/auth';
+import { asyncHandler } from '../../middleware/asyncHandler';
+import { success } from '../../utils/responseHelpers';
+
+const router = Router();
+
+// All buyer routes require authentication
+router.use(authenticate);
+
+/**
+ * GET /api/buyers/projects
+ * Get buyer's projects
+ */
+router.get(
+  '/projects',
+  asyncHandler(async (req, res) => {
+    // TODO: Implement project listing
+    success(res, [], 'Projects retrieved successfully');
+  })
+);
+
+/**
+ * POST /api/buyers/projects
+ * Create a new project
+ */
+router.post(
+  '/projects',
+  asyncHandler(async (req, res) => {
+    // TODO: Implement project creation
+    success(res, {}, 'Project created successfully', 201);
+  })
+);
+
+/**
+ * GET /api/buyers/rfqs
+ * Get buyer's RFQs
+ */
+router.get(
+  '/rfqs',
+  asyncHandler(async (req, res) => {
+    // TODO: Implement RFQ listing
+    success(res, [], 'RFQs retrieved successfully');
+  })
+);
+
+/**
+ * POST /api/buyers/rfqs
+ * Create a new RFQ
+ */
+router.post(
+  '/rfqs',
+  asyncHandler(async (req, res) => {
+    // TODO: Implement RFQ creation
+    success(res, {}, 'RFQ created successfully', 201);
+  })
+);
+
+/**
+ * GET /api/buyers/orders
+ * Get buyer's orders
+ */
+router.get(
+  '/orders',
+  asyncHandler(async (req, res) => {
+    // TODO: Implement order listing
+    success(res, [], 'Orders retrieved successfully');
+  })
+);
+
+/**
+ * POST /api/buyers/orders
+ * Create a new order
+ */
+router.post(
+  '/orders',
+  asyncHandler(async (req, res) => {
+    // TODO: Implement order creation
+    success(res, {}, 'Order created successfully', 201);
+  })
+);
+
+/**
+ * GET /api/buyers/rentals
+ * Get buyer's rentals
+ */
+router.get(
+  '/rentals',
+  asyncHandler(async (req, res) => {
+    // TODO: Implement rental listing
+    success(res, [], 'Rentals retrieved successfully');
+  })
+);
+
+export default router;

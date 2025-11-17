@@ -1,0 +1,23 @@
+/**
+ * Factories API routes
+ */
+
+import { Router } from 'express';
+import { asyncHandler } from '../../middleware/asyncHandler';
+import { success, paginated } from '../../utils/responseHelpers';
+
+const router = Router();
+
+router.get('/', asyncHandler(async (req, res) => {
+  paginated(res, [], 1, 0, 20, 'Factories retrieved successfully');
+}));
+
+router.get('/:factoryId', asyncHandler(async (req, res) => {
+  success(res, {}, 'Factory profile retrieved successfully');
+}));
+
+router.get('/:factoryId/catalog', asyncHandler(async (req, res) => {
+  success(res, [], 'Factory catalog retrieved successfully');
+}));
+
+export default router;

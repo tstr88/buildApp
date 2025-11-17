@@ -1,0 +1,1734 @@
+{
+  "app": {
+    "name": "buildApp",
+    "tagline": "Georgia's Construction Materials Marketplace"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "back": "Back",
+    "calculating": "Calculating...",
+    "tryAgain": "Try Again",
+    "characters": "characters",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "requests": "Requests",
+    "rfqs": "RFQs",
+    "catalog": "Catalog",
+    "rentals": "Tool Rentals",
+    "profile": "Profile",
+    "factories": "Factories",
+    "orders": "Orders",
+    "settings": "Settings",
+    "performance": "Performance",
+    "billing": "Billing"
+  },
+  "home": {
+    "welcome": "Welcome to buildApp",
+    "subtitle": "Start your construction project with confidence",
+    "startNewProject": "Start a New Project",
+    "quickActions": "Quick Actions",
+    "newDirectOrder": "New Direct Order",
+    "browseCatalog": "Browse Catalog",
+    "viewFactories": "View Factories",
+    "myRfqsOrders": "My RFQs & Orders",
+    "noTemplates": "No templates available",
+    "noTemplatesDescription": "Check back soon for project templates",
+    "noProjects": "No projects yet",
+    "noProjectsDescription": "Start your first project using one of our templates above",
+    "startFirstProject": "Start Your First Project",
+    "legalDisclaimer": "Indicative calculations only. Non-structural scope. Consult licensed professionals for structural work."
+  },
+  "template": {
+    "startProject": "Start Project",
+    "estimatedDuration": "~{{days}} days"
+  },
+  "difficulty": {
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard"
+  },
+  "bom": {
+    "title": "Bill of Materials (BOM)",
+    "item": "Item",
+    "quantity": "Quantity",
+    "unit": "Unit",
+    "estimatedPrice": "Est. Price",
+    "total": "Total",
+    "disclaimer": "Prices are indicative, actual quotes may vary"
+  },
+  "fence": {
+    "page": {
+      "title": "Fence Project",
+      "subtitle": "Calculate materials needed and get offers"
+    },
+    "calculator": {
+      "title": "Fence Calculator",
+      "calculate": "Calculate"
+    },
+    "inputs": {
+      "length": "Length",
+      "height": "Height",
+      "style": "Style",
+      "gates": "Gates",
+      "terrain": "Terrain"
+    },
+    "style": {
+      "metalPrivacy": "Metal Privacy",
+      "woodOnMetal": "Wood on Metal"
+    },
+    "gates": {
+      "none": "None",
+      "walk": "Walk",
+      "car": "Car"
+    },
+    "terrain": {
+      "flat": "Flat",
+      "sloped": "Sloped"
+    },
+    "safety": {
+      "title": "Safety Notes",
+      "boundaries": "Check property boundaries before installation",
+      "utilities": "Utility lines must be marked",
+      "foundation": "Foundation depth: minimum 60cm"
+    },
+    "actions": {
+      "requestOffers": "Request Offers",
+      "directOrder": "Direct Order",
+      "directOrderComingSoon": "Direct Order coming soon",
+      "toolRental": "Tool Rental"
+    },
+    "toolRental": {
+      "title": "Fence Installation Kit",
+      "description": "Need tools? Rent professional equipment:",
+      "postDigger": "Post hole digger",
+      "level": "Spirit level",
+      "mixer": "Concrete mixer",
+      "viewOptions": "View Options"
+    },
+    "errors": {
+      "lengthRequired": "Length is required",
+      "heightRange": "Height must be between 1.5-2.5m"
+    }
+  },
+  "slab": {
+    "page": {
+      "title": "Concrete Slab Project",
+      "subtitle": "Calculate materials needed for slab pour"
+    },
+    "calculator": {
+      "title": "Concrete Slab Calculator",
+      "calculate": "Calculate"
+    },
+    "inputs": {
+      "purpose": "Purpose",
+      "length": "Length",
+      "width": "Width",
+      "thickness": "Thickness",
+      "edgeForms": "Edge Forms",
+      "edgeFormsDescription": "Wood forms for edge shaping"
+    },
+    "purpose": {
+      "parkingPad": "Parking Pad",
+      "patio": "Patio",
+      "walkway": "Walkway",
+      "custom": "Custom"
+    },
+    "safety": {
+      "title": "Safety Notes",
+      "nonStructural": "Non-structural slab only, max thickness 15cm",
+      "consultEngineer": "For foundations, retaining walls, or load-bearing - consult engineer",
+      "subBase": "Prepare sub-base: compact gravel 10-15cm",
+      "cureTime": "Cure time: minimum 7 days before load"
+    },
+    "actions": {
+      "requestOffers": "Request Offers",
+      "directOrder": "Direct Order",
+      "directOrderComingSoon": "Direct Order coming soon",
+      "toolRental": "Tool Rental"
+    },
+    "toolRental": {
+      "title": "Slab Pour Kit",
+      "description": "Need tools? Rent professional equipment:",
+      "screed": "Screed board",
+      "float": "Float",
+      "edger": "Edger",
+      "mixer": "Concrete mixer",
+      "pump": "Concrete pump",
+      "viewOptions": "View Options"
+    },
+    "summary": {
+      "volume": "Volume",
+      "area": "Area"
+    },
+    "warnings": {
+      "title": "Warning",
+      "engineeringRequired": "Engineering review required for thickness > 15cm"
+    },
+    "notes": {
+      "pumpRecommended": "Pump rental recommended (volume > 3m³)"
+    },
+    "errors": {
+      "lengthRequired": "Length is required",
+      "widthRequired": "Width is required",
+      "thicknessRange": "Thickness must be between 8-20cm",
+      "volumeTooSmall": "Volume too small (min. 0.5m³)",
+      "volumeTooLarge": "Volume too large (max. 20m³). For larger projects, consult professionals"
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "createNew": "New Project",
+    "searchPlaceholder": "Search projects...",
+    "empty": {
+      "title": "Create a project to organize your orders",
+      "description": "Projects help you track RFQs, orders, deliveries, and tool rentals for each construction site."
+    },
+    "noResults": {
+      "title": "No projects found",
+      "description": "Try a different search term"
+    },
+    "card": {
+      "rfqs": "RFQs",
+      "orders": "Orders",
+      "deliveries": "Deliveries",
+      "rentals": "Rentals"
+    },
+    "form": {
+      "createTitle": "New Project",
+      "editTitle": "Edit Project",
+      "name": "Project Name",
+      "namePlaceholder": "e.g., House Renovation, Garden Fence",
+      "nameRequired": "Project name is required",
+      "nameTooLong": "Project name must be 100 characters or less",
+      "location": "Project Location",
+      "address": "Address",
+      "addressPlaceholder": "e.g., 123 Rustaveli Ave, Tbilisi",
+      "addressHint": "Optional: Enter a street address for easier reference",
+      "notes": "Notes",
+      "notesPlaceholder": "Add any notes about this project..."
+    },
+    "map": {
+      "clickToSetLocation": "Click on the map to set project location",
+      "dragOrClickToMove": "Drag the pin or click on the map to adjust location",
+      "currentLocation": "Use Current Location",
+      "coordinates": "Coordinates",
+      "geolocationNotSupported": "Geolocation is not supported by your browser",
+      "geolocationError": "Could not get your current location",
+      "outsideGeorgia": "Location must be within Georgia"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "rfqs": "RFQs",
+      "orders": "Orders",
+      "deliveries": "Deliveries",
+      "rentals": "Rentals"
+    },
+    "detail": {
+      "location": "Location",
+      "notes": "Notes",
+      "info": "Information",
+      "created": "Created",
+      "updated": "Updated",
+      "status": "Status",
+      "deleteProject": "Delete Project",
+      "confirmDelete": "Are you sure you want to delete this project? This cannot be undone.",
+      "noRfqs": "No RFQs yet for this project",
+      "noOrders": "No orders yet for this project",
+      "noDeliveries": "No deliveries yet for this project",
+      "noRentals": "No tool rentals yet for this project",
+      "offers": "offers",
+      "deliveredBy": "Delivered by"
+    },
+    "rfqStatus": {
+      "draft": "Draft",
+      "active": "Active",
+      "expired": "Expired",
+      "closed": "Closed"
+    },
+    "orderStatus": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "in_transit": "In Transit",
+      "delivered": "Delivered",
+      "completed": "Completed",
+      "disputed": "Disputed",
+      "cancelled": "Cancelled"
+    },
+    "rentalStatus": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "active": "Active",
+      "completed": "Completed",
+      "overdue": "Overdue",
+      "disputed": "Disputed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "auth": {
+    "tagline": "Factory prices. Clear delivery. No middleman markup.",
+    "phoneLabel": "Enter your phone number",
+    "phonePlaceholder": "XXX XX XX XX",
+    "phoneExample": "e.g., 555 12 34 56",
+    "phoneInvalid": "Please enter a valid phone number",
+    "continue": "Continue",
+    "verifyTitle": "Verify your phone",
+    "verifySubtext": "Enter the 6-digit code sent to {{phone}}",
+    "otpLabel": "Verification Code",
+    "resendCode": "Didn't receive code? Resend",
+    "resendCountdown": "Resend in {{seconds}}s",
+    "changePhone": "Change phone number",
+    "verify": "Verify",
+    "invalidOtp": "Invalid code. Please try again.",
+    "otpExpired": "Code expired. Request a new one.",
+    "maxAttempts": "Too many attempts. Request a new code.",
+    "completeProfileTitle": "Complete your profile",
+    "nameLabel": "Full Name",
+    "namePlaceholder": "e.g., Giorgi Beridze",
+    "nameRequired": "Name is required",
+    "nameTooShort": "Name must be at least 2 characters",
+    "nameTooLong": "Name must be 100 characters or less",
+    "userTypeLabel": "I am...",
+    "userTypeBuyer": "Buying Materials",
+    "userTypeSupplier": "A Supplier",
+    "buyerRoleLabel": "Role",
+    "buyerRoleHomeowner": "Homeowner",
+    "buyerRoleContractor": "Contractor",
+    "getStarted": "Get Started",
+    "sending": "Sending...",
+    "verifying": "Verifying...",
+    "registering": "Creating account...",
+    "codeSentViaSms": "Code will be sent via SMS",
+    "termsText": "By continuing, you agree to our terms"
+  },
+  "rfqsPage": {
+    "title": "My RFQs",
+    "subtitle": "Manage your requests for quotes",
+    "newRfq": "New RFQ",
+    "tabs": {
+      "active": "Active",
+      "offers": "Offers Received",
+      "accepted": "Accepted",
+      "expired": "Expired"
+    },
+    "status": {
+      "active": "Active",
+      "draft": "Draft",
+      "expired": "Expired",
+      "closed": "Closed"
+    },
+    "loading": "Loading RFQs...",
+    "empty": {
+      "title": "No RFQs found",
+      "noRfqs": "You haven't created any RFQs yet",
+      "noOffers": "No RFQs with offers yet",
+      "noAccepted": "No accepted RFQs yet",
+      "noExpired": "No expired RFQs",
+      "createFirst": "Create Your First RFQ"
+    },
+    "item": "item",
+    "items": "items",
+    "supplier": "supplier",
+    "suppliers": "suppliers",
+    "offer": "offer",
+    "offers": "offers",
+    "new": "new"
+  },
+  "catalogPage": {
+    "title": "Materials Catalog",
+    "searchPlaceholder": "Search materials, SKUs, suppliers...",
+    "filters": "Filters",
+    "result": "result",
+    "results": "results",
+    "sort": {
+      "relevance": "Sort: Relevance",
+      "priceAsc": "Price: Low to High",
+      "priceDesc": "Price: High to Low",
+      "updated": "Recently Updated"
+    },
+    "empty": {
+      "title": "No materials found",
+      "description": "Try adjusting your search or filters",
+      "resetFilters": "Reset Filters"
+    },
+    "badges": {
+      "direct": "Direct",
+      "stale": "Stale",
+      "sameDay": "Same-day",
+      "nextDay": "Next-day",
+      "negotiable": "Negotiable",
+      "pickup": "Pickup",
+      "delivery": "Delivery"
+    },
+    "buttons": {
+      "addToRfq": "Add to RFQ",
+      "order": "Order"
+    },
+    "time": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "daysAgo": "{{days}}d ago",
+      "weeksAgo": "{{weeks}}w ago",
+      "monthsAgo": "{{months}}mo ago"
+    },
+    "filters": {
+      "title": "Filters",
+      "reset": "Reset",
+      "category": "Category",
+      "supplier": "Supplier",
+      "searchSuppliers": "Search suppliers...",
+      "directOrder": "Direct Order Available",
+      "deliveryOption": "Delivery Option",
+      "leadTime": "Lead Time",
+      "priceRange": "Price Range",
+      "updated": "Updated",
+      "priceMin": "Min",
+      "priceMax": "Max",
+      "categories": {
+        "concrete": "Concrete",
+        "blocks": "Blocks",
+        "rebar": "Rebar/Mesh",
+        "aggregates": "Aggregates",
+        "metal": "Metal Profiles"
+      },
+      "deliveryOptions": {
+        "any": "Any",
+        "pickup": "Pickup",
+        "delivery": "Delivery",
+        "both": "Both"
+      },
+      "leadTimeOptions": {
+        "any": "Any",
+        "sameDay": "Same-day",
+        "nextDay": "Next-day",
+        "negotiable": "Negotiable"
+      },
+      "updatedOptions": {
+        "last7Days": "Last 7 days",
+        "last14Days": "Last 14 days",
+        "last30Days": "Last 30 days",
+        "stale": "Stale (>14 days)"
+      }
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {{page}} of {{totalPages}}"
+    }
+  },
+  "factoriesPage": {
+    "title": "Factory Directory",
+    "viewMode": {
+      "map": "Map",
+      "list": "List"
+    },
+    "sort": {
+      "reliability": "Highest Reliability",
+      "nearest": "Nearest",
+      "mostSkus": "Most SKUs",
+      "newest": "Newest"
+    },
+    "filters": {
+      "button": "Filters",
+      "categories": {
+        "concrete": "Concrete",
+        "blocks": "Blocks",
+        "rebar": "Rebar/Mesh",
+        "aggregates": "Aggregates",
+        "metal": "Metal Profiles",
+        "tools": "Tools"
+      },
+      "directOrder": "Direct Order",
+      "trustTier": {
+        "all": "All Suppliers",
+        "verified": "Verified",
+        "trusted": "Trusted"
+      },
+      "distance": {
+        "all": "All Georgia",
+        "10km": "< 10km",
+        "25km": "< 25km",
+        "50km": "< 50km"
+      },
+      "reset": "Reset Filters"
+    },
+    "results": {
+      "supplier": "supplier",
+      "suppliers": "suppliers",
+      "found": "found"
+    },
+    "empty": {
+      "title": "No suppliers found",
+      "description": "Try adjusting your filters",
+      "reset": "Reset Filters"
+    },
+    "map": {
+      "comingSoon": "Map integration coming soon",
+      "description": "Will show supplier depot locations with clickable pins"
+    },
+    "card": {
+      "directOrder": "Direct Order",
+      "kmAway": "km away",
+      "skusAvailable": "SKUs available"
+    },
+    "trustMetrics": {
+      "title": "Trust Metrics",
+      "specReliability": {
+        "label": "Spec Reliability",
+        "short": "Spec",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low",
+        "description": "Delivered spec matches ordered spec",
+        "tooltip": "Spec Reliability: {{percentage}}%"
+      },
+      "onTimeDelivery": {
+        "label": "On-time Delivery",
+        "usuallyOnTime": "Usually on time",
+        "sometimesLate": "Sometimes late",
+        "oftenLate": "Often late",
+        "description": "Delivery within promised window",
+        "tooltip": "On-time: {{percentage}}%"
+      },
+      "issueRate": {
+        "label": "Issue Rate",
+        "short": "Issues",
+        "low": "Low",
+        "higherThanAverage": "Higher than average",
+        "description": "Dispute rate on completed orders",
+        "tooltip": "Issue rate: {{percentage}}%"
+      },
+      "sampleSize": {
+        "earlyTrackRecord": "Early track record",
+        "basedOnDeliveries": "Based on {{count}} deliveries"
+      }
+    }
+  },
+  "rentalsPage": {
+    "title": "Tool Rentals",
+    "filters": "Filters",
+    "result": "tool",
+    "results": "tools",
+    "sort": {
+      "recommended": "Sort: Recommended",
+      "priceLow": "Price: Low to High",
+      "priceHigh": "Price: High to Low",
+      "name": "Name A-Z"
+    },
+    "requestQuote": "Request Quote",
+    "empty": {
+      "title": "No tools found",
+      "description": "Try adjusting your search or filters",
+      "resetFilters": "Reset Filters"
+    },
+    "badges": {
+      "direct": "Direct Booking",
+      "delivery": "Delivery",
+      "pickup": "Pickup",
+      "both": "Pickup & Delivery"
+    },
+    "buttons": {
+      "viewDetails": "View Details",
+      "book": "Book Now"
+    },
+    "pricing": {
+      "perDay": "per day",
+      "perWeek": "per week",
+      "deposit": "Deposit",
+      "or": "or"
+    },
+    "filters": {
+      "title": "Filters",
+      "reset": "Reset",
+      "category": "Category",
+      "supplier": "Supplier",
+      "searchSuppliers": "Search suppliers...",
+      "directBooking": "Direct Booking Available",
+      "deliveryAvailable": "Delivery Available",
+      "dailyRate": "Daily Rate Range",
+      "weeklyRate": "Weekly Rate Range",
+      "min": "Min",
+      "max": "Max",
+      "toolCategories": {
+        "concrete": "Concrete",
+        "excavation": "Excavation",
+        "lifting": "Lifting",
+        "safety": "Safety",
+        "measuring": "Measuring"
+      }
+    }
+  },
+  "ordersPage": {
+    "title": "Orders",
+    "subtitle": "Track and manage your material orders",
+    "newDirectOrder": "New Direct Order",
+    "placeDirectOrder": "Place Direct Order",
+    "searchPlaceholder": "Search orders...",
+    "loading": "Loading orders...",
+    "tabs": {
+      "active": "Active",
+      "completed": "Completed",
+      "disputed": "Disputed"
+    },
+    "status": {
+      "pending": "Pending",
+      "pendingSchedule": "Schedule TBD",
+      "scheduled": "Scheduled",
+      "confirmed": "Confirmed",
+      "inTransit": "In Transit",
+      "delivered": "Delivered",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "disputed": "Disputed"
+    },
+    "fields": {
+      "totalAmount": "Total Amount",
+      "pickup": "Pickup",
+      "delivery": "Delivery",
+      "depot": "Depot",
+      "orderDate": "Order Date",
+      "scheduled": "Scheduled"
+    },
+    "empty": {
+      "title": "No orders found",
+      "tryAdjust": "Try adjusting your search or filters",
+      "startFirst": "Start by placing your first direct order"
+    }
+  },
+  "profilePage": {
+    "title": "Profile & Settings",
+    "back": "Back",
+    "editProfile": "Edit Profile",
+    "failedToLoad": "Failed to load profile",
+    "userType": {
+      "buyer": "Buyer",
+      "supplier": "Supplier"
+    },
+    "buyerRole": {
+      "homeowner": "Homeowner",
+      "contractor": "Contractor"
+    },
+    "sections": {
+      "accountDetails": {
+        "title": "Account Details",
+        "fullName": "Full Name",
+        "phoneNumber": "Phone Number",
+        "buyerRole": "Buyer Role",
+        "languagePreference": "Language Preference",
+        "accountCreated": "Account Created"
+      },
+      "activeProjects": {
+        "title": "Active Projects",
+        "viewAll": "View All Projects"
+      },
+      "orderHistory": {
+        "title": "Order History",
+        "activeOrders": "Active Orders",
+        "completedOrders": "Completed Orders",
+        "viewFull": "View Full Order History"
+      },
+      "notifications": {
+        "title": "Notifications",
+        "pushNotifications": "Push Notifications",
+        "pushDescription": "Receive push notifications on your device",
+        "smsNotifications": "SMS Notifications",
+        "smsDescription": "Receive SMS messages for important updates",
+        "quietHours": "Quiet Hours",
+        "quietHoursDescription": "Pause notifications during specific hours",
+        "startTime": "Start Time",
+        "endTime": "End Time",
+        "categoriesTitle": "Notification Categories",
+        "markAllRead": "Mark All as Read",
+        "all": "All",
+        "unread": "Unread",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "noNotifications": "No notifications",
+        "noUnread": "No unread notifications",
+        "loadMore": "Load More",
+        "categories": {
+          "rfqOffers": {
+            "title": "RFQ & Offers",
+            "description": "Notifications about RFQs and supplier offers"
+          },
+          "deliveryUpdates": {
+            "title": "Delivery Updates",
+            "description": "Notifications about delivery status changes"
+          },
+          "rentalHandovers": {
+            "title": "Rental Handovers",
+            "description": "Notifications about rental tool pickups and returns"
+          },
+          "tipsSuggestions": {
+            "title": "Tips & Suggestions",
+            "description": "Helpful tips and product suggestions"
+          }
+        }
+      },
+      "helpLegal": {
+        "title": "Help & Legal",
+        "faqs": "FAQs",
+        "terms": "Terms & Conditions",
+        "privacy": "Privacy Policy",
+        "contact": "Contact Support"
+      },
+      "dangerZone": {
+        "title": "Danger Zone",
+        "description": "Once you delete your account, there is no going back. Your profile will be anonymized and you will no longer be able to access your account.",
+        "deleteAccount": "Delete Account"
+      }
+    }
+  },
+  "editProfileModal": {
+    "title": "Edit Profile",
+    "fullName": "Full Name",
+    "buyerRole": "Buyer Role",
+    "homeowner": "Homeowner",
+    "contractor": "Contractor",
+    "languagePreference": "Language Preference",
+    "georgian": "Georgian (ქართული)",
+    "english": "English",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "saveChanges": "Save Changes",
+    "errors": {
+      "failedToUpdate": "Failed to update profile",
+      "pleaseTryAgain": "Failed to update profile. Please try again."
+    }
+  },
+  "deleteAccountModal": {
+    "title": "Delete Account",
+    "warning": {
+      "title": "This action cannot be undone",
+      "description": "Deleting your account will:",
+      "bullets": {
+        "deactivate": "Permanently deactivate your account",
+        "anonymize": "Anonymize your personal information (name, phone, email)",
+        "invalidateSessions": "Invalidate all active sessions across all devices",
+        "preventLogin": "Prevent you from logging in again",
+        "keepRecords": "Keep anonymized order/RFQ records for statistical purposes",
+        "flagOrders": "Flag any active orders or rentals with \"[Account deleted]\""
+      },
+      "activeOrdersWarning": "If you have active orders or rentals, please complete or cancel them before deleting your account to avoid any complications."
+    },
+    "confirm": {
+      "instructions": "To confirm account deletion, please type your phone number exactly as shown below:",
+      "yourPhoneNumber": "Your Phone Number",
+      "placeholder": "Type your phone number to confirm"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "understand": "I Understand, Continue",
+      "back": "Back",
+      "deleting": "Deleting Account...",
+      "deleteAccount": "Delete My Account"
+    },
+    "errors": {
+      "phoneNoMatch": "Phone number does not match. Please enter your exact phone number.",
+      "failedToDelete": "Failed to delete account",
+      "pleaseTryAgain": "Failed to delete account. Please try again."
+    }
+  },
+  "supplierOnboarding": {
+    "title": "Become a Supplier",
+    "progress": "Step {{current}} of {{total}}",
+    "buttons": {
+      "next": "Next",
+      "back": "Back",
+      "complete": "Complete Setup",
+      "goToDashboard": "Go to Dashboard"
+    },
+    "businessInfo": {
+      "title": "Business Information",
+      "subtitle": "Tell us about your business",
+      "businessName": "Business Name",
+      "businessNamePlaceholder": "e.g., Tbilisi Concrete Factory",
+      "businessNameRequired": "Business name is required"
+    },
+    "location": {
+      "title": "Location & Coverage",
+      "subtitle": "Where is your depot and where do you deliver?",
+      "depotLocation": "Depot Location",
+      "useCurrentLocation": "Use Current Location",
+      "tapToSetLocation": "Tap map to set location",
+      "mapInstructions": "Click on the map to set your depot location, or use the 'Use Current Location' button",
+      "locating": "Getting your location...",
+      "selectedLocation": "Selected Location",
+      "coordinates": "Coordinates",
+      "address": "Address",
+      "addressPlaceholder": "Optional display address",
+      "deliveryZones": "Delivery Zones",
+      "zones": {
+        "tbilisi_only": "Tbilisi Only",
+        "tbilisi_25km": "Tbilisi + 25km",
+        "tbilisi_50km": "Tbilisi + 50km",
+        "all_georgia": "All Georgia",
+        "pickup_only": "Pickup Only"
+      },
+      "locationRequired": "Please set depot location",
+      "outsideGeorgia": "Selected location is outside Georgia. Please select a location within Georgia.",
+      "geolocationNotSupported": "Geolocation is not supported by your browser",
+      "geolocationError": "Unable to get your location. Please set location manually on the map."
+    },
+    "products": {
+      "title": "Categories & Products",
+      "subtitle": "What do you supply?",
+      "categoriesLabel": "Select your categories",
+      "categories": {
+        "concrete": "Concrete",
+        "blocks": "Blocks",
+        "rebarMesh": "Rebar/Mesh",
+        "aggregates": "Aggregates",
+        "metalProfiles": "Metal Profiles",
+        "toolRentals": "Tool Rentals",
+        "other": "Other"
+      },
+      "addProductsLabel": "Add your products (minimum 1)",
+      "productForm": {
+        "productName": "Product Name",
+        "productNamePlaceholder": "e.g., Concrete M300",
+        "nameRequired": "Product name is required",
+        "namePlaceholder": "e.g., Concrete M300",
+        "specStringPlaceholder": "e.g., 15-20 slump, standard aggregate",
+        "categoryRequired": "Category is required",
+        "selectCategory": "Select category",
+        "unitRequired": "Unit is required",
+        "selectUnit": "Select unit",
+        "basePriceRequired": "Base price is required",
+        "basePricePlaceholder": "0.00",
+        "deliveryOptionsRequired": "Delivery option is required",
+        "directOrderAvailable": "Direct Order Available",
+        "directOrderTooltip": "Enable instant ordering without RFQ",
+        "deliveryOptions": "Delivery Options",
+        "pickup": "Pickup",
+        "delivery": "Delivery",
+        "both": "Both",
+        "leadTime": "Lead Time",
+        "sameDayAM": "Same Day AM",
+        "sameDayPM": "Same Day PM",
+        "nextDay": "Next Day",
+        "custom": "Custom",
+        "negotiable": "Negotiable",
+        "customLeadTimePlaceholder": "e.g., 3-5 days",
+        "disabledNote": "Direct Order is disabled. Buyers will send RFQs for this product",
+        "minOrderQty": "Minimum Order Quantity",
+        "minOrderQtyPlaceholder": "Optional",
+        "saveAndAddAnother": "Save & Add Another",
+        "unit": "Unit",
+        "units": {
+          "m3": "m³",
+          "m2": "m²",
+          "m": "m (linear)",
+          "kg": "kg",
+          "ton": "ton",
+          "pcs": "pcs"
+        },
+        "basePrice": "Base Price (₾)",
+        "deliveryOption": "Delivery Option",
+        "directOrder": "Direct Order",
+        "directOrderDescription": "Enable instant ordering without RFQ",
+        "leadTimes": {
+          "sameDay": "Same Day",
+          "nextDay": "Next Day",
+          "custom": "Custom",
+          "negotiable": "Negotiable"
+        },
+        "customDays": "Number of Days",
+        "customDaysPlaceholder": "Enter number of days",
+        "addProduct": "Add Product",
+        "removeProduct": "Remove"
+      },
+      "minimumProducts": "Add at least 1 product to continue",
+      "productsAdded": "{{count}} products added"
+    },
+    "payment": {
+      "title": "Payment & Terms",
+      "subtitle": "Set your payment preferences",
+      "paymentMethods": "Payment Methods Accepted",
+      "methods": {
+        "cashOnDelivery": "Cash on Delivery",
+        "bankTransfer": "Bank Transfer",
+        "prepay": "Prepayment"
+      },
+      "minimumOrder": "Minimum Order Value (₾)",
+      "minimumOrderPlaceholder": "Optional",
+      "about": "About Your Business",
+      "aboutPlaceholder": "Tell buyers about your experience, specialties, or certifications (max 300 characters)",
+      "aboutMaxLength": "{{current}}/300 characters"
+    },
+    "agreement": {
+      "title": "Supplier Agreement",
+      "content": {
+        "intro": "By completing setup, you agree to the following terms:",
+        "marketplaceRole": {
+          "title": "Marketplace Role",
+          "description": "buildApp connects you with buyers. You maintain control over pricing, inventory, and order acceptance."
+        },
+        "successFee": {
+          "title": "Success Fee",
+          "description": "A {{rate}}% fee applies to completed orders. No fee for rejected or cancelled orders."
+        },
+        "deliveryStandards": {
+          "title": "Delivery Standards",
+          "description": "Photo proof required for deliveries. Buyers have 24 hours to confirm or dispute orders."
+        },
+        "trustMetrics": {
+          "title": "Trust Metrics",
+          "description": "Your performance is tracked (spec reliability, on-time delivery, issue rate). Better metrics improve visibility."
+        }
+      },
+      "iAgree": "I agree to the Supplier Agreement",
+      "mustAgree": "You must agree to the terms to continue"
+    },
+    "success": {
+      "title": "You're live on buildApp!",
+      "subtitle": "RFQs will start appearing in your inbox",
+      "nextSteps": "You can add more products in your Catalog later"
+    },
+    "errors": {
+      "failedToOnboard": "Failed to complete onboarding",
+      "pleaseTryAgain": "Please try again or contact support",
+      "locationOutOfBounds": "Location must be within Georgia"
+    }
+  },
+  "catalog": {
+    "title": "My Catalog",
+    "totalSkus": "Total SKUs",
+    "directOrderEnabled": "Direct Order Enabled",
+    "stalePrices": "Stale Prices (>14 days)",
+    "searchPlaceholder": "Search products...",
+    "filter": "Filter",
+    "category": "Category",
+    "allCategories": "All Categories",
+    "directOrder": "Direct Order",
+    "onlyDirectOrder": "Direct Only",
+    "onlyRfq": "RFQ Only",
+    "status": "Status",
+    "allStatuses": "All Statuses",
+    "active": "Active",
+    "inactive": "Inactive",
+    "sortBy": "Sort By",
+    "name": "Name",
+    "lastUpdated": "Last Updated",
+    "resetFilters": "Reset Filters",
+    "addProduct": "Add Product",
+    "editProduct": "Edit Product",
+    "productName": "Product Name",
+    "productNameGeorgian": "Product Name (Georgian)",
+    "productNameEnglish": "Product Name (English)",
+    "specification": "Specification",
+    "specString": "Specification",
+    "specificationGeorgian": "Specification (Georgian)",
+    "specificationEnglish": "Specification (English)",
+    "unit": "Unit",
+    "unitGeorgian": "Unit (Georgian)",
+    "unitEnglish": "Unit (English)",
+    "basePrice": "Base Price (₾)",
+    "description": "Description",
+    "descriptionGeorgian": "Description (Georgian)",
+    "descriptionEnglish": "Description (English)",
+    "directOrderAvailable": "Direct Order Available",
+    "deliveryOptions": "Delivery Options",
+    "pickup": "Pickup",
+    "delivery": "Delivery",
+    "both": "Both",
+    "leadTime": "Lead Time",
+    "sameDay": "Same Day",
+    "nextDay": "Next Day",
+    "negotiable": "Negotiable",
+    "customDays": "Custom Days",
+    "minOrderQuantity": "Min. Order Quantity",
+    "images": "Images",
+    "uploadImages": "Upload Images",
+    "imageNote": "Add images (max 3)",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "productForm": {
+      "nameRequired": "Product name is required",
+      "namePlaceholder": "e.g., Concrete M300",
+      "specStringPlaceholder": "e.g., 15-20 slump, standard aggregate",
+      "categoryRequired": "Category is required",
+      "selectCategory": "Select category",
+      "unitRequired": "Unit is required",
+      "selectUnit": "Select unit",
+      "basePriceRequired": "Base price is required",
+      "basePricePlaceholder": "0.00",
+      "deliveryOptionsRequired": "Delivery option is required",
+      "directOrderAvailable": "Direct Order Available",
+      "directOrderTooltip": "Enable instant ordering without RFQ",
+      "deliveryOptions": "Delivery Options",
+      "pickup": "Pickup",
+      "delivery": "Delivery",
+      "both": "Both",
+      "leadTime": "Lead Time",
+      "sameDayAM": "Same Day AM",
+      "sameDayPM": "Same Day PM",
+      "nextDay": "Next Day",
+      "custom": "Custom",
+      "negotiable": "Negotiable",
+      "customLeadTimePlaceholder": "e.g., 3-5 days",
+      "disabledNote": "Direct Order is disabled. Buyers will send RFQs for this product",
+      "minOrderQty": "Minimum Order Quantity",
+      "minOrderQtyPlaceholder": "Optional",
+      "saveAndAddAnother": "Save & Add Another"
+    },
+    "bulk": {
+      "title": "Bulk Edit",
+      "selected": "{{count}} selected",
+      "enableDirectOrder": "Enable Direct Order",
+      "disableDirectOrder": "Disable Direct Order",
+      "changeCategory": "Change Category",
+      "changeDelivery": "Change Delivery Option",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "updating": "Updating..."
+    },
+    "actions": {
+      "edit": "Edit",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "delete": "Delete",
+      "clear": "Clear"
+    },
+    "emptyState": {
+      "title": "No products yet",
+      "description": "Start by adding your first product to the catalog",
+      "noResults": "No products found",
+      "tryDifferentFilter": "Try a different filter or search term"
+    },
+    "validation": {
+      "nameRequired": "Product name is required",
+      "categoryRequired": "Category is required",
+      "unitRequired": "Unit is required",
+      "priceRequired": "Price is required",
+      "pricePositive": "Price must be positive",
+      "deliveryRequired": "Delivery option is required"
+    },
+    "staleIndicator": "Stale (>14 days)",
+    "lastUpdatedDaysAgo": "Updated {{days}} days ago",
+    "bulkUpload": "Bulk Upload",
+    "all": "All",
+    "directOrderOn": "Direct Order On",
+    "directOrderOff": "Direct Order Off",
+    "recentFirst": "Recent First",
+    "staleFirst": "Stale First",
+    "nameAZ": "Name (A-Z)",
+    "updated": "Updated",
+    "edit": "Edit",
+    "actionsHeader": "Actions",
+    "selected": "{{count}} selected",
+    "stale": "Stale",
+    "daysAgo": "{{count}} days ago",
+    "messages": {
+      "updatePricesNudge": "{{count}} products need price updates",
+      "noProducts": "No products yet"
+    }
+  },
+  "supplierOrders": {
+    "title": "Direct Orders",
+    "subtitle": "Manage direct orders and deliveries",
+    "orderId": "Order",
+    "tabs": {
+      "new": "New",
+      "scheduled": "Scheduled",
+      "inProgress": "In Progress",
+      "completed": "Completed"
+    },
+    "status": {
+      "needsScheduling": "Needs Scheduling",
+      "windowProposed": "Window Proposed",
+      "scheduled": "Scheduled",
+      "inTransit": "In Transit",
+      "delivered": "Delivered",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "disputed": "Disputed"
+    },
+    "items": "Items",
+    "total": "Total",
+    "pickupWindow": "Pickup Window",
+    "deliveryWindow": "Delivery Window",
+    "needsScheduling": "Needs scheduling",
+    "noOrders": "No orders found",
+    "noNewOrders": "New orders will appear here",
+    "noScheduledOrders": "Scheduled orders will appear here",
+    "noInProgressOrders": "Orders in progress will appear here",
+    "noCompletedOrders": "Completed orders will appear here",
+    "orderNotFound": "Order not found",
+    "buyerContact": "Buyer Contact",
+    "name": "Name",
+    "phone": "Phone",
+    "deliveryAddress": "Delivery Address",
+    "orderItems": "Order Items",
+    "specification": "Specification",
+    "quantity": "Quantity",
+    "unitPrice": "Unit Price",
+    "subtotal": "Subtotal",
+    "scheduling": "Scheduling",
+    "scheduledFor": "Scheduled for",
+    "requestReschedule": "Request Reschedule",
+    "proposeWindowBanner": "Propose delivery window to buyer",
+    "proposeWindow": "Propose Window",
+    "awaitingBuyer": "Awaiting buyer confirmation",
+    "pickupPrep": "Pickup Preparation",
+    "deliveryPrep": "Delivery Preparation",
+    "itemsPrepared": "Items prepared",
+    "slotAssigned": "Pickup slot assigned",
+    "vehicleAssigned": "Delivery vehicle assigned",
+    "contactConfirmed": "Buyer contact confirmed",
+    "internalNotes": "Internal Notes",
+    "notVisibleToBuyer": "not visible to buyer",
+    "notesPlaceholder": "Add internal notes...",
+    "readyForPickup": "Ready for pickup?",
+    "readyForDelivery": "Ready to deliver?",
+    "markHandedOver": "Mark as Handed Over",
+    "markDelivered": "Mark as Delivered",
+    "deliveryStatus": "Delivery Status",
+    "deliveredOn": "Delivered on",
+    "waitingForConfirmation": "Waiting for buyer confirmation",
+    "confirmationDeadline": "Confirmation deadline",
+    "orderCompleted": "Order completed successfully",
+    "currentWindow": "Current Window",
+    "pickupWindowStart": "Pickup Window Start",
+    "deliveryWindowStart": "Delivery Window Start",
+    "pickupWindowEnd": "Pickup Window End",
+    "deliveryWindowEnd": "Delivery Window End",
+    "timeSlot": "Time Slot",
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "allDay": "All Day",
+    "submitProposal": "Submit Proposal",
+    "uploadPhotos": "Upload Photos",
+    "photoTip": "Tip: Photo of materials on-site with visible quantity/placement",
+    "uploadPhotosCTA": "Click to upload photos",
+    "quantitiesDelivered": "Quantities Delivered",
+    "ordered": "Ordered",
+    "quantityLessThanOrdered": "Quantity less than ordered - note required",
+    "deliveryNotes": "Delivery Notes",
+    "confirmHandover": "Confirm Handover",
+    "confirmDelivery": "Confirm Delivery",
+    "validation": {
+      "windowRequired": "Please select delivery window",
+      "invalidWindow": "End date must be after start date",
+      "photoRequired": "At least 1 photo is required",
+      "maxPhotos": "Maximum 3 photos allowed",
+      "noteRequiredForQtyDiff": "Please provide a note explaining the quantity difference"
+    }
+  },
+  "supplierDashboard": {
+    "welcomeTitle": "Welcome to BuildApp!",
+    "welcomeSubtitle": "Complete your supplier profile to start receiving orders",
+    "setupYourBusiness": "Set Up Your Business",
+    "onboardingDescription": "Complete your supplier profile to start receiving RFQs and direct orders from buyers. Set up your depot location, catalog, and business information.",
+    "feature1": "Set your depot location and delivery zones",
+    "feature2": "Add your products and pricing",
+    "feature3": "Start receiving RFQs from buyers",
+    "feature4": "Grow your business with direct orders",
+    "startOnboarding": "Complete Supplier Profile",
+    "title": "Supplier Dashboard",
+    "subtitle": "Manage your RFQs, offers, and deliveries",
+    "newRFQs": "New RFQs",
+    "offersWaitingApproval": "Offers Waiting Approval",
+    "newDirectOrders": "New Direct Orders",
+    "scheduledConfirmedOrders": "Scheduled Orders",
+    "todaysDeliveries": "Today's Deliveries",
+    "trustScore": "Trust Score",
+    "pendingBuyerResponse": "Pending buyer response",
+    "needsConfirmation": "Needs confirmation",
+    "confirmed": "Confirmed & scheduled",
+    "dueToday": "Due today",
+    "quickActions": "Quick Actions",
+    "viewNewRFQs": "New RFQs",
+    "manageCatalog": "Manage Catalog",
+    "viewPerformance": "View Performance",
+    "recentActivity": "Recent Activity",
+    "noActivity": "No recent activity"
+  },
+  "performance": {
+    "title": "Performance Dashboard",
+    "subtitle": "Your trust metrics and performance trends",
+    "overallScore": "Overall Trust Score",
+    "basedOn": "Based On",
+    "completedOrders": "completed orders",
+    "trend": "Trend (30 days)",
+    "vsPrevious": "vs previous 30 days",
+    "tier": {
+      "unverified": "Unverified",
+      "verified": "Verified",
+      "trusted": "Trusted"
+    },
+    "metrics": {
+      "specReliability": "Spec Reliability",
+      "onTimeDelivery": "On-Time Delivery",
+      "reportedIssues": "Reported Issues",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "usuallyOnTime": "Usually on time",
+      "sometimesLate": "Sometimes late",
+      "oftenLate": "Often late",
+      "higherThanAverage": "Higher than average"
+    },
+    "definitions": {
+      "specReliability": "Delivered items match ordered specifications",
+      "onTimeDelivery": "Deliveries within promised window (±30 min)",
+      "reportedIssues": "Orders with buyer-reported problems"
+    },
+    "tips": {
+      "title": "Improvement Tips",
+      "specReliability1": "Verify items before dispatch",
+      "specReliability2": "Update SKU specs accurately",
+      "onTimeDelivery1": "Set realistic lead times",
+      "onTimeDelivery2": "Notify buyers of delays proactively",
+      "reportedIssues1": "Double-check quantities before delivery",
+      "reportedIssues2": "Use quality packaging"
+    },
+    "stats": {
+      "title": "Detailed Statistics",
+      "totalOrders": "Total Orders",
+      "completed": "Completed",
+      "disputed": "Disputed",
+      "avgResponseTime": "Avg Response Time",
+      "offerAcceptanceRate": "Offer Acceptance Rate",
+      "directOrders": "Direct Orders"
+    },
+    "badges": {
+      "title": "Recognition Badges",
+      "topReliability": "Top Reliability",
+      "topReliabilityDesc": "Spec reliability >95% with >50 orders",
+      "alwaysOnTime": "Always On Time",
+      "alwaysOnTimeDesc": "On-time delivery >90% with >50 orders",
+      "lowIssueRate": "Low Issue Rate",
+      "lowIssueRateDesc": "Issue rate <3% with >50 orders"
+    },
+    "disputes": {
+      "title": "Dispute Log",
+      "subtitle": "Disputes affect your trust score",
+      "noDisputes": "No disputes recorded",
+      "orderId": "Order ID",
+      "buyerType": "Buyer Type",
+      "issue": "Issue",
+      "outcome": "Outcome",
+      "date": "Date"
+    },
+    "howScoresUsed": {
+      "title": "How Scores Are Used",
+      "subtitle": "Your trust metrics affect:",
+      "point1": "Visibility in buyer searches (Trusted suppliers ranked higher)",
+      "point2": "Inclusion in homeowner results (Unverified hidden)",
+      "point3": "Buyer confidence (labels shown on your profile)"
+    },
+    "failedToLoad": "Failed to load performance data"
+  },
+  "supplierRFQInbox": {
+    "title": "RFQ Inbox",
+    "subtitle": "Manage quote requests from buyers",
+    "tabs": {
+      "new": "New",
+      "sent": "Sent Offers",
+      "accepted": "Accepted",
+      "expired": "Expired"
+    },
+    "noRFQs": "No RFQs found",
+    "noNewRFQs": "New quote requests will appear here",
+    "noSentOffers": "Offers you send will appear here",
+    "noAcceptedOffers": "Accepted offers will appear here",
+    "noExpiredRFQs": "Expired RFQs will appear here",
+    "newBuyer": "New buyer",
+    "location": "Location",
+    "items": "Items",
+    "deliveryWindow": "Delivery Window",
+    "offerAmount": "Offer Amount"
+  },
+  "billing": {
+    "title": "Billing & Payments",
+    "subtitle": "Track your success-fee charges and payment status",
+    "howItWorks": "How it works",
+    "currentBalance": "Current Balance",
+    "balanceDescription": "Fees owed to Buildapp",
+    "outstandingFees": "Outstanding (Invoiced)",
+    "pendingFees": "Pending (Not Yet Invoiced)",
+    "nextBillingDate": "Next Billing Date",
+    "monthlySummary": "Monthly Summary",
+    "completedOrders": "Completed Orders",
+    "totalValue": "Total Order Value",
+    "avgFeeRate": "Avg. Fee Rate",
+    "feesOwed": "Fees Owed",
+    "status": {
+      "current": "Current",
+      "dueSoon": "Due Soon",
+      "overdue": "Overdue"
+    },
+    "paymentInstructions": {
+      "title": "Payment Instructions",
+      "description": "Invoices are generated on the 1st of each month for the previous month's completed orders. Payment is due within 15 days.",
+      "bankDetails": "Bank Details",
+      "bankName": "Bank",
+      "accountNumber": "Account",
+      "reference": "Reference",
+      "referenceFormat": "Invoice Number"
+    },
+    "ledger": {
+      "title": "Transaction History",
+      "export": "Export CSV",
+      "date": "Date",
+      "orderType": "Type",
+      "orderValue": "Order Value",
+      "feeRate": "Fee %",
+      "feeAmount": "Fee Amount",
+      "status": "Status",
+      "invoice": "Invoice",
+      "noEntries": "No transactions found",
+      "noEntriesDescription": "Completed orders will appear here",
+      "status": {
+        "pending": "Pending",
+        "invoiced": "Invoiced",
+        "paid": "Paid",
+        "disputed": "Disputed"
+      },
+      "orderType": {
+        "material": "Material",
+        "rental": "Rental"
+      },
+      "filters": {
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "orderType": "Order Type",
+        "status": "Status",
+        "all": "All",
+        "material": "Material",
+        "rental": "Rental",
+        "pending": "Pending",
+        "invoiced": "Invoiced",
+        "paid": "Paid",
+        "disputed": "Disputed"
+      }
+    },
+    "modal": {
+      "title": "How Success Fees Work",
+      "paragraph1": "Buildapp charges a success fee only on completed orders. This means you only pay when you successfully deliver materials or complete rentals.",
+      "feeStructure": "Fee Structure",
+      "defaultRate": "Default rate: 5% of order value",
+      "calculatedOn": "Calculated on the final delivered value after any adjustments",
+      "appliesTo": "Applies to both material orders and equipment rentals",
+      "billingCycle": "Billing Cycle",
+      "step1": "Orders are marked as \"Pending\" when completed",
+      "step2": "Invoices are generated on the 1st of each month",
+      "step3": "Payment is due within 15 days of invoice date",
+      "step4": "Fees are marked as \"Paid\" once payment is received",
+      "questions": "If you have questions about any charges or need to dispute a fee, please contact our support team."
+    }
+  },
+  "admin": {
+    "nav": {
+      "rfqQueue": "RFQ Queue",
+      "deliveryQueue": "Deliveries",
+      "supplierQueue": "Suppliers",
+      "disputeQueue": "Disputes",
+      "confirmationQueue": "Confirmations",
+      "rentalQueue": "Rentals",
+      "templates": "Templates",
+      "exports": "Data Exports",
+      "audit": "Audit Logs"
+    },
+    "notes": {
+      "label": "Internal Note",
+      "notVisibleToUsers": "(Not visible to users)",
+      "placeholder": "Add internal note...",
+      "submit": "Add Note"
+    },
+    "rfqQueue": {
+      "title": "RFQ Queue",
+      "subtitle": "Manage RFQs and nudge suppliers to respond",
+      "selected": "{{count}} selected",
+      "nudgeSent": "Nudge sent to suppliers",
+      "empty": "No RFQs found",
+      "filters": {
+        "zeroReplies": "Zero Replies",
+        "all": "All",
+        "24h": ">24 hours",
+        "48h": ">48 hours",
+        "buyerType": "Buyer Type",
+        "homeowner": "Homeowner",
+        "contractor": "Contractor",
+        "region": "Region",
+        "tbilisi": "Tbilisi",
+        "other": "Other Regions"
+      },
+      "columns": {
+        "rfqId": "RFQ ID",
+        "buyer": "Buyer",
+        "items": "Items",
+        "suppliersSent": "Suppliers Sent To",
+        "replies": "Replies",
+        "age": "Age",
+        "actions": "Actions"
+      },
+      "actions": {
+        "view": "View RFQ",
+        "nudge": "Nudge Suppliers",
+        "suggest": "Suggest Suppliers",
+        "nudgeAll": "Nudge All Selected"
+      }
+    },
+    "deliveryQueue": {
+      "title": "Delivery Queue",
+      "subtitle": "Monitor scheduled deliveries and track late orders",
+      "noteSaved": "Note saved",
+      "empty": "No deliveries found",
+      "markIssueTitle": "Mark Issue",
+      "markIssuePlaceholder": "Describe the issue (e.g., Supplier notified, Buyer contacted)...",
+      "filters": {
+        "date": "Date",
+        "today": "Today",
+        "tomorrow": "Tomorrow",
+        "week": "This Week",
+        "status": "Status",
+        "all": "All",
+        "scheduled": "Scheduled",
+        "inProgress": "In Progress",
+        "late": "Late",
+        "completed": "Completed",
+        "supplier": "Supplier",
+        "searchSupplier": "Search supplier..."
+      },
+      "columns": {
+        "orderId": "Order ID",
+        "supplier": "Supplier",
+        "buyer": "Buyer",
+        "scheduledWindow": "Scheduled Window",
+        "status": "Status",
+        "late": "Late",
+        "actions": "Actions"
+      },
+      "actions": {
+        "viewOrder": "View Order",
+        "contactSupplier": "Contact Supplier",
+        "markIssue": "Mark Issue"
+      }
+    },
+    "supplierQueue": {
+      "title": "Supplier Management",
+      "subtitle": "Approve suppliers, manage status, and monitor catalog health",
+      "statusUpdated": "Supplier status updated",
+      "nudgeSent": "Nudge sent to supplier",
+      "empty": "No suppliers found",
+      "filters": {
+        "status": "Status",
+        "all": "All",
+        "unverified": "Unverified",
+        "verified": "Verified",
+        "trusted": "Trusted",
+        "paused": "Paused",
+        "trustScore": "Trust Score",
+        "low": "<70%",
+        "medium": "70-90%",
+        "high": ">90%",
+        "staleCatalog": "Stale Catalog",
+        "yes": "Yes (>14 days)",
+        "no": "No"
+      },
+      "columns": {
+        "supplier": "Supplier",
+        "status": "Status",
+        "trustScore": "Trust Score",
+        "skus": "SKUs",
+        "staleSkus": "Stale SKUs",
+        "lastActivity": "Last Activity",
+        "actions": "Actions"
+      },
+      "actions": {
+        "viewProfile": "View Profile",
+        "approve": "Approve",
+        "pause": "Pause",
+        "activate": "Activate",
+        "nudge": "Nudge (Update Catalog)"
+      }
+    },
+    "disputeQueue": {
+      "title": "Dispute Queue",
+      "subtitle": "Monitor and track order disputes for trust metrics",
+      "noteSaved": "Admin note saved",
+      "resolved": "Dispute marked as resolved",
+      "enterOutcome": "Enter outcome (e.g., Price adjust, Redeliver, Denied):",
+      "empty": "No disputes found",
+      "addNoteTitle": "Add Admin Note",
+      "addNotePlaceholder": "Internal notes (not visible to users)...",
+      "filters": {
+        "status": "Status",
+        "all": "All",
+        "open": "Open",
+        "supplierResponded": "Supplier Responded",
+        "resolved": "Resolved",
+        "issueCategory": "Issue Category",
+        "specMismatch": "Spec Mismatch",
+        "quantityShort": "Quantity Short",
+        "qualityIssue": "Quality Issue",
+        "lateDelivery": "Late Delivery",
+        "other": "Other",
+        "buyerType": "Buyer Type",
+        "homeowner": "Homeowner",
+        "contractor": "Contractor"
+      },
+      "columns": {
+        "orderId": "Order ID",
+        "supplier": "Supplier",
+        "buyerType": "Buyer Type",
+        "issueCategory": "Issue Category",
+        "reported": "Reported",
+        "status": "Status",
+        "outcome": "Outcome",
+        "actions": "Actions"
+      },
+      "actions": {
+        "viewDetails": "View Details",
+        "addNote": "Add Admin Note",
+        "markResolved": "Mark Resolved"
+      }
+    },
+    "confirmationQueue": {
+      "title": "Confirmation Queue",
+      "subtitle": "Monitor expiring buyer confirmations and send reminders",
+      "reminderSent": "SMS reminder sent to buyer",
+      "emptyExpiring": "No expiring confirmations",
+      "emptyAutoCompleted": "No auto-completed orders",
+      "tabs": {
+        "expiringSoon": "Expiring Soon",
+        "autoCompleted": "Auto-Completed"
+      },
+      "columns": {
+        "orderId": "Order/Booking ID",
+        "type": "Type",
+        "buyer": "Buyer",
+        "timeRemaining": "Time Remaining",
+        "autoCompletedAt": "Auto-Completed At",
+        "actions": "Actions"
+      },
+      "actions": {
+        "sendReminder": "Send SMS Reminder",
+        "callBuyer": "Call Buyer",
+        "viewOrder": "View Order"
+      }
+    },
+    "rentalQueue": {
+      "title": "Rental Queue",
+      "subtitle": "Monitor tool rentals and track overdue returns",
+      "empty": "No rentals found",
+      "filters": {
+        "status": "Status",
+        "all": "All",
+        "active": "Active",
+        "completed": "Completed",
+        "overdue": "Overdue",
+        "yes": "Yes",
+        "no": "No"
+      },
+      "columns": {
+        "bookingId": "Booking ID",
+        "tool": "Tool",
+        "supplier": "Supplier",
+        "handover": "Handover",
+        "return": "Return",
+        "overdue": "Overdue",
+        "actions": "Actions"
+      },
+      "actions": {
+        "viewBooking": "View Booking",
+        "contactSupplier": "Contact Supplier"
+      }
+    },
+    "dashboard": {
+      "title": "Operations Dashboard",
+      "subtitle": "Monitor platform health and operations",
+      "failedToLoad": "Failed to load dashboard data",
+      "liveRFQs": {
+        "title": "Live RFQs",
+        "zeroReplies": "Zero replies >24h",
+        "avgResponse": "Avg response time",
+        "cta": "View RFQ Queue"
+      },
+      "deliveries": {
+        "title": "Today's Deliveries",
+        "completed": "Completed",
+        "inProgress": "In progress",
+        "late": "Late",
+        "cta": "View Delivery Queue"
+      },
+      "confirmations": {
+        "title": "Pending Confirmations",
+        "expiring": "24h confirmations expiring <6h",
+        "rentalHandovers": "2h rental handovers",
+        "cta": "View Confirmation Queue"
+      },
+      "disputes": {
+        "title": "Disputes",
+        "avgResolution": "Avg resolution time",
+        "cta": "View Disputes"
+      },
+      "supplierHealth": {
+        "title": "Supplier Health",
+        "unverified": "Unverified suppliers",
+        "staleCatalogs": "Stale catalogs >14 days",
+        "lowTrust": "Low trust scores <70%",
+        "cta": "Manage Suppliers"
+      },
+      "rentalHealth": {
+        "title": "Rental Health",
+        "overdueReturns": "Overdue returns",
+        "cta": "View Rentals"
+      },
+      "billing": {
+        "title": "Billing",
+        "overdueInvoices": "Overdue invoices >14 days",
+        "cta": "View Billing"
+      },
+      "platformStats": {
+        "title": "Platform Stats",
+        "buyers": "Buyers",
+        "suppliers": "Suppliers",
+        "ordersThisMonth": "Orders this month",
+        "directOrders": "Direct orders",
+        "gmv": "GMV this month",
+        "revenue": "Revenue this month",
+        "cta": "View Analytics"
+      }
+    },
+    "templates": {
+      "title": "Template Manager",
+      "subtitle": "Manage construction project templates",
+      "newTemplate": "New Template",
+      "status": {
+        "all": "All",
+        "published": "Published",
+        "draft": "Draft"
+      },
+      "list": {
+        "version": "Version {{version}}",
+        "versions": "{{count}} versions",
+        "updated": "Updated {{date}}",
+        "edit": "Edit",
+        "duplicate": "Duplicate"
+      },
+      "editor": {
+        "newTemplate": "New Template",
+        "editTemplate": "Edit Template: {{title}}",
+        "saveDraft": "Save Draft",
+        "saving": "Saving...",
+        "publish": "Publish",
+        "publishing": "Publishing...",
+        "tabs": {
+          "basicInfo": "Basic Info",
+          "fields": "Fields",
+          "bomLogic": "BOM Logic",
+          "instructions": "Instructions",
+          "safetyNotes": "Safety Notes",
+          "preview": "Preview"
+        },
+        "basicInfo": {
+          "slug": "Slug",
+          "slugPlaceholder": "e.g., fence, slab",
+          "slugHelper": "URL-friendly identifier (lowercase, no spaces)",
+          "titleKa": "Title (Georgian)",
+          "titleEn": "Title (English)",
+          "descriptionKa": "Description (Georgian)",
+          "descriptionEn": "Description (English)",
+          "iconUrl": "Icon URL",
+          "status": "Status",
+          "version": "Version {{version}}"
+        },
+        "fields": {
+          "title": "Template Fields",
+          "subtitle": "Define input fields that buyers will fill out",
+          "addField": "Add Field",
+          "noFields": "No fields added yet",
+          "fieldName": "Field Name",
+          "fieldType": "Field Type",
+          "labelKa": "Label (Georgian)",
+          "labelEn": "Label (English)",
+          "unit": "Unit",
+          "required": "Required",
+          "min": "Min",
+          "max": "Max",
+          "helpKa": "Help Text (Georgian)",
+          "helpEn": "Help Text (English)",
+          "options": "Options",
+          "addOption": "Add Option",
+          "optionValue": "Value",
+          "optionLabelKa": "Label (Georgian)",
+          "optionLabelEn": "Label (English)",
+          "types": {
+            "number": "Number",
+            "text": "Text",
+            "pills": "Pills (Single Select)",
+            "toggle": "Toggle (Yes/No)"
+          },
+          "moveUp": "Move Up",
+          "moveDown": "Move Down",
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "bom": {
+          "title": "Bill of Materials Logic",
+          "subtitle": "Define how field values map to materials (for documentation)",
+          "addLine": "Add BOM Line",
+          "noLines": "No BOM lines added yet",
+          "itemSpec": "Item Specification",
+          "itemSpecPlaceholder": "e.g., Concrete M300",
+          "quantityFormula": "Quantity Formula",
+          "quantityFormulaPlaceholder": "e.g., (length × width × thickness) × 1.05",
+          "unit": "Unit",
+          "unitPlaceholder": "e.g., m³",
+          "pricePerUnit": "Price per Unit (₾)",
+          "pricePerUnitPlaceholder": "Optional",
+          "delete": "Delete"
+        },
+        "instructions": {
+          "title": "Instructions",
+          "subtitle": "Step-by-step guide for buyers",
+          "addStep": "Add Step",
+          "noSteps": "No instruction steps added yet",
+          "step": "Step {{number}}",
+          "titleKa": "Title (Georgian)",
+          "titleEn": "Title (English)",
+          "descriptionKa": "Description (Georgian)",
+          "descriptionEn": "Description (English)",
+          "imageUrl": "Image URL",
+          "imageUrlPlaceholder": "Optional",
+          "moveUp": "Move Up",
+          "moveDown": "Move Down",
+          "delete": "Delete"
+        },
+        "safety": {
+          "title": "Safety Notes",
+          "subtitle": "Important warnings and notices for buyers",
+          "addNote": "Add Safety Note",
+          "noNotes": "No safety notes added yet",
+          "textKa": "Text (Georgian)",
+          "textEn": "Text (English)",
+          "severity": "Severity",
+          "severities": {
+            "info": "Info",
+            "warning": "Warning",
+            "critical": "Critical"
+          },
+          "delete": "Delete"
+        }
+      }
+    }
+  }
+}

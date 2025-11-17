@@ -1,0 +1,37 @@
+/**
+ * Suppliers API routes
+ */
+
+import { Router } from 'express';
+import { authenticate } from '../../middleware/auth';
+import { asyncHandler } from '../../middleware/asyncHandler';
+import { success } from '../../utils/responseHelpers';
+
+const router = Router();
+router.use(authenticate);
+
+router.get('/catalog', asyncHandler(async (req, res) => {
+  success(res, [], 'Catalog items retrieved successfully');
+}));
+
+router.post('/catalog', asyncHandler(async (req, res) => {
+  success(res, {}, 'Catalog item created successfully', 201);
+}));
+
+router.get('/rfqs', asyncHandler(async (req, res) => {
+  success(res, [], 'RFQs retrieved successfully');
+}));
+
+router.post('/rfqs/:rfqId/offers', asyncHandler(async (req, res) => {
+  success(res, {}, 'Offer submitted successfully', 201);
+}));
+
+router.get('/orders', asyncHandler(async (req, res) => {
+  success(res, [], 'Orders retrieved successfully');
+}));
+
+router.get('/deliveries', asyncHandler(async (req, res) => {
+  success(res, [], 'Deliveries retrieved successfully');
+}));
+
+export default router;

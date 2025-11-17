@@ -1,0 +1,25 @@
+/**
+ * Notifications API routes
+ */
+
+import { Router } from 'express';
+import { authenticate } from '../../middleware/auth';
+import { asyncHandler } from '../../middleware/asyncHandler';
+import { success, paginated } from '../../utils/responseHelpers';
+
+const router = Router();
+router.use(authenticate);
+
+router.get('/', asyncHandler(async (req, res) => {
+  paginated(res, [], 1, 0, 20, 'Notifications retrieved successfully');
+}));
+
+router.post('/:notificationId/read', asyncHandler(async (req, res) => {
+  success(res, {}, 'Notification marked as read');
+}));
+
+router.post('/read-all', asyncHandler(async (req, res) => {
+  success(res, {}, 'All notifications marked as read');
+}));
+
+export default router;

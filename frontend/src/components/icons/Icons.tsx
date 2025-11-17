@@ -1,0 +1,127 @@
+/**
+ * Icon Components
+ * Using Lucide React icons for consistent design
+ */
+
+import {
+  Home,
+  FolderOpen,
+  ShoppingBag,
+  User,
+  Bell,
+  Search,
+  Menu,
+  X,
+  ChevronRight,
+  Factory,
+  FileText,
+  Package,
+  Hammer,
+  Ruler,
+  AlertCircle,
+  CheckCircle,
+  Info,
+  Plus,
+  Settings,
+  LogOut,
+  MapPin,
+  Clock,
+  Calendar,
+  Phone,
+  Mail,
+  MessageSquare,
+  Star,
+  TrendingUp,
+  DollarSign,
+  Truck,
+  Box,
+  Wrench,
+  Zap,
+  MoreVertical,
+  Eye,
+  Send,
+  Users,
+  XCircle,
+  AlertTriangle,
+  Pause,
+  Play,
+  Edit,
+  Download,
+  Shield,
+  ArrowLeft,
+  Edit2,
+  Globe,
+  HelpCircle,
+  Trash2,
+} from 'lucide-react';
+
+export const Icons = {
+  // Navigation
+  Home,
+  FolderOpen,
+  Projects: FolderOpen,
+  RFQs: FileText,
+  Catalog: ShoppingBag,
+  Rentals: Wrench,
+  Profile: User,
+  Menu,
+  Close: X,
+  ArrowLeft,
+
+  // Actions
+  Bell,
+  Search,
+  Plus,
+  Settings,
+  LogOut,
+  ChevronRight,
+  Zap,
+
+  // Business
+  Factory,
+  FileText,
+  Package,
+  Hammer,
+  Ruler,
+  Truck,
+  Box,
+  Wrench,
+
+  // Status
+  AlertCircle,
+  CheckCircle,
+  Info,
+  Star,
+  TrendingUp,
+
+  // Contact
+  MapPin,
+  Clock,
+  Calendar,
+  Phone,
+  Mail,
+  MessageSquare,
+
+  // Money
+  DollarSign,
+
+  // Admin Actions
+  MoreVertical,
+  Eye,
+  Send,
+  Users,
+  XCircle,
+  AlertTriangle,
+  Pause,
+  Play,
+  Edit,
+  Edit2,
+  X,
+  Download,
+  Shield,
+  Globe,
+  HelpCircle,
+  Trash2,
+} as const;
+
+export type IconName = keyof typeof Icons;
