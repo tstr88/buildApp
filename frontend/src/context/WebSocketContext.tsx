@@ -51,7 +51,8 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
 
     console.log('[WebSocket] Initializing connection');
 
-    const newSocket = io('http://localhost:3001', {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const newSocket = io(API_URL, {
       auth: {
         token,
       },

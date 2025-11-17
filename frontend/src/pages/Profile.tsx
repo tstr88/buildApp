@@ -11,6 +11,8 @@ import { colors, spacing, typography, borderRadius, shadows } from '../theme/tok
 import { EditProfileModal } from '../components/profile/EditProfileModal';
 import { DeleteAccountModal } from '../components/profile/DeleteAccountModal';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface ProfileData {
   profile: {
     id: string;
@@ -59,7 +61,7 @@ export const Profile: React.FC = () => {
   const loadProfile = async () => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch('http://localhost:3001/api/buyers/profile', {
+      const response = await fetch(`${API_URL}/api/buyers/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -81,7 +83,7 @@ export const Profile: React.FC = () => {
   const updateNotificationCategory = async (category: string, enabled: boolean) => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch('http://localhost:3001/api/buyers/profile/notifications', {
+      const response = await fetch(`${API_URL}/api/buyers/profile/notifications`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -119,7 +121,7 @@ export const Profile: React.FC = () => {
   const updateGlobalNotificationSetting = async (field: 'push_enabled' | 'sms_enabled', value: boolean) => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch('http://localhost:3001/api/buyers/profile/notifications', {
+      const response = await fetch(`${API_URL}/api/buyers/profile/notifications`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -155,7 +157,7 @@ export const Profile: React.FC = () => {
 
       // Update backend
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch('http://localhost:3001/api/buyers/profile', {
+      const response = await fetch(`${API_URL}/api/buyers/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -48,11 +48,13 @@ export default function Projects() {
       setIsLoading(true);
       setError(null);
       const data = await projectsService.getProjects();
-      setProjects(data);
-      setFilteredProjects(data);
+      setProjects(data || []);
+      setFilteredProjects(data || []);
     } catch (err: any) {
       console.error('Failed to load projects:', err);
       setError(err.response?.data?.error || 'Failed to load projects');
+      setProjects([]);
+      setFilteredProjects([]);
     } finally {
       setIsLoading(false);
     }

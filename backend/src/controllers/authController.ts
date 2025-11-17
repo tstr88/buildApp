@@ -1,333 +1,42 @@
 import { Request, Response } from 'express';
 import pool from '../config/database';
-import {
-  generateOTP,
-  hashOTP,
-  verifyOTP,
-  validateGeorgianPhone,
-  formatPhone,
-  sendOTPSMS,
-} from '../utils/otp';
-import { generateToken, generateTempToken, verifyToken, isTempToken } from '../utils/jwt';
-import { checkOTPRateLimit } from '../middleware/rateLimiter';
+import bcrypt from 'bcrypt';
+import { generateToken } from '../utils/jwt';
 
-const OTP_EXPIRY_MINUTES = 5;
-const MAX_OTP_ATTEMPTS = 3;
+const SALT_ROUNDS = 10;
 
 /**
- * POST /api/auth/request-otp
- * Request an OTP code for phone verification
- * In development mode, auto-login without OTP verification
+ * POST /api/auth/register
+ * Register a new user with email/phone and password
  */
-export async function requestOTP(req: Request, res: Response): Promise<void> {
+export async function register(req: Request, res: Response): Promise<void> {
   try {
-    let { phone } = req.body;
+    const { email, phone, password, name, user_type, buyer_role, language = 'ka' } = req.body;
 
-    // Validate phone number presence
-    if (!phone) {
+    // Validate required fields
+    if (!email || !password || !name || !user_type) {
       res.status(400).json({
         success: false,
-        error: 'Phone number is required',
+        error: 'Missing required fields: email, password, name, user_type',
       });
       return;
     }
 
-    // Format and validate phone number
-    phone = formatPhone(phone);
-
-    if (!validateGeorgianPhone(phone)) {
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       res.status(400).json({
         success: false,
-        error: 'Invalid Georgian phone number format. Expected: +995XXXXXXXXX',
+        error: 'Invalid email format',
       });
       return;
     }
 
-    // DEVELOPMENT MODE: Auto-login without OTP verification
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`\n🔓 [DEV MODE] Auto-login for ${phone} - OTP verification bypassed\n`);
-
-      // Check if user exists
-      const userResult = await pool.query(
-        'SELECT id, name, user_type, buyer_role, language, is_active FROM users WHERE phone = $1',
-        [phone]
-      );
-
-      if (userResult.rows.length === 0) {
-        // New user - return temp token for registration
-        const tempToken = generateTempToken(phone);
-
-        res.json({
-          success: true,
-          registration_required: true,
-          temp_token: tempToken,
-          message: 'Phone verified. Please complete registration.',
-        });
-        return;
-      }
-
-      // Existing user - generate full JWT and login
-      const user = userResult.rows[0];
-
-      if (!user.is_active) {
-        res.status(403).json({
-          success: false,
-          error: 'Account is deactivated. Please contact support.',
-        });
-        return;
-      }
-
-      const token = generateToken({
-        userId: user.id,
-        phone: phone,
-        userType: user.user_type,
-      });
-
-      // Update last login
-      await pool.query('UPDATE users SET last_login_at = NOW() WHERE id = $1', [user.id]);
-
-      res.json({
-        success: true,
-        registration_required: false,
-        token,
-        user: {
-          id: user.id,
-          phone: phone,
-          name: user.name,
-          user_type: user.user_type,
-          buyer_role: user.buyer_role,
-          language: user.language,
-        },
-      });
-      return;
-    }
-
-    // PRODUCTION MODE: Normal OTP flow
-    // Check rate limit
-    const rateLimit = checkOTPRateLimit(phone);
-    if (!rateLimit.allowed) {
-      res.status(429).json({
-        success: false,
-        error: `Too many OTP requests. Please try again after ${rateLimit.resetTime?.toLocaleTimeString()}`,
-        resetTime: rateLimit.resetTime,
-      });
-      return;
-    }
-
-    // Generate OTP
-    const otp = generateOTP();
-    const hashedOTP = await hashOTP(otp);
-
-    // Store OTP in database
-    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
-
-    await pool.query(
-      `INSERT INTO otps (phone, otp_code, purpose, expires_at)
-       VALUES ($1, $2, $3, $4)`,
-      [phone, hashedOTP, 'login', expiresAt]
-    );
-
-    // Send OTP via SMS
-    await sendOTPSMS(phone, otp);
-
-    // Return success (don't leak OTP in response)
-    res.json({
-      success: true,
-      message: 'OTP sent successfully',
-      expiresIn: OTP_EXPIRY_MINUTES * 60, // seconds
-      remainingAttempts: rateLimit.remainingAttempts,
-    });
-  } catch (error) {
-    console.error('Request OTP error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to send OTP. Please try again.',
-    });
-  }
-}
-
-/**
- * POST /api/auth/verify-otp
- * Verify OTP and login or initiate registration
- */
-export async function verifyOTP_endpoint(req: Request, res: Response): Promise<void> {
-  try {
-    let { phone, otp } = req.body;
-
-    // Validate input
-    if (!phone || !otp) {
+    // Validate password (minimum 6 characters)
+    if (password.length < 6) {
       res.status(400).json({
         success: false,
-        error: 'Phone number and OTP are required',
-      });
-      return;
-    }
-
-    phone = formatPhone(phone);
-
-    if (!validateGeorgianPhone(phone)) {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid phone number format',
-      });
-      return;
-    }
-
-    // Find the most recent non-used, non-expired OTP
-    const otpResult = await pool.query(
-      `SELECT id, otp_code, attempts, expires_at, is_used
-       FROM otps
-       WHERE phone = $1
-         AND purpose = 'login'
-         AND is_used = false
-         AND expires_at > NOW()
-       ORDER BY created_at DESC
-       LIMIT 1`,
-      [phone]
-    );
-
-    if (otpResult.rows.length === 0) {
-      res.status(400).json({
-        success: false,
-        error: 'No valid OTP found. Please request a new one.',
-      });
-      return;
-    }
-
-    const otpRecord = otpResult.rows[0];
-
-    // Check if max attempts exceeded
-    if (otpRecord.attempts >= MAX_OTP_ATTEMPTS) {
-      // Mark as used
-      await pool.query('UPDATE otps SET is_used = true WHERE id = $1', [otpRecord.id]);
-
-      res.status(400).json({
-        success: false,
-        error: 'Maximum verification attempts exceeded. Please request a new OTP.',
-      });
-      return;
-    }
-
-    // Verify OTP
-    const isValid = await verifyOTP(otp, otpRecord.otp_code);
-
-    if (!isValid) {
-      // Increment attempts
-      const newAttempts = otpRecord.attempts + 1;
-      await pool.query('UPDATE otps SET attempts = $1 WHERE id = $2', [newAttempts, otpRecord.id]);
-
-      res.status(400).json({
-        success: false,
-        error: 'Invalid OTP code',
-        remainingAttempts: MAX_OTP_ATTEMPTS - newAttempts,
-      });
-      return;
-    }
-
-    // Mark OTP as used
-    await pool.query('UPDATE otps SET is_used = true WHERE id = $1', [otpRecord.id]);
-
-    // Check if user exists
-    const userResult = await pool.query(
-      'SELECT id, name, user_type, buyer_role, language, is_active FROM users WHERE phone = $1',
-      [phone]
-    );
-
-    if (userResult.rows.length === 0) {
-      // New user - return temp token for registration
-      const tempToken = generateTempToken(phone);
-
-      res.json({
-        success: true,
-        registration_required: true,
-        temp_token: tempToken,
-        message: 'Phone verified. Please complete registration.',
-      });
-      return;
-    }
-
-    // Existing user - generate full JWT and create session
-    const user = userResult.rows[0];
-
-    if (!user.is_active) {
-      res.status(403).json({
-        success: false,
-        error: 'Account is deactivated. Please contact support.',
-      });
-      return;
-    }
-
-    const token = generateToken({
-      userId: user.id,
-      phone: phone,
-      userType: user.user_type,
-    });
-
-    // Update last login
-    await pool.query('UPDATE users SET last_login_at = NOW() WHERE id = $1', [user.id]);
-
-    // Create session record (optional, for refresh token management)
-    // await pool.query(
-    //   'INSERT INTO user_sessions (user_id, refresh_token, expires_at) VALUES ($1, $2, $3)',
-    //   [user.id, refreshToken, expiresAt]
-    // );
-
-    res.json({
-      success: true,
-      registration_required: false,
-      token,
-      user: {
-        id: user.id,
-        phone: phone,
-        name: user.name,
-        user_type: user.user_type,
-        buyer_role: user.buyer_role,
-        language: user.language,
-      },
-    });
-  } catch (error) {
-    console.error('Verify OTP error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Verification failed. Please try again.',
-    });
-  }
-}
-
-/**
- * POST /api/auth/complete-registration
- * Complete user registration after OTP verification
- */
-export async function completeRegistration(req: Request, res: Response): Promise<void> {
-  try {
-    const { temp_token, name, user_type, buyer_role, language = 'ka' } = req.body;
-
-    // Validate input
-    if (!temp_token || !name || !user_type) {
-      res.status(400).json({
-        success: false,
-        error: 'Missing required fields: temp_token, name, user_type',
-      });
-      return;
-    }
-
-    // Verify temp token
-    let payload;
-    try {
-      payload = verifyToken(temp_token);
-    } catch (error) {
-      res.status(401).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Invalid temporary token',
-      });
-      return;
-    }
-
-    // Check if it's a temp token
-    if (!isTempToken(payload)) {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid temporary token',
+        error: 'Password must be at least 6 characters long',
       });
       return;
     }
@@ -362,18 +71,37 @@ export async function completeRegistration(req: Request, res: Response): Promise
       }
     }
 
-    const phone = payload.phone;
+    // Check if email already exists
+    const existingEmail = await pool.query('SELECT id FROM users WHERE email = $1', [
+      email.toLowerCase(),
+    ]);
 
-    // Check if user already exists
-    const existingUser = await pool.query('SELECT id FROM users WHERE phone = $1', [phone]);
-
-    if (existingUser.rows.length > 0) {
+    if (existingEmail.rows.length > 0) {
       res.status(400).json({
         success: false,
-        error: 'User already exists. Please login instead.',
+        error: 'Email already registered. Please login instead.',
       });
       return;
     }
+
+    // Check if phone already exists (if provided)
+    if (phone) {
+      const existingPhone = await pool.query(
+        'SELECT id FROM users WHERE phone = $1 AND phone IS NOT NULL',
+        [phone]
+      );
+
+      if (existingPhone.rows.length > 0) {
+        res.status(400).json({
+          success: false,
+          error: 'Phone number already registered',
+        });
+        return;
+      }
+    }
+
+    // Hash password
+    const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 
     // Validate language
     const validLanguages = ['ka', 'en'];
@@ -381,15 +109,23 @@ export async function completeRegistration(req: Request, res: Response): Promise
 
     // Create user
     const userResult = await pool.query(
-      `INSERT INTO users (phone, name, user_type, buyer_role, language, is_verified)
-       VALUES ($1, $2, $3, $4, $5, true)
-       RETURNING id, phone, name, user_type, buyer_role, language`,
-      [phone, name.trim(), user_type, user_type === 'buyer' ? buyer_role : null, userLanguage]
+      `INSERT INTO users (email, phone, password_hash, name, user_type, buyer_role, language, is_verified)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, true)
+       RETURNING id, email, phone, name, user_type, buyer_role, language`,
+      [
+        email.toLowerCase(),
+        phone || null,
+        password_hash,
+        name.trim(),
+        user_type,
+        user_type === 'buyer' ? buyer_role : null,
+        userLanguage,
+      ]
     );
 
     const user = userResult.rows[0];
 
-    // Generate full JWT token
+    // Generate JWT token
     const token = generateToken({
       userId: user.id,
       phone: user.phone,
@@ -401,6 +137,7 @@ export async function completeRegistration(req: Request, res: Response): Promise
       token,
       user: {
         id: user.id,
+        email: user.email,
         phone: user.phone,
         name: user.name,
         user_type: user.user_type,
@@ -410,10 +147,100 @@ export async function completeRegistration(req: Request, res: Response): Promise
       message: 'Registration completed successfully',
     });
   } catch (error) {
-    console.error('Complete registration error:', error);
+    console.error('Register error:', error);
     res.status(500).json({
       success: false,
       error: 'Registration failed. Please try again.',
+    });
+  }
+}
+
+/**
+ * POST /api/auth/login
+ * Login with email/phone and password
+ */
+export async function login(req: Request, res: Response): Promise<void> {
+  try {
+    const { identifier, password } = req.body; // identifier can be email or phone
+
+    // Validate input
+    if (!identifier || !password) {
+      res.status(400).json({
+        success: false,
+        error: 'Email/phone and password are required',
+      });
+      return;
+    }
+
+    // Check if identifier is email or phone
+    const isEmail = identifier.includes('@');
+
+    // Find user by email or phone
+    const userResult = await pool.query(
+      isEmail
+        ? 'SELECT id, email, phone, name, user_type, buyer_role, language, is_active, password_hash FROM users WHERE email = $1'
+        : 'SELECT id, email, phone, name, user_type, buyer_role, language, is_active, password_hash FROM users WHERE phone = $1',
+      [isEmail ? identifier.toLowerCase() : identifier]
+    );
+
+    if (userResult.rows.length === 0) {
+      res.status(401).json({
+        success: false,
+        error: 'Invalid credentials',
+      });
+      return;
+    }
+
+    const user = userResult.rows[0];
+
+    // Check if account is active
+    if (!user.is_active) {
+      res.status(403).json({
+        success: false,
+        error: 'Account is deactivated. Please contact support.',
+      });
+      return;
+    }
+
+    // Verify password
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+
+    if (!isValidPassword) {
+      res.status(401).json({
+        success: false,
+        error: 'Invalid credentials',
+      });
+      return;
+    }
+
+    // Generate JWT token
+    const token = generateToken({
+      userId: user.id,
+      phone: user.phone,
+      userType: user.user_type,
+    });
+
+    // Update last login
+    await pool.query('UPDATE users SET last_login_at = NOW() WHERE id = $1', [user.id]);
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        phone: user.phone,
+        name: user.name,
+        user_type: user.user_type,
+        buyer_role: user.buyer_role,
+        language: user.language,
+      },
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Login failed. Please try again.',
     });
   }
 }
@@ -481,7 +308,7 @@ export async function updatePreferences(req: Request, res: Response): Promise<vo
 
     // Fetch updated user
     const result = await pool.query(
-      `SELECT id, phone, name, user_type, buyer_role, language
+      `SELECT id, email, phone, name, user_type, buyer_role, language
        FROM users
        WHERE id = $1`,
       [req.user.id]
@@ -493,6 +320,7 @@ export async function updatePreferences(req: Request, res: Response): Promise<vo
       success: true,
       user: {
         id: user.id,
+        email: user.email,
         phone: user.phone,
         name: user.name,
         user_type: user.user_type,
@@ -529,4 +357,26 @@ export async function logout(_req: Request, res: Response): Promise<void> {
       error: 'Logout failed',
     });
   }
+}
+
+// Keep these for backward compatibility, will be removed later
+export async function requestOTP(_req: Request, res: Response): Promise<void> {
+  res.status(410).json({
+    success: false,
+    error: 'OTP authentication has been removed. Please use email/password login.',
+  });
+}
+
+export async function verifyOTP_endpoint(_req: Request, res: Response): Promise<void> {
+  res.status(410).json({
+    success: false,
+    error: 'OTP authentication has been removed. Please use email/password login.',
+  });
+}
+
+export async function completeRegistration(_req: Request, res: Response): Promise<void> {
+  res.status(410).json({
+    success: false,
+    error: 'OTP authentication has been removed. Please use email/password register.',
+  });
 }

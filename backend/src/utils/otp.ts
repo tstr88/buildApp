@@ -76,6 +76,20 @@ export function logOTPInDevelopment(phone: string, otp: string): void {
  * TODO: Integrate with Twilio or similar service
  */
 export async function sendOTPSMS(phone: string, otp: string): Promise<boolean> {
+  const smsProvider = process.env.SMS_PROVIDER || 'console';
+
+  // If SMS_PROVIDER is 'console', always log the OTP (for testing)
+  if (smsProvider === 'console') {
+    console.log('\n' + '='.repeat(60));
+    console.log('🔐 OTP CODE (Console Mode)');
+    console.log('='.repeat(60));
+    console.log(`Phone: ${phone}`);
+    console.log(`OTP Code: ${otp}`);
+    console.log(`Expires: 5 minutes`);
+    console.log('='.repeat(60) + '\n');
+    return true;
+  }
+
   if (process.env.NODE_ENV === 'production') {
     // TODO: Implement Twilio or other SMS service
     // Example:

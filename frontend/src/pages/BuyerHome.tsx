@@ -51,7 +51,9 @@ export const BuyerHome: React.FC = () => {
       // Try to load buyer-specific data (may fail if not authenticated)
       try {
         const homeData = await getBuyerHome();
-        setStats(homeData.stats);
+        if (homeData && homeData.stats) {
+          setStats(homeData.stats);
+        }
         // Set notification count from user data if available
       } catch (error) {
         // User not authenticated, show templates only
