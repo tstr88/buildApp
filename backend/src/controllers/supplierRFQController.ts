@@ -483,8 +483,8 @@ export async function getSupplierRFQDetail(req: Request, res: Response): Promise
           p.name as project_location,
           r.created_at
         FROM rfqs r
-        INNER JOIN projects p ON p.id = r.project_id
-        INNER JOIN users u ON u.id = p.user_id
+        LEFT JOIN projects p ON p.id = r.project_id
+        INNER JOIN users u ON u.id = r.user_id
         INNER JOIN rfq_recipients rr ON rr.rfq_id = r.id
         WHERE r.id = $1
         AND rr.supplier_id = $2`,
