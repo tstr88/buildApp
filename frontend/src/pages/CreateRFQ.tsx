@@ -53,6 +53,8 @@ export const CreateRFQ: React.FC = () => {
   const [selectedSuppliers, setSelectedSuppliers] = useState<any[]>([]); // Store full supplier details
   const [alternativeSuppliers, setAlternativeSuppliers] = useState<any[]>([]);
   const [loadingAlternatives, setLoadingAlternatives] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [rfqDetails, setRfqDetails] = useState<any>(null);
   const [notification, setNotification] = useState<{
     type: 'success' | 'error' | 'info' | 'warning';
     title: string;
@@ -335,16 +337,13 @@ export const CreateRFQ: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setNotification({
-          type: 'success',
-          title: 'RFQ Sent Successfully!',
-          message: `Your request has been sent to ${selectedSupplierIds.length} ${selectedSupplierIds.length === 1 ? 'supplier' : 'suppliers'}. You'll receive offers soon.`,
-        });
+        setRfqDetails(data.data);
+        setShowSuccessModal(true);
 
-        // Navigate after a short delay to allow user to see the notification
+        // Navigate after showing success modal for 3 seconds
         setTimeout(() => {
-          navigate('/rfqs');
-        }, 2000);
+          navigate(`/rfqs/${data.data.id}`);
+        }, 3000);
       } else {
         const errorData = await response.json();
         setNotification({
@@ -1778,6 +1777,135 @@ export const CreateRFQ: React.FC = () => {
           duration={notification.type === 'success' ? 3000 : 5000}
         />
       )}
+
+      {/* Success Modal */}
+      {showSuccessModal && rfqDetails && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: colors.neutral[0],
+              borderRadius: borderRadius.xl,
+              padding: spacing[8],
+              maxWidth: '500px',
+              width: '90%',
+              boxShadow: shadows.xl,
+              textAlign: 'center',
+              animation: 'slideIn 0.3s ease-out',
+            }}
+          >
+            <div
+              style={{
+                width: '80px',
+                height: '80px',
+                borderRadius: '50%',
+                backgroundColor: colors.success[100],
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto',
+                marginBottom: spacing[4],
+                animation: 'scaleIn 0.4s ease-out',
+              }}
+            >
+              <Icons.CheckCircle
+                size={48}
+                color={colors.success[600]}
+                style={{ animation: 'checkPop 0.6s ease-out' }}
+              />
+            </div>
+            <h2
+              style={{
+                fontSize: typography.fontSize['2xl'],
+                fontWeight: typography.fontWeight.bold,
+                color: colors.text.primary,
+                margin: 0,
+                marginBottom: spacing[2],
+              }}
+            >
+              RFQ Sent Successfully!
+            </h2>
+            <p
+              style={{
+                fontSize: typography.fontSize.lg,
+                color: colors.text.secondary,
+                margin: 0,
+                marginBottom: spacing[1],
+              }}
+            >
+              Request #{rfqDetails.rfq_number || rfqDetails.id}
+            </p>
+            <p
+              style={{
+                fontSize: typography.fontSize.base,
+                color: colors.text.secondary,
+                margin: 0,
+                marginTop: spacing[3],
+              }}
+            >
+              Sent to {selectedSupplierIds.length} {selectedSupplierIds.length === 1 ? 'supplier' : 'suppliers'}
+            </p>
+            <p
+              style={{
+                fontSize: typography.fontSize.sm,
+                color: colors.text.tertiary,
+                margin: 0,
+                marginTop: spacing[4],
+              }}
+            >
+              Redirecting to RFQ details...
+            </p>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes scaleIn {
+          from {
+            transform: scale(0);
+          }
+          to {
+            transform: scale(1);
+          }
+        }
+
+        @keyframes checkPop {
+          0% {
+            transform: scale(0);
+            opacity: 0;
+          }
+          50% {
+            transform: scale(1.2);
+          }
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   );
 };
