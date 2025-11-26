@@ -17,7 +17,7 @@ interface TemplateCardProps {
   icon?: keyof typeof Icons;
   imageUrl?: string;
   estimatedDuration?: number;
-  difficulty?: 'easy' | 'medium' | 'hard';
+  difficulty?: 'easy' | 'medium' | 'hard' | 'beginner' | 'intermediate' | 'advanced' | 'professional';
 }
 
 export const TemplateCard: React.FC<TemplateCardProps> = ({
@@ -38,10 +38,14 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
     navigate(`/template/${slug}`);
   };
 
-  const difficultyColors = {
+  const difficultyColors: Record<string, any> = {
     easy: colors.success,
+    beginner: colors.success,
     medium: colors.warning,
+    intermediate: colors.warning,
     hard: colors.error,
+    advanced: colors.error,
+    professional: colors.error,
   };
 
   return (

@@ -207,7 +207,7 @@ export const BuyerHome: React.FC = () => {
                   slug={template.slug}
                   title={getLocalizedTitle(template)}
                   description={getLocalizedDescription(template)}
-                  icon={template.category === 'fence' ? 'Ruler' : 'Hammer'}
+                  icon={template.category === 'fence' ? 'Ruler' : template.category === 'slab' ? 'Box' : 'Hammer'}
                   imageUrl={template.images?.[0]}
                   estimatedDuration={template.estimated_duration_days || undefined}
                   difficulty={template.difficulty_level as any}
