@@ -12,6 +12,8 @@ import { CatalogFilters } from '../components/catalog/CatalogFilters';
 import { SKUCard } from '../components/catalog/SKUCard';
 import { SKURow } from '../components/catalog/SKURow';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface SKU {
   id: string;
   supplier_id: string;
@@ -97,7 +99,7 @@ export const Catalog: React.FC = () => {
       params.set('page', page.toString());
       params.set('limit', '20');
 
-      const response = await fetch(`http://localhost:3001/api/catalog/skus?${params.toString()}`);
+      const response = await fetch(`${API_URL}/api/catalog/skus?${params.toString()}`);
 
       if (response.ok) {
         const result = await response.json();

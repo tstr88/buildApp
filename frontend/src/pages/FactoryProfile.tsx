@@ -11,6 +11,8 @@ import { TrustLabelDisplay } from '../components/factories/TrustLabelDisplay';
 import { SKUCard } from '../components/catalog/SKUCard';
 import { SKURow } from '../components/catalog/SKURow';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface SupplierProfile {
   id: string;
   business_name: string;
@@ -88,7 +90,7 @@ export const FactoryProfile: React.FC = () => {
 
   const fetchSupplierProfile = async () => {
     try {
-      const response = await fetch(`http://localhost:3001/api/factories/${supplierId}`);
+      const response = await fetch(`${API_URL}/api/factories/${supplierId}`);
       if (response.ok) {
         const data = await response.json();
         setSupplier(data.data);
@@ -104,7 +106,7 @@ export const FactoryProfile: React.FC = () => {
 
   const fetchSupplierCatalog = async () => {
     try {
-      const response = await fetch(`http://localhost:3001/api/factories/${supplierId}/catalog`);
+      const response = await fetch(`${API_URL}/api/factories/${supplierId}/catalog`);
       if (response.ok) {
         const data = await response.json();
         setSkus(data.data?.skus || []);

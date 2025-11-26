@@ -15,6 +15,8 @@ import { PickupDeliveryToggle } from '../components/orders/PickupDeliveryToggle'
 import { WindowSlotPicker } from '../components/orders/WindowSlotPicker';
 import { OrderReviewCard } from '../components/orders/OrderReviewCard';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface Supplier {
   id: string;
   business_name: string;
@@ -154,7 +156,7 @@ export const DirectOrder: React.FC = () => {
   const fetchSupplierById = async (id: string) => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch(`http://localhost:3001/api/factories/${id}`, {
+      const response = await fetch(`${API_URL}/api/factories/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -198,7 +200,7 @@ export const DirectOrder: React.FC = () => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
       const lang = localStorage.getItem('i18nextLng') || 'en';
-      const response = await fetch(`http://localhost:3001/api/factories/${supplierId}/catalog?lang=${lang}`, {
+      const response = await fetch(`${API_URL}/api/factories/${supplierId}/catalog?lang=${lang}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -287,7 +289,7 @@ export const DirectOrder: React.FC = () => {
     // Fetch project details for address
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch(`http://localhost:3001/api/buyers/projects/${projectId}`, {
+      const response = await fetch(`${API_URL}/api/buyers/projects/${projectId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
@@ -338,7 +340,7 @@ export const DirectOrder: React.FC = () => {
         notes: scheduleMode === 'negotiable' ? preferredNote : undefined,
       };
 
-      const response = await fetch('http://localhost:3001/api/buyers/orders/direct', {
+      const response = await fetch(`${API_URL}/api/buyers/orders/direct`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

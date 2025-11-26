@@ -11,6 +11,8 @@ import { colors, spacing, typography, borderRadius, shadows } from '../theme/tok
 import { FactoryCard } from '../components/factories/FactoryCard';
 import { SupplierDirectoryMap } from '../components/map';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface Supplier {
   id: string;
   business_name: string;
@@ -76,7 +78,7 @@ export const Factories: React.FC = () => {
       params.set('sort', sortBy);
       params.set('lang', i18n.language);
 
-      const response = await fetch(`http://localhost:3001/api/factories?${params.toString()}`);
+      const response = await fetch(`${API_URL}/api/factories?${params.toString()}`);
 
       if (response.ok) {
         const result = await response.json();
