@@ -15,6 +15,8 @@ import { ConfidenceScoreMeter } from '../components/rfqs/ConfidenceScoreMeter';
 import { Notification } from '../components/common/Notification';
 import { AddressInput } from '../components/orders/AddressInput';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface DeliveryWindow {
   start_date: string;
   end_date: string;
@@ -82,7 +84,7 @@ export const CreateRFQ: React.FC = () => {
   const fetchPreselectedSKU = async (skuId: string) => {
     setLoadingPreselected(true);
     try {
-      const response = await fetch(`http://localhost:3001/api/catalog/skus/${skuId}`);
+      const response = await fetch(`${API_URL}/api/catalog/skus/${skuId}`);
       if (response.ok) {
         const result = await response.json();
         const sku = result.data;
@@ -120,7 +122,7 @@ export const CreateRFQ: React.FC = () => {
   const fetchRelatedSKUs = async (supplierId: string, excludeIds: string[]) => {
     try {
       const response = await fetch(
-        `http://localhost:3001/api/catalog/skus?supplier_id=${supplierId}&sort=relevance`
+        `${API_URL}/api/catalog/skus?supplier_id=${supplierId}&sort=relevance`
       );
       if (response.ok) {
         const result = await response.json();
@@ -153,7 +155,7 @@ export const CreateRFQ: React.FC = () => {
   const fetchProjectLocation = async (projectId: string) => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch(`http://localhost:3001/api/buyers/projects/${projectId}`, {
+      const response = await fetch(`${API_URL}/api/buyers/projects/${projectId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
@@ -179,7 +181,7 @@ export const CreateRFQ: React.FC = () => {
       if (!firstSKU) return;
 
       // Fetch the SKU details to get category/product type
-      const skuResponse = await fetch(`http://localhost:3001/api/catalog/skus/${firstSKU}`);
+      const skuResponse = await fetch(`${API_URL}/api/catalog/skus/${firstSKU}`);
       if (!skuResponse.ok) return;
 
       const skuData = await skuResponse.json();
@@ -187,7 +189,7 @@ export const CreateRFQ: React.FC = () => {
 
       // Search for other suppliers offering similar products (same category)
       const suppliersResponse = await fetch(
-        `http://localhost:3001/api/suppliers?category=${sku.category || 'concrete'}`
+        `${API_URL}/api/suppliers?category=${sku.category || 'concrete'}`
       );
 
       if (suppliersResponse.ok) {
@@ -288,7 +290,7 @@ export const CreateRFQ: React.FC = () => {
         supplier_ids: selectedSupplierIds,
       };
 
-      const response = await fetch('http://localhost:3001/api/buyers/rfqs', {
+      const response = await fetch(`${API_URL}/api/buyers/rfqs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -635,7 +637,6 @@ export const CreateRFQ: React.FC = () => {
                       style={{
                         fontSize: typography.fontSize.sm,
                         color: colors.text.secondary,
-                        marginBottom: spacing[4],
                         margin: 0,
                         marginBottom: spacing[4],
                       }}
