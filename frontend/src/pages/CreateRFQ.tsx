@@ -50,6 +50,7 @@ export const CreateRFQ: React.FC = () => {
   const [relatedSKUs, setRelatedSKUs] = useState<any[]>([]);
   const [loadingPreselected, setLoadingPreselected] = useState(!!skuIdFromUrl); // Start loading if coming from catalog
   const [preselectedSupplierId, setPreselectedSupplierId] = useState<string | null>(null);
+  const [selectedSuppliers, setSelectedSuppliers] = useState<any[]>([]); // Store full supplier details
   const [alternativeSuppliers, setAlternativeSuppliers] = useState<any[]>([]);
   const [loadingAlternatives, setLoadingAlternatives] = useState(false);
   const [notification, setNotification] = useState<{
@@ -72,14 +73,23 @@ export const CreateRFQ: React.FC = () => {
     }
   }, [skuIdFromUrl]);
 
-  // Load alternative suppliers when on review step with preselected supplier
+  // Load alternative suppliers when on review step
   useEffect(() => {
     const hasSupplierStep = !preselectedSupplierId;
     const isReviewStep = (currentStep === 3 && !hasSupplierStep) || (currentStep === 4 && hasSupplierStep);
-    if (isReviewStep && preselectedSupplierId && lines.length > 0) {
+    if (isReviewStep && lines.length > 0 && selectedSupplierIds.length > 0) {
       fetchAlternativeSuppliers();
     }
-  }, [currentStep, preselectedSupplierId, lines.length]);
+  }, [currentStep, preselectedSupplierId, lines.length, selectedSupplierIds.length]);
+
+  // Fetch selected supplier details when supplier IDs change
+  useEffect(() => {
+    if (selectedSupplierIds.length > 0) {
+      fetchSelectedSuppliers();
+    } else {
+      setSelectedSuppliers([]);
+    }
+  }, [selectedSupplierIds]);
 
   const fetchPreselectedSKU = async (skuId: string) => {
     setLoadingPreselected(true);
@@ -173,6 +183,30 @@ export const CreateRFQ: React.FC = () => {
     }
   };
 
+  const fetchSelectedSuppliers = async () => {
+    try {
+      // Fetch details for all selected suppliers
+      const supplierDetails = await Promise.all(
+        selectedSupplierIds.map(async (supplierId) => {
+          try {
+            const response = await fetch(`${API_URL}/api/factories/${supplierId}`);
+            if (response.ok) {
+              const data = await response.json();
+              return data.data;
+            }
+            return null;
+          } catch (error) {
+            console.error(`Failed to fetch supplier ${supplierId}:`, error);
+            return null;
+          }
+        })
+      );
+      setSelectedSuppliers(supplierDetails.filter(Boolean));
+    } catch (error) {
+      console.error('Failed to fetch selected suppliers:', error);
+    }
+  };
+
   const fetchAlternativeSuppliers = async () => {
     setLoadingAlternatives(true);
     try {
@@ -194,9 +228,9 @@ export const CreateRFQ: React.FC = () => {
 
       if (suppliersResponse.ok) {
         const suppliersData = await suppliersResponse.json();
-        // Filter out the preselected supplier
+        // Filter out already selected suppliers
         const alternatives = (suppliersData.data || []).filter(
-          (s: any) => s.id !== preselectedSupplierId
+          (s: any) => !selectedSupplierIds.includes(s.id)
         ).slice(0, 3); // Show max 3 alternatives
 
         setAlternativeSuppliers(alternatives);
@@ -1294,17 +1328,182 @@ export const CreateRFQ: React.FC = () => {
                       </h4>
                     </div>
                     <div style={{ padding: spacing[4] }}>
-                      <p
-                        style={{
-                          fontSize: typography.fontSize.sm,
-                          color: colors.text.secondary,
-                          margin: 0,
-                        }}
-                      >
-                        Your RFQ will be sent to {selectedSupplierIds.length} selected {selectedSupplierIds.length === 1 ? 'supplier' : 'suppliers'}. They will receive your request and can submit competitive quotes.
-                      </p>
+                      {selectedSuppliers.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+                          {selectedSuppliers.map((supplier) => (
+                            <div
+                              key={supplier.id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: spacing[3],
+                                padding: spacing[3],
+                                backgroundColor: colors.primary[50],
+                                border: `1px solid ${colors.primary[200]}`,
+                                borderRadius: borderRadius.md,
+                              }}
+                            >
+                              <Icons.Building2 size={20} color={colors.primary[600]} />
+                              <div style={{ flex: 1 }}>
+                                <p
+                                  style={{
+                                    fontSize: typography.fontSize.base,
+                                    fontWeight: typography.fontWeight.semibold,
+                                    color: colors.text.primary,
+                                    margin: 0,
+                                    marginBottom: spacing[1],
+                                  }}
+                                >
+                                  {supplier.business_name_en || supplier.business_name_ka || supplier.business_name}
+                                </p>
+                                {supplier.depot_address && (
+                                  <p
+                                    style={{
+                                      fontSize: typography.fontSize.xs,
+                                      color: colors.text.secondary,
+                                      margin: 0,
+                                    }}
+                                  >
+                                    {supplier.depot_address}
+                                  </p>
+                                )}
+                              </div>
+                              <Icons.CheckCircle size={20} color={colors.success[600]} />
+                            </div>
+                          ))}
+                          <p
+                            style={{
+                              fontSize: typography.fontSize.sm,
+                              color: colors.text.secondary,
+                              margin: 0,
+                              marginTop: spacing[2],
+                            }}
+                          >
+                            {selectedSuppliers.length === 1
+                              ? 'This supplier will receive your RFQ and can submit a competitive quote.'
+                              : `These ${selectedSuppliers.length} suppliers will receive your RFQ and can submit competitive quotes.`}
+                          </p>
+                        </div>
+                      ) : (
+                        <p
+                          style={{
+                            fontSize: typography.fontSize.sm,
+                            color: colors.text.secondary,
+                            margin: 0,
+                          }}
+                        >
+                          Your RFQ will be sent to {selectedSupplierIds.length} selected {selectedSupplierIds.length === 1 ? 'supplier' : 'suppliers'}. They will receive your request and can submit competitive quotes.
+                        </p>
+                      )}
                     </div>
                   </div>
+
+                  {/* Suggested Additional Suppliers */}
+                  {alternativeSuppliers.length > 0 && (
+                    <div
+                      style={{
+                        backgroundColor: colors.info[50],
+                        border: `1px solid ${colors.info[200]}`,
+                        borderRadius: borderRadius.lg,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <div
+                        style={{
+                          padding: spacing[4],
+                          borderBottom: `1px solid ${colors.info[200]}`,
+                        }}
+                      >
+                        <h4
+                          style={{
+                            fontSize: typography.fontSize.base,
+                            fontWeight: typography.fontWeight.semibold,
+                            color: colors.info[900],
+                            margin: 0,
+                            marginBottom: spacing[1],
+                          }}
+                        >
+                          <Icons.Lightbulb size={18} style={{ display: 'inline', marginRight: spacing[2] }} />
+                          Get More Competitive Quotes?
+                        </h4>
+                        <p
+                          style={{
+                            fontSize: typography.fontSize.sm,
+                            color: colors.info[700],
+                            margin: 0,
+                          }}
+                        >
+                          Consider adding these suppliers to get better prices and compare offers
+                        </p>
+                      </div>
+                      <div style={{ padding: spacing[4] }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+                          {alternativeSuppliers.map((supplier) => (
+                            <div
+                              key={supplier.id}
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: spacing[3],
+                                backgroundColor: colors.neutral[0],
+                                border: `1px solid ${colors.border.light}`,
+                                borderRadius: borderRadius.md,
+                              }}
+                            >
+                              <div style={{ flex: 1 }}>
+                                <p
+                                  style={{
+                                    fontSize: typography.fontSize.base,
+                                    fontWeight: typography.fontWeight.medium,
+                                    color: colors.text.primary,
+                                    margin: 0,
+                                    marginBottom: spacing[1],
+                                  }}
+                                >
+                                  {supplier.business_name_en || supplier.business_name_ka || supplier.business_name}
+                                </p>
+                                <p
+                                  style={{
+                                    fontSize: typography.fontSize.xs,
+                                    color: colors.text.tertiary,
+                                    margin: 0,
+                                  }}
+                                >
+                                  {supplier.depot_address || 'Tbilisi, Georgia'}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => handleAddAlternativeSupplier(supplier.id)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: spacing[2],
+                                  padding: `${spacing[2]} ${spacing[4]}`,
+                                  backgroundColor: colors.primary[600],
+                                  color: colors.neutral[0],
+                                  border: 'none',
+                                  borderRadius: borderRadius.md,
+                                  fontSize: typography.fontSize.sm,
+                                  fontWeight: typography.fontWeight.medium,
+                                  cursor: 'pointer',
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = colors.primary[700];
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = colors.primary[600];
+                                }}
+                              >
+                                <Icons.Plus size={16} />
+                                Add
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Delivery Details */}
                   {deliveryWindow && (
@@ -1410,112 +1609,6 @@ export const CreateRFQ: React.FC = () => {
                             </p>
                           </div>
                         )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Alternative Suppliers */}
-                  {preselectedSupplierId && alternativeSuppliers.length > 0 && (
-                    <div
-                      style={{
-                        backgroundColor: colors.info[50],
-                        border: `1px solid ${colors.info[200]}`,
-                        borderRadius: borderRadius.lg,
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <div
-                        style={{
-                          padding: spacing[4],
-                          borderBottom: `1px solid ${colors.info[200]}`,
-                        }}
-                      >
-                        <h4
-                          style={{
-                            fontSize: typography.fontSize.base,
-                            fontWeight: typography.fontWeight.semibold,
-                            color: colors.info[900],
-                            margin: 0,
-                            marginBottom: spacing[1],
-                          }}
-                        >
-                          Send to More Suppliers?
-                        </h4>
-                        <p
-                          style={{
-                            fontSize: typography.fontSize.sm,
-                            color: colors.info[700],
-                            margin: 0,
-                          }}
-                        >
-                          Get competitive quotes by sending to these additional suppliers
-                        </p>
-                      </div>
-                      <div style={{ padding: spacing[4] }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
-                          {alternativeSuppliers.map((supplier) => (
-                            <div
-                              key={supplier.id}
-                              style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                padding: spacing[3],
-                                backgroundColor: colors.neutral[0],
-                                border: `1px solid ${colors.border.light}`,
-                                borderRadius: borderRadius.md,
-                              }}
-                            >
-                              <div>
-                                <p
-                                  style={{
-                                    fontSize: typography.fontSize.base,
-                                    fontWeight: typography.fontWeight.medium,
-                                    color: colors.text.primary,
-                                    margin: 0,
-                                    marginBottom: spacing[1],
-                                  }}
-                                >
-                                  {supplier.business_name}
-                                </p>
-                                <p
-                                  style={{
-                                    fontSize: typography.fontSize.xs,
-                                    color: colors.text.tertiary,
-                                    margin: 0,
-                                  }}
-                                >
-                                  {supplier.depot_address || 'Tbilisi, Georgia'}
-                                </p>
-                              </div>
-                              <button
-                                onClick={() => handleAddAlternativeSupplier(supplier.id)}
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: spacing[2],
-                                  padding: `${spacing[2]} ${spacing[4]}`,
-                                  backgroundColor: colors.primary[600],
-                                  color: colors.neutral[0],
-                                  border: 'none',
-                                  borderRadius: borderRadius.md,
-                                  fontSize: typography.fontSize.sm,
-                                  fontWeight: typography.fontWeight.medium,
-                                  cursor: 'pointer',
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor = colors.primary[700];
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor = colors.primary[600];
-                                }}
-                              >
-                                <Icons.Plus size={16} />
-                                Add
-                              </button>
-                            </div>
-                          ))}
-                        </div>
                       </div>
                     </div>
                   )}
