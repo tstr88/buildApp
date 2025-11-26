@@ -20,7 +20,8 @@
     "tryAgain": "Try Again",
     "characters": "characters",
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "optional": "optional"
   },
   "nav": {
     "home": "Home",
