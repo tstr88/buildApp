@@ -81,7 +81,10 @@ export async function getCatalogSKUs(req: Request, res: Response): Promise<void>
           unit_ka,
           unit_en,
           base_price,
-          images,
+          CASE
+            WHEN images IS NOT NULL AND array_length(images, 1) > 0 THEN true
+            ELSE false
+          END as has_images,
           direct_order_available,
           delivery_options,
           approx_lead_time_label,
