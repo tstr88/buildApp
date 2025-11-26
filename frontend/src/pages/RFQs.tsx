@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
+import { useWebSocket } from '../context/WebSocketContext';
 
 interface RFQ {
   id: string;
@@ -31,10 +32,37 @@ export const RFQs: React.FC = () => {
   const [rfqs, setRfqs] = useState<RFQ[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('active');
+  const { socket } = useWebSocket();
 
   useEffect(() => {
     fetchRFQs();
   }, [activeTab]);
+
+  // Subscribe to real-time RFQ list updates
+  useEffect(() => {
+    if (!socket) return;
+
+    console.log('[RFQs] Setting up WebSocket listeners');
+
+    const handleOfferCreated = () => {
+      console.log('[RFQs] Offer created event received, refreshing RFQ list');
+      fetchRFQs();
+    };
+
+    const handleRfqsListUpdated = () => {
+      console.log('[RFQs] RFQ list updated event received, refreshing RFQ list');
+      fetchRFQs();
+    };
+
+    socket.on('offer:created', handleOfferCreated);
+    socket.on('rfqs:list-updated', handleRfqsListUpdated);
+
+    return () => {
+      console.log('[RFQs] Cleaning up WebSocket listeners');
+      socket.off('offer:created', handleOfferCreated);
+      socket.off('rfqs:list-updated', handleRfqsListUpdated);
+    };
+  }, [socket]);
 
   const fetchRFQs = async () => {
     setLoading(true);

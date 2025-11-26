@@ -167,3 +167,15 @@ export const emitOrderUpdated = (order: any, buyerId: string, supplierId: string
 
   console.log(`[WebSocket] Emitted order:updated for order ${order.order_number}`);
 };
+
+export const emitOfferCreated = (rfqId: string, buyerUserId: string) => {
+  const socketIO = getIO();
+
+  // Notify the buyer that a new offer was submitted for their RFQ
+  socketIO.to(`user:${buyerUserId}`).emit('offer:created', { rfqId });
+
+  // Notify RFQs list page subscribers (buyers viewing their RFQ list)
+  socketIO.to('buyers').emit('rfqs:list-updated');
+
+  console.log(`[WebSocket] Emitted offer:created for RFQ ${rfqId} to buyer ${buyerUserId}`);
+};

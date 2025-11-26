@@ -685,6 +685,18 @@ router.post('/rfqs/:rfqId/offers', asyncHandler(async (req, res) => {
     );
   }
 
+  // Get buyer's user_id from RFQ to send WebSocket notification
+  const rfqResult = await pool.query(
+    'SELECT user_id FROM rfqs WHERE id = $1',
+    [rfqId]
+  );
+
+  if (rfqResult.rows.length > 0) {
+    const buyerUserId = rfqResult.rows[0].user_id;
+    const { emitOfferCreated } = require('../../websocket');
+    emitOfferCreated(rfqId, buyerUserId);
+  }
+
   return res.status(201).json({
     success: true,
     message: 'Offer submitted successfully',
