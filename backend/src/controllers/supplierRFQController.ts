@@ -454,6 +454,8 @@ export async function getSupplierRFQDetail(req: Request, res: Response): Promise
 
       const { id: supplierId, depot_latitude, depot_longitude } = supplierResult.rows[0];
 
+      console.log('[DEBUG] About to query RFQ:', { rfqId, supplierId, depot_latitude, depot_longitude });
+
       // Get RFQ details
       const rfqResult = await client.query(
         `SELECT
@@ -499,6 +501,7 @@ export async function getSupplierRFQDetail(req: Request, res: Response): Promise
       const rfq = rfqResult.rows[0];
 
       // DEBUG: Log what we got from database
+      console.log('[DEBUG] Full RFQ row from database:', JSON.stringify(rfq, null, 2));
       console.log('[DEBUG] RFQ from database:', {
         id: rfq.id,
         preferred_window_start: rfq.preferred_window_start,
