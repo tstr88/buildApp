@@ -498,6 +498,16 @@ export async function getSupplierRFQDetail(req: Request, res: Response): Promise
 
       const rfq = rfqResult.rows[0];
 
+      // DEBUG: Log what we got from database
+      console.log('[DEBUG] RFQ from database:', {
+        id: rfq.id,
+        preferred_window_start: rfq.preferred_window_start,
+        preferred_window_end: rfq.preferred_window_end,
+        project_address: rfq.project_address,
+        delivery_lat: rfq.delivery_lat,
+        delivery_lng: rfq.delivery_lng,
+      });
+
       // Mark as viewed
       await client.query(
         `INSERT INTO rfq_views (rfq_id, supplier_id, viewed_at)
@@ -511,7 +521,7 @@ export async function getSupplierRFQDetail(req: Request, res: Response): Promise
         [rfqId, supplierId]
       );
 
-      res.json({
+      const responseData = {
         success: true,
         rfq: {
           id: rfq.id,
@@ -530,7 +540,16 @@ export async function getSupplierRFQDetail(req: Request, res: Response): Promise
           created_at: rfq.created_at,
           has_existing_offer: offerResult.rows.length > 0,
         },
+      };
+
+      // DEBUG: Log what we're sending in response
+      console.log('[DEBUG] Sending response:', {
+        preferred_window_start: responseData.rfq.preferred_window_start,
+        preferred_window_end: responseData.rfq.preferred_window_end,
+        project_address: responseData.rfq.project_address,
       });
+
+      res.json(responseData);
     } finally {
       client.release();
     }
