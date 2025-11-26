@@ -9,6 +9,8 @@ import { X, Upload, Zap, AlertCircle, Truck, Package, Calendar } from 'lucide-re
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
 import { translateText, debounce } from '../../utils/translation';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface ProductFormProps {
   sku?: any; // SKU to edit, null for new product
   onClose: () => void;
@@ -221,8 +223,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ sku, onClose, onSaved }) => {
 
       const token = localStorage.getItem('buildapp_auth_token');
       const url = isEdit
-        ? `http://localhost:3001/api/suppliers/catalog/skus/${sku.id}`
-        : 'http://localhost:3001/api/suppliers/catalog/skus';
+        ? `${API_URL}/api/suppliers/catalog/skus/${sku.id}`
+        : `${API_URL}/api/suppliers/catalog/skus`;
 
       const response = await fetch(url, {
         method: isEdit ? 'PUT' : 'POST',
