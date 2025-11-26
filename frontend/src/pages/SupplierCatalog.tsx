@@ -23,6 +23,7 @@ interface SKU {
   unit_en: string;
   base_price: number;
   images?: string[];
+  thumbnail?: string;
   direct_order_available: boolean;
   delivery_options: 'pickup' | 'delivery' | 'both';
   approx_lead_time_label?: string;
@@ -994,9 +995,9 @@ const SupplierCatalog: React.FC = () => {
                           alignItems: 'center',
                           gap: spacing[3],
                         }}>
-                          {sku.images && sku.images.length > 0 ? (
+                          {sku.thumbnail ? (
                             <img
-                              src={sku.images[0]}
+                              src={sku.thumbnail}
                               alt={isGeorgian ? sku.name_ka : sku.name_en}
                               style={{
                                 width: '48px',
@@ -1208,9 +1209,9 @@ const SupplierCatalog: React.FC = () => {
                         cursor: 'pointer',
                       }}
                     />
-                    {sku.images && sku.images.length > 0 ? (
+                    {sku.thumbnail ? (
                       <img
-                        src={sku.images[0]}
+                        src={sku.thumbnail}
                         alt={isGeorgian ? sku.name_ka : sku.name_en}
                         style={{
                           width: '72px',
