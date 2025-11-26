@@ -80,22 +80,39 @@ export const AddressInput: React.FC<AddressInputProps> = ({
 
         if (photonResponse.ok) {
           const photonData = await photonResponse.json();
-          const photonResults = photonData.features.map((feature: any) => ({
-            display_name: feature.properties.name
-              ? `${feature.properties.name}${feature.properties.street ? ', ' + feature.properties.street : ''}${feature.properties.city ? ', ' + feature.properties.city : ', Tbilisi'}`
-              : feature.properties.street
-                ? `${feature.properties.street}${feature.properties.city ? ', ' + feature.properties.city : ', Tbilisi'}`
-                : feature.properties.city || 'Tbilisi',
-            lat: feature.geometry.coordinates[1].toString(),
-            lon: feature.geometry.coordinates[0].toString(),
-            address: {
-              road: feature.properties.street || feature.properties.name,
-              house_number: feature.properties.housenumber,
-              suburb: feature.properties.district,
-              city: feature.properties.city || 'Tbilisi',
-              country: feature.properties.country || 'Georgia',
-            },
-          }));
+          const photonResults = photonData.features.map((feature: any) => {
+            // Build display name with house number first if available
+            let displayName = '';
+            if (feature.properties.housenumber && feature.properties.street) {
+              displayName = `${feature.properties.housenumber} ${feature.properties.street}`;
+            } else if (feature.properties.street) {
+              displayName = feature.properties.street;
+            } else if (feature.properties.name) {
+              displayName = feature.properties.name;
+            } else {
+              displayName = feature.properties.city || 'Tbilisi';
+            }
+
+            // Add city/district
+            const location = feature.properties.city || 'Tbilisi';
+            displayName += `, ${location}`;
+            if (feature.properties.country) {
+              displayName += `, ${feature.properties.country}`;
+            }
+
+            return {
+              display_name: displayName,
+              lat: feature.geometry.coordinates[1].toString(),
+              lon: feature.geometry.coordinates[0].toString(),
+              address: {
+                road: feature.properties.street || feature.properties.name,
+                house_number: feature.properties.housenumber,
+                suburb: feature.properties.district,
+                city: feature.properties.city || 'Tbilisi',
+                country: feature.properties.country || 'Georgia',
+              },
+            };
+          });
           allSuggestions.push(...photonResults);
         }
       } catch (error) {
@@ -198,9 +215,32 @@ export const AddressInput: React.FC<AddressInputProps> = ({
       lat: parseFloat(suggestion.lat),
       lng: parseFloat(suggestion.lon),
     };
-    setInputValue(suggestion.display_name);
+
+    // Build a proper address string that includes the house number
+    let addressString = suggestion.display_name;
+    if (suggestion.address) {
+      const parts: string[] = [];
+
+      // Add house number and road together if both exist
+      if (suggestion.address.house_number && suggestion.address.road) {
+        parts.push(`${suggestion.address.house_number} ${suggestion.address.road}`);
+      } else if (suggestion.address.road) {
+        parts.push(suggestion.address.road);
+      }
+
+      // Add other location details
+      if (suggestion.address.suburb) parts.push(suggestion.address.suburb);
+      if (suggestion.address.city) parts.push(suggestion.address.city);
+      if (suggestion.address.country) parts.push(suggestion.address.country);
+
+      if (parts.length > 0) {
+        addressString = parts.join(', ');
+      }
+    }
+
+    setInputValue(addressString);
     setMapCoords(coords);
-    onChange(suggestion.display_name, coords);
+    onChange(addressString, coords);
     setShowSuggestions(false);
     setSuggestions([]);
   };
@@ -361,7 +401,7 @@ export const AddressInput: React.FC<AddressInputProps> = ({
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[2] }}>
                   <Icons.MapPin size={16} color={colors.primary[600]} style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <div>
+                  <div style={{ flex: 1 }}>
                     <p
                       style={{
                         fontSize: typography.fontSize.sm,
@@ -371,19 +411,23 @@ export const AddressInput: React.FC<AddressInputProps> = ({
                         marginBottom: spacing[1],
                       }}
                     >
-                      {suggestion.address?.road && suggestion.address?.house_number
-                        ? `${suggestion.address.road} ${suggestion.address.house_number}`
-                        : suggestion.address?.road || ''}
+                      {suggestion.address?.house_number && suggestion.address?.road
+                        ? `${suggestion.address.house_number} ${suggestion.address.road}`
+                        : suggestion.address?.road || suggestion.display_name}
                     </p>
-                    <p
-                      style={{
-                        fontSize: typography.fontSize.xs,
-                        color: colors.text.secondary,
-                        margin: 0,
-                      }}
-                    >
-                      {suggestion.display_name}
-                    </p>
+                    {suggestion.address && (suggestion.address.suburb || suggestion.address.city) && (
+                      <p
+                        style={{
+                          fontSize: typography.fontSize.xs,
+                          color: colors.text.secondary,
+                          margin: 0,
+                        }}
+                      >
+                        {[suggestion.address.suburb, suggestion.address.city, suggestion.address.country]
+                          .filter(Boolean)
+                          .join(', ')}
+                      </p>
+                    )}
                   </div>
                 </div>
               </button>
