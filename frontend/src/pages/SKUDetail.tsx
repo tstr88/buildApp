@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 
@@ -13,28 +14,37 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 interface SKUDetail {
   id: string;
   supplier_id: string;
-  supplier_name: string;
-  name: string;
-  spec_string?: string;
-  category: string;
+  supplier_name_ka: string;
+  supplier_name_en: string;
+  supplier_phone?: string;
+  supplier_email?: string;
+  supplier_address?: string;
+  name_ka: string;
+  name_en: string;
+  spec_string_ka?: string;
+  spec_string_en?: string;
+  category_ka: string;
+  category_en: string;
+  description_ka?: string;
+  description_en?: string;
   base_price?: number;
-  unit: string;
+  unit_ka: string;
+  unit_en: string;
   direct_order_available: boolean;
-  lead_time_category?: 'same_day' | 'next_day' | 'negotiable';
+  lead_time_category?: string;
   pickup_available: boolean;
   delivery_available: boolean;
   updated_at: string;
   thumbnail_url?: string;
-  description?: string;
-  min_order_quantity?: number;
-  stock_status?: string;
 }
 
 export const SKUDetail: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { i18n } = useTranslation();
   const [sku, setSKU] = useState<SKUDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const isGeorgian = i18n.language === 'ka';
 
   useEffect(() => {
     if (id) {
@@ -73,14 +83,19 @@ export const SKUDetail: React.FC = () => {
 
   const getCategoryIcon = () => {
     if (!sku) return null;
+    const category = isGeorgian ? sku.category_ka : sku.category_en;
     const iconMap: Record<string, any> = {
       concrete: Icons.Box,
+      ბეტონი: Icons.Box,
       blocks: Icons.Grid3x3,
+      აგური: Icons.Grid3x3,
       rebar: Icons.GitBranch,
+      steel: Icons.Ruler,
+      ფოლადი: Icons.Ruler,
       aggregates: Icons.Mountain,
       metal: Icons.Ruler,
     };
-    const IconComponent = iconMap[sku.category] || Icons.Package;
+    const IconComponent = iconMap[category.toLowerCase()] || Icons.Package;
     return <IconComponent size={24} color={colors.primary[600]} />;
   };
 
@@ -158,12 +173,13 @@ export const SKUDetail: React.FC = () => {
                   marginBottom: spacing[1],
                 }}
               >
-                {sku.spec_string ? (
+                {(isGeorgian ? sku.spec_string_ka : sku.spec_string_en) ? (
                   <>
-                    <strong>{sku.spec_string}</strong> {sku.name}
+                    <strong>{isGeorgian ? sku.spec_string_ka : sku.spec_string_en}</strong>{' '}
+                    {isGeorgian ? sku.name_ka : sku.name_en}
                   </>
                 ) : (
-                  sku.name
+                  isGeorgian ? sku.name_ka : sku.name_en
                 )}
               </h1>
               <p
@@ -174,7 +190,7 @@ export const SKUDetail: React.FC = () => {
                   textTransform: 'capitalize',
                 }}
               >
-                {sku.category}
+                {isGeorgian ? sku.category_ka : sku.category_en}
               </p>
             </div>
           </div>
@@ -216,7 +232,7 @@ export const SKUDetail: React.FC = () => {
               {sku.thumbnail_url ? (
                 <img
                   src={sku.thumbnail_url}
-                  alt={sku.name}
+                  alt={isGeorgian ? sku.name_ka : sku.name_en}
                   style={{
                     width: '100%',
                     height: '100%',
@@ -230,7 +246,7 @@ export const SKUDetail: React.FC = () => {
           </div>
 
           {/* Description */}
-          {sku.description && (
+          {(isGeorgian ? sku.description_ka : sku.description_en) && (
             <div
               style={{
                 backgroundColor: colors.neutral[0],
@@ -258,7 +274,7 @@ export const SKUDetail: React.FC = () => {
                   lineHeight: 1.6,
                 }}
               >
-                {sku.description}
+                {isGeorgian ? sku.description_ka : sku.description_en}
               </p>
             </div>
           )}
@@ -283,17 +299,58 @@ export const SKUDetail: React.FC = () => {
             >
               Supplier Information
             </h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-              <Icons.Building2 size={20} color={colors.primary[600]} />
-              <span
-                style={{
-                  fontSize: typography.fontSize.base,
-                  color: colors.text.primary,
-                  fontWeight: typography.fontWeight.medium,
-                }}
-              >
-                {sku.supplier_name}
-              </span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                <Icons.Building2 size={20} color={colors.primary[600]} />
+                <span
+                  style={{
+                    fontSize: typography.fontSize.base,
+                    color: colors.text.primary,
+                    fontWeight: typography.fontWeight.medium,
+                  }}
+                >
+                  {isGeorgian ? sku.supplier_name_ka : sku.supplier_name_en}
+                </span>
+              </div>
+              {sku.supplier_address && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[2] }}>
+                  <Icons.MapPin size={20} color={colors.text.tertiary} style={{ marginTop: '2px' }} />
+                  <span
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      color: colors.text.secondary,
+                    }}
+                  >
+                    {sku.supplier_address}
+                  </span>
+                </div>
+              )}
+              {sku.supplier_phone && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                  <Icons.Phone size={20} color={colors.text.tertiary} />
+                  <span
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      color: colors.text.secondary,
+                    }}
+                  >
+                    {sku.supplier_phone}
+                  </span>
+                </div>
+              )}
+              {sku.supplier_email && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                  <Icons.Mail size={20} color={colors.text.tertiary} />
+                  <span
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      color: colors.text.secondary,
+                    }}
+                  >
+                    {sku.supplier_email}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -330,7 +387,7 @@ export const SKUDetail: React.FC = () => {
                     }}
                   >
                     {' '}
-                    / {sku.unit}
+                    / {isGeorgian ? sku.unit_ka : sku.unit_en}
                   </span>
                 </p>
               </div>
