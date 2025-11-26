@@ -47,7 +47,7 @@ export const QuickProductForm: React.FC<QuickProductFormProps> = ({
   };
 
   const getDeliveryLabel = (option: DeliveryOption) => {
-    return t(`supplierOnboarding.productForm.${option}`);
+    return t(`supplierOnboarding.products.productForm.${option}`);
   };
 
   const getLeadTimeLabel = (leadTime: LeadTime) => {
