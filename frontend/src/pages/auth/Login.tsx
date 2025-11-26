@@ -5,12 +5,13 @@ import { useAuth } from '../../context/AuthContext';
 import { AuthCard } from '../../components/auth/AuthCard';
 import { LoadingSpinner } from '../../components/auth/LoadingSpinner';
 import axios from 'axios';
+import { Icons } from '../../components/icons/Icons';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { login: authLogin } = useAuth();
 
   const [isLogin, setIsLogin] = useState(true);
@@ -142,8 +143,52 @@ export default function Login() {
     }
   };
 
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'en' ? 'ka' : 'en';
+    i18n.changeLanguage(newLang);
+  };
+
   return (
     <AuthCard>
+      {/* Language Switcher */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          zIndex: 10,
+        }}
+      >
+        <button
+          onClick={toggleLanguage}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '8px 12px',
+            backgroundColor: '#FFFFFF',
+            border: '1px solid #E0E0E0',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 500,
+            color: '#222',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#F5F5F5';
+            e.currentTarget.style.borderColor = '#BDBDBD';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#FFFFFF';
+            e.currentTarget.style.borderColor = '#E0E0E0';
+          }}
+        >
+          <Icons.Globe size={16} />
+          {i18n.language === 'en' ? 'ქართული' : 'English'}
+        </button>
+      </div>
+
       {/* Hero Section */}
       <div
         style={{
