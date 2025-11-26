@@ -59,8 +59,12 @@
   },
   "difficulty": {
     "easy": "მარტივი",
+    "beginner": "დამწყები",
     "medium": "საშუალო",
-    "hard": "რთული"
+    "intermediate": "საშუალო",
+    "hard": "რთული",
+    "advanced": "მოწინავე",
+    "professional": "პროფესიონალი"
   },
   "bom": {
     "title": "მასალების ჩამონათვალი (BOM)",

@@ -59,8 +59,12 @@
   },
   "difficulty": {
     "easy": "Easy",
+    "beginner": "Beginner",
     "medium": "Medium",
-    "hard": "Hard"
+    "intermediate": "Intermediate",
+    "hard": "Hard",
+    "advanced": "Advanced",
+    "professional": "Professional"
   },
   "bom": {
     "title": "Bill of Materials (BOM)",
