@@ -1027,7 +1027,13 @@
       "changeDelivery": "Change Delivery Option",
       "deactivate": "Deactivate",
       "activate": "Activate",
-      "updating": "Updating..."
+      "updating": "Updating...",
+      "activateDirectOrder": "Activate Direct Order",
+      "deactivateDirectOrder": "Deactivate Direct Order",
+      "activateProduct": "Activate Product",
+      "deactivateProduct": "Deactivate Product",
+      "deleteProduct": "Delete Product",
+      "confirmDelete": "Are you sure you want to permanently delete {{count}} product(s)? This action cannot be undone."
     },
     "actions": {
       "edit": "Edit",
@@ -1065,6 +1071,7 @@
     "selected": "{{count}} selected",
     "stale": "Stale",
     "daysAgo": "{{count}} days ago",
+    "deactivated": "Deactivated",
     "messages": {
       "updatePricesNudge": "{{count}} products need price updates",
       "noProducts": "No products yet"

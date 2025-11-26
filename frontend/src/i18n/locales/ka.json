@@ -1053,7 +1053,13 @@
       "changeDelivery": "მიწოდების ვარიანტის შეცვლა",
       "deactivate": "დეაქტივაცია",
       "activate": "აქტივაცია",
-      "updating": "ახლდება..."
+      "updating": "ახლდება...",
+      "activateDirectOrder": "პირდაპირი შეკვეთის ჩართვა",
+      "deactivateDirectOrder": "პირდაპირი შეკვეთის გამორთვა",
+      "activateProduct": "პროდუქტის გააქტიურება",
+      "deactivateProduct": "პროდუქტის გამორთვა",
+      "deleteProduct": "პროდუქტის წაშლა",
+      "confirmDelete": "დარწმუნებული ხართ, რომ გსურთ სამუდამოდ წაშალოთ {{count}} პროდუქტი? ეს მოქმედება შეუქცევადია."
     },
     "actions": {
       "edit": "რედაქტირება",
@@ -1091,6 +1097,7 @@
     "selected": "არჩეულია {{count}}",
     "stale": "გაძველებული",
     "daysAgo": "{{count}} დღის წინ",
+    "deactivated": "გამორთული",
     "messages": {
       "updatePricesNudge": "{{count}} პროდუქტს სჭირდება ფასის განახლება",
       "noProducts": "პროდუქტები არ არის"
