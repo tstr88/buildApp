@@ -12,6 +12,8 @@ import { OnboardingProgress } from '../components/suppliers/OnboardingProgress';
 import { MapPinPicker } from '../components/suppliers/MapPinPicker';
 import { QuickProductForm, type QuickProduct } from '../components/suppliers/QuickProductForm';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 type Step = 1 | 2 | 3 | 4 | 5 | 'success';
 type DeliveryZone = 'tbilisi_only' | 'tbilisi_25km' | 'tbilisi_50km' | 'all_georgia' | 'pickup_only';
 
@@ -120,7 +122,7 @@ export const SupplierOnboarding: React.FC = () => {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:3001/api/suppliers/onboard', {
+      const response = await fetch(`${API_URL}/api/suppliers/onboard`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

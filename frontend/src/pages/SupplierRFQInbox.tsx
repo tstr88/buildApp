@@ -10,6 +10,8 @@ import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 import { useWebSocket } from '../context/WebSocketContext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 type TabType = 'new' | 'sent' | 'accepted' | 'expired';
 
 interface RFQCard {
@@ -87,7 +89,7 @@ export function SupplierRFQInbox() {
       const token = localStorage.getItem('buildapp_auth_token');
       console.log('[SupplierRFQInbox] Token exists:', !!token);
 
-      const url = `http://localhost:3001/api/suppliers/rfqs?status=${activeTab}`;
+      const url = `${API_URL}/api/suppliers/rfqs?status=${activeTab}`;
       console.log('[SupplierRFQInbox] Fetching from:', url);
 
       const response = await fetch(url, {

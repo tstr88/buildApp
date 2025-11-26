@@ -10,6 +10,8 @@ import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 import { useWebSocket } from '../context/WebSocketContext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 type TabType = 'new' | 'scheduled' | 'in_progress' | 'completed';
 
 interface DirectOrderCard {
@@ -79,7 +81,7 @@ export function SupplierDirectOrdersInbox() {
     setLoading(true);
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch(`http://localhost:3001/api/suppliers/orders/direct?tab=${activeTab}`, {
+      const response = await fetch(`${API_URL}/api/suppliers/orders/direct?tab=${activeTab}`, {
         credentials: 'include',
         headers: {
           'Authorization': `Bearer ${token}`,

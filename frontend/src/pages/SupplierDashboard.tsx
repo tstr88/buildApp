@@ -9,6 +9,8 @@ import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface DashboardStats {
   newRFQs: number;
   offersWaitingApproval: number;
@@ -59,7 +61,7 @@ export function SupplierDashboard() {
         return;
       }
 
-      const response = await fetch('http://localhost:3001/api/suppliers/dashboard', {
+      const response = await fetch(`${API_URL}/api/suppliers/dashboard`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
