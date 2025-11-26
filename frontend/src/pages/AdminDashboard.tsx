@@ -52,6 +52,11 @@ interface DashboardData {
     gmvThisMonth: number;
     revenueThisMonth: number;
   };
+  templates: {
+    published: number;
+    draft: number;
+    total: number;
+  };
 }
 
 export function AdminDashboard() {
@@ -335,17 +340,17 @@ export function AdminDashboard() {
         {/* 9. Templates */}
         <AdminDashboardTile
           title={t('admin.dashboard.templates.title', 'Project Templates')}
-          count="2"
+          count={data.templates.total}
           icon="FileText"
           stats={[
             {
               label: t('admin.dashboard.templates.published', 'Published templates'),
-              value: 2,
+              value: data.templates.published,
               color: colors.success[600],
             },
             {
               label: t('admin.dashboard.templates.draft', 'Draft templates'),
-              value: 0,
+              value: data.templates.draft,
             },
           ]}
           ctaLabel={t('admin.dashboard.templates.cta', 'Manage Templates')}

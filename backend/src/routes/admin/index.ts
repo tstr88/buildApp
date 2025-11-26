@@ -160,6 +160,17 @@ router.get('/dashboard', asyncHandler(async (_req, res) => {
 
   const platformStats = platformStatsQuery.rows[0];
 
+  // 9. Templates
+  const templatesQuery = await pool.query(`
+    SELECT
+      COUNT(*) FILTER (WHERE is_published = true) as published_templates,
+      COUNT(*) FILTER (WHERE is_published = false) as draft_templates,
+      COUNT(*) as total_templates
+    FROM templates
+  `);
+
+  const templateStats = templatesQuery.rows[0];
+
   success(res, {
     liveRFQs: {
       totalActive: parseInt(rfqStats.total_active) || 0,
@@ -198,6 +209,11 @@ router.get('/dashboard', asyncHandler(async (_req, res) => {
       directOrdersThisMonth: parseInt(platformStats.direct_orders_this_month) || 0,
       gmvThisMonth: parseFloat(platformStats.gmv_this_month) || 0,
       revenueThisMonth: parseFloat(platformStats.revenue_this_month) || 0,
+    },
+    templates: {
+      published: parseInt(templateStats.published_templates) || 0,
+      draft: parseInt(templateStats.draft_templates) || 0,
+      total: parseInt(templateStats.total_templates) || 0,
     },
   });
 }));
