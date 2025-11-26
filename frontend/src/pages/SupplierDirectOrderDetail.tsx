@@ -8,6 +8,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 import { WindowProposalModal } from '../components/supplier/WindowProposalModal';
 import { MarkDeliveredModal } from '../components/supplier/MarkDeliveredModal';
 import { useWebSocket } from '../context/WebSocketContext';
@@ -109,7 +111,7 @@ export function SupplierDirectOrderDetail() {
     setLoading(true);
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch(`http://localhost:3001/api/suppliers/orders/${orderId}`, {
+      const response = await fetch(`${API_URL}/api/suppliers/orders/${orderId}`, {
         credentials: 'include',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -147,7 +149,7 @@ export function SupplierDirectOrderDetail() {
 
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      await fetch(`http://localhost:3001/api/suppliers/orders/${orderId}/checklist`, {
+      await fetch(`${API_URL}/api/suppliers/orders/${orderId}/checklist`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -175,7 +177,7 @@ export function SupplierDirectOrderDetail() {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
       const response = await fetch(
-        `http://localhost:3001/api/suppliers/orders/${order.order_id}/accept-window`,
+        `${API_URL}/api/suppliers/orders/${order.order_id}/accept-window`,
         {
           method: 'POST',
           headers: {

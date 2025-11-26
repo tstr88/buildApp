@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface TrustMetrics {
   overallScore: number;
   tier: 'unverified' | 'verified' | 'trusted';
@@ -69,7 +71,7 @@ export function SupplierPerformance() {
   const fetchPerformanceData = async () => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch('http://localhost:3001/api/suppliers/performance', {
+      const response = await fetch(`${API_URL}/api/suppliers/performance`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

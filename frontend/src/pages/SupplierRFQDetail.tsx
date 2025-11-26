@@ -9,6 +9,8 @@ import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || '${API_URL}';
+
 interface RFQLine {
   index: number;
   description: string;
@@ -100,7 +102,7 @@ export function SupplierRFQDetail() {
   const fetchRFQDetail = async () => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch(`http://localhost:3001/api/suppliers/rfqs/${rfqId}`, {
+      const response = await fetch(`${API_URL}/api/suppliers/rfqs/${rfqId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -145,7 +147,7 @@ export function SupplierRFQDetail() {
   const fetchOfferHistory = async () => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch(`http://localhost:3001/api/suppliers/rfqs/${rfqId}/offer-history`, {
+      const response = await fetch(`${API_URL}/api/suppliers/rfqs/${rfqId}/offer-history`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -307,7 +309,7 @@ export function SupplierRFQDetail() {
       expiresAt.setHours(expiresAt.getHours() + hours);
 
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch(`http://localhost:3001/api/suppliers/rfqs/${rfqId}/offers`, {
+      const response = await fetch(`${API_URL}/api/suppliers/rfqs/${rfqId}/offers`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -360,7 +362,7 @@ export function SupplierRFQDetail() {
 
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch(`http://localhost:3001/api/suppliers/rfqs/${rfqId}/decline`, {
+      const response = await fetch(`${API_URL}/api/suppliers/rfqs/${rfqId}/decline`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

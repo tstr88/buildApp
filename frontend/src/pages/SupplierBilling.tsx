@@ -11,6 +11,8 @@ import { BillingBalanceCard } from '../components/BillingBalanceCard';
 import { MonthlySummaryCard } from '../components/MonthlySummaryCard';
 import { BillingLedgerTable } from '../components/BillingLedgerTable';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface BillingSummary {
   currentBalance: {
     outstandingFees: number;
@@ -65,7 +67,7 @@ export function SupplierBilling() {
   const fetchSummary = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3001/api/suppliers/billing/summary', {
+      const response = await fetch(`${API_URL}/api/suppliers/billing/summary`, {
         credentials: 'include',
       });
 
@@ -89,7 +91,7 @@ export function SupplierBilling() {
       if (orderType !== 'all') params.append('order_type', orderType);
       if (statusFilter !== 'all') params.append('status', statusFilter);
 
-      const response = await fetch(`http://localhost:3001/api/suppliers/billing/ledger?${params}`, {
+      const response = await fetch(`${API_URL}/api/suppliers/billing/ledger?${params}`, {
         credentials: 'include',
       });
 
@@ -112,7 +114,7 @@ export function SupplierBilling() {
       if (orderType !== 'all') params.append('order_type', orderType);
       if (statusFilter !== 'all') params.append('status', statusFilter);
 
-      const response = await fetch(`http://localhost:3001/api/suppliers/billing/export?${params}`, {
+      const response = await fetch(`${API_URL}/api/suppliers/billing/export?${params}`, {
         credentials: 'include',
       });
 

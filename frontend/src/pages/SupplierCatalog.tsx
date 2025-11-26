@@ -9,6 +9,8 @@ import { Plus, Upload, AlertCircle } from 'lucide-react';
 import ProductForm from '../components/catalog/ProductForm';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface SKU {
   id: string;
   name_ka: string;
@@ -80,7 +82,7 @@ const SupplierCatalog: React.FC = () => {
       params.append('sort_order', sortOrder);
 
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch(`http://localhost:3001/api/suppliers/catalog/skus?${params.toString()}`, {
+      const response = await fetch(`${API_URL}/api/suppliers/catalog/skus?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -142,7 +144,7 @@ const SupplierCatalog: React.FC = () => {
     setBulkActionLoading(true);
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch('http://localhost:3001/api/suppliers/catalog/skus/bulk', {
+      const response = await fetch(`${API_URL}/api/suppliers/catalog/skus/bulk`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -199,7 +201,7 @@ const SupplierCatalog: React.FC = () => {
 
       // Delete each SKU individually with permanent=true
       const deletePromises = selectedSKUs.map(skuId =>
-        fetch(`http://localhost:3001/api/suppliers/catalog/skus/${skuId}?permanent=true`, {
+        fetch(`${API_URL}/api/suppliers/catalog/skus/${skuId}?permanent=true`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
