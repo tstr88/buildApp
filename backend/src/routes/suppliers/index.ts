@@ -368,14 +368,17 @@ router.get('/rfqs/:rfqId', asyncHandler(async (req, res) => {
       r.status,
       r.created_at,
       r.project_id,
+      r.preferred_window_start,
+      r.preferred_window_end,
+      r.additional_notes,
+      COALESCE(r.delivery_address, p.address) as project_address,
+      COALESCE(r.delivery_location_lat, p.latitude) as project_latitude,
+      COALESCE(r.delivery_location_lng, p.longitude) as project_longitude,
       rr.viewed_at,
       u.name as buyer_name,
       u.phone as buyer_phone,
       u.buyer_role as buyer_type,
-      p.name as project_name,
-      p.address as project_address,
-      p.latitude as project_latitude,
-      p.longitude as project_longitude
+      p.name as project_name
     FROM rfq_recipients rr
     INNER JOIN rfqs r ON rr.rfq_id = r.id
     INNER JOIN users u ON r.user_id = u.id
@@ -441,9 +444,9 @@ router.get('/rfqs/:rfqId', asyncHandler(async (req, res) => {
     delivery_lng: rfq.project_longitude,
     distance_km: distanceKm,
     lines: Array.isArray(rfq.lines) ? rfq.lines : [],
-    preferred_window_start: null, // Not in MVP schema
-    preferred_window_end: null,   // Not in MVP schema
-    additional_notes: null,        // Not in MVP schema
+    preferred_window_start: rfq.preferred_window_start,
+    preferred_window_end: rfq.preferred_window_end,
+    additional_notes: rfq.additional_notes,
     access_notes: null,            // Not in MVP schema
     created_at: rfq.created_at,
     has_existing_offer: hasExistingOffer,
