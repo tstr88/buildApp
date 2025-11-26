@@ -105,7 +105,10 @@ export function SupplierRFQDetail() {
       const response = await fetch(`${API_URL}/api/suppliers/rfqs/${rfqId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
         },
+        cache: 'no-store',
       });
 
       if (response.ok) {
