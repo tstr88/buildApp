@@ -5,6 +5,34 @@
 
 import { Request, Response } from 'express';
 import pool from '../config/database';
+import sharp from 'sharp';
+
+/**
+ * Create thumbnail from base64 image
+ */
+async function createThumbnail(base64Image: string, maxWidth: number = 200): Promise<string> {
+  try {
+    // Extract base64 data (remove data:image/...;base64, prefix)
+    const base64Data = base64Image.split(',')[1] || base64Image;
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // Resize image to thumbnail
+    const thumbnailBuffer = await sharp(buffer)
+      .resize(maxWidth, null, {
+        fit: 'inside',
+        withoutEnlargement: true
+      })
+      .jpeg({ quality: 70 }) // Convert to JPEG with lower quality for smaller size
+      .toBuffer();
+
+    // Convert back to base64
+    const thumbnailBase64 = `data:image/jpeg;base64,${thumbnailBuffer.toString('base64')}`;
+    return thumbnailBase64;
+  } catch (error) {
+    console.error('Error creating thumbnail:', error);
+    return base64Image; // Return original if thumbnail creation fails
+  }
+}
 
 /**
  * GET /api/suppliers/catalog/skus
@@ -82,9 +110,10 @@ export async function getCatalogSKUs(req: Request, res: Response): Promise<void>
           unit_en,
           base_price,
           CASE
-            WHEN images IS NOT NULL AND array_length(images, 1) > 0 THEN true
-            ELSE false
-          END as has_images,
+            WHEN images IS NOT NULL AND array_length(images, 1) > 0
+            THEN images[1]
+            ELSE NULL
+          END as first_image,
           direct_order_available,
           delivery_options,
           approx_lead_time_label,
@@ -105,6 +134,17 @@ export async function getCatalogSKUs(req: Request, res: Response): Promise<void>
 
       const skusResult = await client.query(query, queryParams);
 
+      // Create thumbnails for each SKU
+      const skusWithThumbnails = await Promise.all(
+        skusResult.rows.map(async (sku) => {
+          const { first_image, ...skuData } = sku;
+          return {
+            ...skuData,
+            thumbnail: first_image ? await createThumbnail(first_image, 200) : null,
+          };
+        })
+      );
+
       // Get stats
       const statsQuery = `
         SELECT
@@ -118,7 +158,7 @@ export async function getCatalogSKUs(req: Request, res: Response): Promise<void>
       const statsResult = await client.query(statsQuery, [supplierId]);
 
       res.json({
-        skus: skusResult.rows,
+        skus: skusWithThumbnails,
         stats: {
           total_skus: parseInt(statsResult.rows[0].total_skus, 10),
           direct_order_enabled: parseInt(statsResult.rows[0].direct_order_enabled, 10),
