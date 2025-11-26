@@ -6,8 +6,32 @@ import { Router } from 'express';
 import { asyncHandler } from '../../middleware/asyncHandler';
 import { success } from '../../utils/responseHelpers';
 import pool from '../../config/database';
+import sharp from 'sharp';
 
 const router = Router();
+
+/**
+ * Create a thumbnail from a base64 image
+ */
+async function createThumbnail(base64Image: string, maxWidth: number = 200): Promise<string> {
+  try {
+    const base64Data = base64Image.split(',')[1] || base64Image;
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    const thumbnailBuffer = await sharp(buffer)
+      .resize(maxWidth, null, {
+        fit: 'inside',
+        withoutEnlargement: true
+      })
+      .jpeg({ quality: 70 })
+      .toBuffer();
+
+    return `data:image/jpeg;base64,${thumbnailBuffer.toString('base64')}`;
+  } catch (error) {
+    console.error('Error creating thumbnail:', error);
+    return base64Image;
+  }
+}
 
 /**
  * GET /api/factories
@@ -236,27 +260,30 @@ router.get('/:factoryId/catalog', asyncHandler(async (req, res) => {
 
   const result = await pool.query(query, values);
 
-  const skus = result.rows.map(row => ({
-    id: row.id,
-    supplier_id: row.supplier_id,
-    supplier_name_ka: row.supplier_name_ka,
-    supplier_name_en: row.supplier_name_en,
-    name_ka: row.name_ka,
-    name_en: row.name_en,
-    spec_string_ka: row.spec_string_ka,
-    spec_string_en: row.spec_string_en,
-    category_ka: row.category_ka,
-    category_en: row.category_en,
-    base_price: parseFloat(row.base_price) || 0,
-    unit_ka: row.unit_ka,
-    unit_en: row.unit_en,
-    direct_order_available: row.direct_order_available || false,
-    lead_time_category: row.lead_time_category,
-    pickup_available: row.delivery_options === 'pickup' || row.delivery_options === 'both',
-    delivery_available: row.delivery_options === 'delivery' || row.delivery_options === 'both',
-    updated_at: row.updated_at,
-    thumbnail_url: row.images && row.images.length > 0 ? row.images[0] : undefined,
-  }));
+  // Generate thumbnails for all SKUs
+  const skus = await Promise.all(
+    result.rows.map(async (row) => ({
+      id: row.id,
+      supplier_id: row.supplier_id,
+      supplier_name_ka: row.supplier_name_ka,
+      supplier_name_en: row.supplier_name_en,
+      name_ka: row.name_ka,
+      name_en: row.name_en,
+      spec_string_ka: row.spec_string_ka,
+      spec_string_en: row.spec_string_en,
+      category_ka: row.category_ka,
+      category_en: row.category_en,
+      base_price: parseFloat(row.base_price) || 0,
+      unit_ka: row.unit_ka,
+      unit_en: row.unit_en,
+      direct_order_available: row.direct_order_available || false,
+      lead_time_category: row.lead_time_category,
+      pickup_available: row.delivery_options === 'pickup' || row.delivery_options === 'both',
+      delivery_available: row.delivery_options === 'delivery' || row.delivery_options === 'both',
+      updated_at: row.updated_at,
+      thumbnail_url: row.images && row.images.length > 0 ? await createThumbnail(row.images[0], 200) : undefined,
+    }))
+  );
 
   success(res, { skus }, 'Factory catalog retrieved successfully');
 }));
