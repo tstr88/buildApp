@@ -272,6 +272,28 @@ router.get('/skus/:id', asyncHandler(async (req, res) => {
   }
 
   const row = result.rows[0];
+
+  // For detail page, create a larger, higher quality image (800px, 85% quality)
+  const createDetailImage = async (base64Image: string): Promise<string> => {
+    try {
+      const base64Data = base64Image.split(',')[1] || base64Image;
+      const buffer = Buffer.from(base64Data, 'base64');
+
+      const detailBuffer = await sharp(buffer)
+        .resize(800, null, {
+          fit: 'inside',
+          withoutEnlargement: true
+        })
+        .jpeg({ quality: 85 })
+        .toBuffer();
+
+      return `data:image/jpeg;base64,${detailBuffer.toString('base64')}`;
+    } catch (error) {
+      console.error('Error creating detail image:', error);
+      return base64Image;
+    }
+  };
+
   const sku = {
     id: row.id,
     supplier_id: row.supplier_id,
@@ -296,7 +318,7 @@ router.get('/skus/:id', asyncHandler(async (req, res) => {
     pickup_available: row.delivery_options === 'pickup' || row.delivery_options === 'both',
     delivery_available: row.delivery_options === 'delivery' || row.delivery_options === 'both',
     updated_at: row.updated_at,
-    thumbnail_url: row.images && row.images.length > 0 ? await createThumbnail(row.images[0], 200) : undefined,
+    thumbnail_url: row.images && row.images.length > 0 ? await createDetailImage(row.images[0]) : undefined,
   };
 
   return success(res, sku, 'SKU retrieved successfully');
