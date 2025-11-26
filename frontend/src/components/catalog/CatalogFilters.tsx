@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius } from '../../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface CatalogFiltersProps {
   filters: {
     search: string;
@@ -54,7 +56,7 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({
 
   const fetchSuppliers = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/factories?sort=reliability');
+      const response = await fetch(`${API_URL}/api/factories?sort=reliability`);
       if (response.ok) {
         const result = await response.json();
         const data = result.data || {};

@@ -8,6 +8,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface SKUDetail {
   id: string;
   supplier_id: string;
@@ -43,7 +45,7 @@ export const SKUDetail: React.FC = () => {
   const fetchSKU = async (skuId: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3001/api/catalog/skus/${skuId}`);
+      const response = await fetch(`${API_URL}/api/catalog/skus/${skuId}`);
 
       if (response.ok) {
         const data = await response.json();
