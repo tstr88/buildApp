@@ -46,6 +46,8 @@ export async function getRFQs(req: Request, res: Response): Promise<void> {
     const userId = req.user.id;
     const { status, project_id } = req.query;
 
+    console.log('[Buyer RFQs] Fetching RFQs for user:', userId, 'status filter:', status);
+
     let query = `
       SELECT
         r.id,
@@ -92,6 +94,11 @@ export async function getRFQs(req: Request, res: Response): Promise<void> {
     query += ' ORDER BY r.created_at DESC';
 
     const result = await pool.query(query, queryParams);
+
+    console.log('[Buyer RFQs] Found', result.rows.length, 'RFQs for user', userId);
+    if (result.rows.length > 0) {
+      console.log('[Buyer RFQs] First RFQ:', result.rows[0].id, result.rows[0].title, 'offer_count:', result.rows[0].offer_count);
+    }
 
     res.json({
       success: true,
