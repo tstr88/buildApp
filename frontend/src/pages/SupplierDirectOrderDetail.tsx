@@ -716,7 +716,7 @@ export function SupplierDirectOrderDetail() {
               </button>
             </div>
           ) : order.status === 'pending' && order.scheduled_window_start && order.scheduled_window_end ? (
-            /* Buyer already selected exact time - supplier just needs to accept or counter-propose */
+            /* Buyer selected exact time from supplier's available slots - supplier just confirms */
             <div>
               <div
                 style={{
@@ -735,59 +735,38 @@ export function SupplierDirectOrderDetail() {
                       : t('supplierOrders.buyerRequestedDelivery', 'Buyer Requested Delivery Time')}
                   </span>
                 </div>
-                <div style={{ fontSize: typography.fontSize.base, color: colors.text.primary, marginBottom: spacing[3] }}>
+                <div style={{ fontSize: typography.fontSize.base, color: colors.text.primary, marginBottom: spacing[2] }}>
                   {new Date(order.scheduled_window_start).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                   {' at '}
                   {new Date(order.scheduled_window_start).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                 </div>
-                <div style={{ display: 'flex', gap: spacing[2] }}>
-                  <button
-                    onClick={handleAcceptBuyerScheduledTime}
-                    style={{
-                      padding: `${spacing[2]} ${spacing[4]}`,
-                      backgroundColor: colors.success[600],
-                      color: colors.text.inverse,
-                      border: 'none',
-                      borderRadius: borderRadius.md,
-                      fontSize: typography.fontSize.sm,
-                      fontWeight: typography.fontWeight.medium,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = colors.success[700];
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = colors.success[600];
-                    }}
-                  >
-                    {order.delivery_type === 'pickup'
-                      ? t('supplierOrders.confirmPickupTime', 'Confirm Pickup Time')
-                      : t('supplierOrders.confirmDeliveryTime', 'Confirm Delivery Time')}
-                  </button>
-                  <button
-                    onClick={() => setShowWindowProposalModal(true)}
-                    style={{
-                      padding: `${spacing[2]} ${spacing[4]}`,
-                      backgroundColor: 'transparent',
-                      color: colors.text.secondary,
-                      border: `1px solid ${colors.border.default}`,
-                      borderRadius: borderRadius.md,
-                      fontSize: typography.fontSize.sm,
-                      fontWeight: typography.fontWeight.medium,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = colors.neutral[50];
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    {t('supplierOrders.proposeDifferentTime', 'Propose Different Time')}
-                  </button>
-                </div>
+                <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0, marginBottom: spacing[3] }}>
+                  {t('supplierOrders.timeFromYourAvailability', 'This time was selected from your available time slots')}
+                </p>
+                <button
+                  onClick={handleAcceptBuyerScheduledTime}
+                  style={{
+                    padding: `${spacing[2]} ${spacing[4]}`,
+                    backgroundColor: colors.success[600],
+                    color: colors.text.inverse,
+                    border: 'none',
+                    borderRadius: borderRadius.md,
+                    fontSize: typography.fontSize.sm,
+                    fontWeight: typography.fontWeight.medium,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = colors.success[700];
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = colors.success[600];
+                  }}
+                >
+                  {order.delivery_type === 'pickup'
+                    ? t('supplierOrders.confirmPickupTime', 'Confirm Pickup Time')
+                    : t('supplierOrders.confirmDeliveryTime', 'Confirm Delivery Time')}
+                </button>
               </div>
             </div>
           ) : order.status === 'pending' ? (
@@ -942,7 +921,7 @@ export function SupplierDirectOrderDetail() {
       )}
 
       {/* Mark Delivered Button */}
-      {isDeliveryDay() && order.status === 'scheduled' && (
+      {isDeliveryDay() && order.status === 'confirmed' && (
         <div
           style={{
             backgroundColor: colors.primary[50],
