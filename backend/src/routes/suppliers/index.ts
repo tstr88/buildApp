@@ -1043,6 +1043,86 @@ router.post('/orders/:orderId/accept-window', asyncHandler(async (req, res) => {
   });
 }));
 
+// Confirm the time that buyer selected during checkout (not a counter-proposal)
+router.post('/orders/:orderId/confirm-scheduled-time', asyncHandler(async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      error: 'Authentication required',
+    });
+  }
+
+  const { orderId } = req.params;
+  const userId = req.user.id;
+
+  // Get supplier ID
+  const supplierResult = await pool.query(
+    'SELECT id FROM suppliers WHERE user_id = $1',
+    [userId]
+  );
+
+  if (supplierResult.rows.length === 0) {
+    return res.status(404).json({
+      success: false,
+      error: 'Supplier profile not found',
+    });
+  }
+
+  const supplierId = supplierResult.rows[0].id;
+
+  // Verify order and check it has a scheduled time
+  const orderResult = await pool.query(
+    `SELECT id, buyer_id, promised_window_start, promised_window_end, status
+     FROM orders
+     WHERE order_number = $1 AND supplier_id = $2`,
+    [orderId, supplierId]
+  );
+
+  if (orderResult.rows.length === 0) {
+    return res.status(404).json({
+      success: false,
+      error: 'Order not found',
+    });
+  }
+
+  const order = orderResult.rows[0];
+
+  if (!order.promised_window_start || !order.promised_window_end) {
+    return res.status(400).json({
+      success: false,
+      error: 'No scheduled time to confirm',
+    });
+  }
+
+  if (order.status !== 'pending') {
+    return res.status(400).json({
+      success: false,
+      error: 'Order is not in pending status',
+    });
+  }
+
+  // Confirm the order - move status to confirmed
+  await pool.query(
+    `UPDATE orders
+     SET status = 'confirmed',
+         updated_at = CURRENT_TIMESTAMP
+     WHERE order_number = $1 AND supplier_id = $2`,
+    [orderId, supplierId]
+  );
+
+  // Emit WebSocket event to buyer
+  emitWindowAccepted({
+    order_number: orderId,
+    order_id: order.id,
+    status: 'confirmed',
+  }, order.buyer_id);
+
+  return res.json({
+    success: true,
+    message: 'Scheduled time confirmed',
+  });
+}));
+
 router.get('/deliveries', asyncHandler(async (_req, res) => {
   success(res, [], 'Deliveries retrieved successfully');
 }));

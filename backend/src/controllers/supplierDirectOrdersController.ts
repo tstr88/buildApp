@@ -302,6 +302,86 @@ export async function proposeWindow(req: Request, res: Response): Promise<void> 
 }
 
 /**
+ * POST /api/suppliers/orders/:orderId/confirm-scheduled-time
+ * Confirm the time that buyer selected during checkout (not a counter-proposal)
+ */
+export async function confirmScheduledTime(req: Request, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { orderId } = req.params;
+    const client = await pool.connect();
+
+    try {
+      // First get the supplier_id for this user
+      const supplierResult = await client.query(
+        'SELECT id FROM suppliers WHERE user_id = $1',
+        [userId]
+      );
+
+      if (supplierResult.rows.length === 0) {
+        res.status(404).json({ error: 'Supplier profile not found' });
+        return;
+      }
+
+      const supplierId = supplierResult.rows[0].id;
+
+      // Verify order and check it has a scheduled time
+      const orderResult = await client.query(
+        `SELECT id, promised_window_start, promised_window_end, status, buyer_id
+         FROM orders
+         WHERE order_number = $1 AND supplier_id = $2`,
+        [orderId, supplierId]
+      );
+
+      if (orderResult.rows.length === 0) {
+        res.status(404).json({ error: 'Order not found' });
+        return;
+      }
+
+      const order = orderResult.rows[0];
+
+      if (!order.promised_window_start || !order.promised_window_end) {
+        res.status(400).json({ error: 'No scheduled time to confirm' });
+        return;
+      }
+
+      if (order.status !== 'pending') {
+        res.status(400).json({ error: 'Order is not in pending status' });
+        return;
+      }
+
+      // Confirm the order - move status to confirmed
+      await client.query(
+        `UPDATE orders
+         SET status = 'confirmed',
+             updated_at = NOW()
+         WHERE id = $1`,
+        [order.id]
+      );
+
+      // Emit WebSocket event to buyer
+      emitWindowAccepted({
+        order_number: orderId,
+        order_id: order.id,
+        status: 'confirmed',
+      }, order.buyer_id);
+
+      res.json({ success: true, message: 'Scheduled time confirmed' });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Error confirming scheduled time:', error);
+    res.status(500).json({ error: 'Failed to confirm scheduled time' });
+  }
+}
+
+/**
  * POST /api/suppliers/orders/:orderId/accept-window
  * Accept buyer's counter-proposed window
  */

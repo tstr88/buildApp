@@ -204,6 +204,40 @@ export function SupplierDirectOrderDetail() {
     }
   };
 
+  // Accept the time that buyer selected during checkout (not a counter-proposal)
+  const handleAcceptBuyerScheduledTime = async () => {
+    if (!order) return;
+
+    try {
+      const token = localStorage.getItem('buildapp_auth_token');
+      const response = await fetch(
+        `${API_URL}/api/suppliers/orders/${order.order_id}/confirm-scheduled-time`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.ok) {
+        setShowAcceptSuccess(true);
+        await fetchOrderDetail();
+        // Auto-hide success message after 2 seconds
+        setTimeout(() => {
+          setShowAcceptSuccess(false);
+        }, 2000);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to confirm scheduled time');
+      }
+    } catch (error) {
+      console.error('Failed to confirm scheduled time:', error);
+      alert('Failed to confirm scheduled time');
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
       pending: { label: t('supplierOrders.status.needsScheduling', 'Needs Scheduling'), color: colors.warning[700], bgColor: colors.warning[100] },
@@ -681,7 +715,83 @@ export function SupplierDirectOrderDetail() {
                 {t('supplierOrders.requestReschedule', 'Request Reschedule')}
               </button>
             </div>
+          ) : order.status === 'pending' && order.scheduled_window_start && order.scheduled_window_end ? (
+            /* Buyer already selected exact time - supplier just needs to accept or counter-propose */
+            <div>
+              <div
+                style={{
+                  padding: spacing[3],
+                  backgroundColor: colors.info[50],
+                  borderRadius: borderRadius.md,
+                  border: `2px solid ${colors.info[300]}`,
+                  marginBottom: spacing[3],
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[2] }}>
+                  <Icons.Clock size={20} color={colors.info[600]} />
+                  <span style={{ fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, color: colors.info[900] }}>
+                    {order.delivery_type === 'pickup'
+                      ? t('supplierOrders.buyerRequestedPickup', 'Buyer Requested Pickup Time')
+                      : t('supplierOrders.buyerRequestedDelivery', 'Buyer Requested Delivery Time')}
+                  </span>
+                </div>
+                <div style={{ fontSize: typography.fontSize.base, color: colors.text.primary, marginBottom: spacing[3] }}>
+                  {new Date(order.scheduled_window_start).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                  {' at '}
+                  {new Date(order.scheduled_window_start).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                </div>
+                <div style={{ display: 'flex', gap: spacing[2] }}>
+                  <button
+                    onClick={handleAcceptBuyerScheduledTime}
+                    style={{
+                      padding: `${spacing[2]} ${spacing[4]}`,
+                      backgroundColor: colors.success[600],
+                      color: colors.text.inverse,
+                      border: 'none',
+                      borderRadius: borderRadius.md,
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = colors.success[700];
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = colors.success[600];
+                    }}
+                  >
+                    {order.delivery_type === 'pickup'
+                      ? t('supplierOrders.confirmPickupTime', 'Confirm Pickup Time')
+                      : t('supplierOrders.confirmDeliveryTime', 'Confirm Delivery Time')}
+                  </button>
+                  <button
+                    onClick={() => setShowWindowProposalModal(true)}
+                    style={{
+                      padding: `${spacing[2]} ${spacing[4]}`,
+                      backgroundColor: 'transparent',
+                      color: colors.text.secondary,
+                      border: `1px solid ${colors.border.default}`,
+                      borderRadius: borderRadius.md,
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = colors.neutral[50];
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    {t('supplierOrders.proposeDifferentTime', 'Propose Different Time')}
+                  </button>
+                </div>
+              </div>
+            </div>
           ) : order.status === 'pending' ? (
+            /* No time selected by buyer - supplier needs to propose */
             <div>
               <div
                 style={{
@@ -732,7 +842,7 @@ export function SupplierDirectOrderDetail() {
       )}
 
       {/* Delivery/Pickup Prep */}
-      {order.status === 'scheduled' && (
+      {order.status === 'confirmed' && (
         <div
           style={{
             backgroundColor: colors.neutral[0],
