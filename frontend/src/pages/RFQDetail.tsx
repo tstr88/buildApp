@@ -11,6 +11,8 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 // Fix Leaflet icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -57,7 +59,7 @@ export const RFQDetail: React.FC = () => {
   const fetchRFQDetail = async () => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch(`http://localhost:3001/api/buyers/rfqs/${id}`, {
+      const response = await fetch(`${API_URL}/api/buyers/rfqs/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -91,7 +93,7 @@ export const RFQDetail: React.FC = () => {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch(`http://localhost:3001/api/buyers/offers/${selectedOfferId}/accept`, {
+      const response = await fetch(`${API_URL}/api/buyers/offers/${selectedOfferId}/accept`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -119,7 +121,7 @@ export const RFQDetail: React.FC = () => {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch(`http://localhost:3001/api/buyers/offers/${selectedOfferId}/reject`, {
+      const response = await fetch(`${API_URL}/api/buyers/offers/${selectedOfferId}/reject`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
