@@ -1,21 +1,37 @@
 /**
  * Window Slot Picker Component
  * Allows buyer to select delivery/pickup time windows
- * Supports both "approximate lead time" and "negotiable" modes
+ * Two-step selection: First pick a day, then pick a time slot
  */
 
 import React, { useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
-import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
+import { colors, spacing, typography, borderRadius } from '../../theme/tokens';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-interface TimeWindow {
+interface TimeSlot {
   id: string;
   label: string;
   start: string;
   end: string;
   available: boolean;
+}
+
+interface AvailableDay {
+  id: string;
+  offset: number;
+  label: string;
+  date: string;
+  fullDate: string;
+  timeSlots: TimeSlot[];
+}
+
+interface WindowsData {
+  sameDayCutoff: string;
+  currentTime: string;
+  isSameDayAvailable: boolean;
+  days: AvailableDay[];
 }
 
 interface WindowSlotPickerProps {
@@ -37,7 +53,8 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
   onPreferredNoteChange,
   pickupOrDelivery = 'delivery',
 }) => {
-  const [windows, setWindows] = useState<TimeWindow[]>([]);
+  const [windowsData, setWindowsData] = useState<WindowsData | null>(null);
+  const [selectedDayId, setSelectedDayId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -45,6 +62,13 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
       fetchAvailableWindows();
     }
   }, [supplierId, mode]);
+
+  // Auto-select first day when data loads
+  useEffect(() => {
+    if (windowsData && windowsData.days.length > 0 && !selectedDayId) {
+      setSelectedDayId(windowsData.days[0].id);
+    }
+  }, [windowsData, selectedDayId]);
 
   const fetchAvailableWindows = async () => {
     setLoading(true);
@@ -58,7 +82,7 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
       );
       if (response.ok) {
         const data = await response.json();
-        setWindows(data.data || []);
+        setWindowsData(data.data || null);
       }
     } catch (error) {
       console.error('Failed to fetch available windows:', error);
@@ -67,25 +91,7 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
     }
   };
 
-  const formatTimeWindow = (start: string, end: string) => {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const startTime = startDate.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-    const endTime = endDate.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-    const date = startDate.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
-    return `${date}, ${startTime} - ${endTime}`;
-  };
+  const selectedDay = windowsData?.days.find(d => d.id === selectedDayId);
 
   if (mode === 'negotiable') {
     return (
@@ -99,7 +105,7 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
             marginBottom: spacing[4],
           }}
         >
-          Delivery Schedule
+          {pickupOrDelivery === 'pickup' ? 'Pickup' : 'Delivery'} Schedule
         </h3>
 
         {/* Negotiable Banner */}
@@ -188,14 +194,14 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
               marginTop: spacing[1],
             }}
           >
-            Share your preferred delivery window and the supplier will try to accommodate.
+            Share your preferred {pickupOrDelivery} window and the supplier will try to accommodate.
           </p>
         </div>
       </div>
     );
   }
 
-  // Approximate Lead Time Mode
+  // Approximate Lead Time Mode - Two-step selection
   return (
     <div>
       <h3
@@ -221,160 +227,227 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
           <Icons.Loader size={32} color={colors.text.tertiary} style={{ margin: '0 auto', marginBottom: spacing[2] }} />
           <p style={{ margin: 0 }}>Loading available time slots...</p>
         </div>
+      ) : !windowsData || windowsData.days.length === 0 ? (
+        <div
+          style={{
+            padding: spacing[6],
+            backgroundColor: colors.neutral[50],
+            border: `1px solid ${colors.border.light}`,
+            borderRadius: borderRadius.lg,
+            textAlign: 'center',
+          }}
+        >
+          <Icons.Calendar
+            size={48}
+            color={colors.text.tertiary}
+            style={{ margin: '0 auto', marginBottom: spacing[3] }}
+          />
+          <p
+            style={{
+              fontSize: typography.fontSize.base,
+              color: colors.text.secondary,
+              margin: 0,
+            }}
+          >
+            No time slots available
+          </p>
+        </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
-          {windows.length === 0 ? (
-            <div
+        <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4] }}>
+          {/* Step 1: Select Day */}
+          <div>
+            <label
               style={{
-                padding: spacing[6],
-                backgroundColor: colors.neutral[50],
-                border: `1px solid ${colors.border.light}`,
-                borderRadius: borderRadius.lg,
-                textAlign: 'center',
+                display: 'block',
+                fontSize: typography.fontSize.sm,
+                fontWeight: typography.fontWeight.medium,
+                color: colors.text.secondary,
+                marginBottom: spacing[2],
               }}
             >
-              <Icons.Calendar
-                size={48}
-                color={colors.text.tertiary}
-                style={{ margin: '0 auto', marginBottom: spacing[3] }}
-              />
-              <p
-                style={{
-                  fontSize: typography.fontSize.base,
-                  color: colors.text.secondary,
-                  margin: 0,
-                }}
-              >
-                No time slots available
-              </p>
-            </div>
-          ) : (
-            windows.map((window) => (
-              <button
-                key={window.id}
-                onClick={() => onWindowSelect(window.id, window.start, window.end)}
-                disabled={!window.available}
-                style={{
-                  padding: spacing[4],
-                  border: `2px solid ${
-                    selectedWindowId === window.id
-                      ? colors.primary[600]
-                      : window.available
-                      ? colors.border.light
-                      : colors.neutral[200]
-                  }`,
-                  borderRadius: borderRadius.lg,
-                  backgroundColor:
-                    selectedWindowId === window.id
-                      ? colors.primary[50]
-                      : window.available
-                      ? colors.neutral[0]
-                      : colors.neutral[50],
-                  cursor: window.available ? 'pointer' : 'not-allowed',
-                  opacity: window.available ? 1 : 0.6,
-                  textAlign: 'left',
-                  transition: 'all 200ms ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-                onMouseEnter={(e) => {
-                  if (window.available && selectedWindowId !== window.id) {
-                    e.currentTarget.style.borderColor = colors.primary[300];
-                    e.currentTarget.style.backgroundColor = colors.neutral[50];
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedWindowId !== window.id) {
-                    e.currentTarget.style.borderColor = window.available
-                      ? colors.border.light
-                      : colors.neutral[200];
-                    e.currentTarget.style.backgroundColor = window.available
-                      ? colors.neutral[0]
-                      : colors.neutral[50];
-                  }
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3] }}>
+              1. Select Day
+            </label>
+            <div style={{ display: 'flex', gap: spacing[2], flexWrap: 'wrap' }}>
+              {windowsData.days.map((day) => (
+                <button
+                  key={day.id}
+                  onClick={() => {
+                    setSelectedDayId(day.id);
+                    // Clear selected time slot when day changes
+                    if (selectedWindowId) {
+                      onWindowSelect('', '', '');
+                    }
+                  }}
+                  style={{
+                    padding: `${spacing[2]} ${spacing[4]}`,
+                    border: `2px solid ${selectedDayId === day.id ? colors.primary[600] : colors.border.light}`,
+                    borderRadius: borderRadius.lg,
+                    backgroundColor: selectedDayId === day.id ? colors.primary[50] : colors.neutral[0],
+                    cursor: 'pointer',
+                    transition: 'all 200ms ease',
+                    minWidth: '100px',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (selectedDayId !== day.id) {
+                      e.currentTarget.style.borderColor = colors.primary[300];
+                      e.currentTarget.style.backgroundColor = colors.neutral[50];
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedDayId !== day.id) {
+                      e.currentTarget.style.borderColor = colors.border.light;
+                      e.currentTarget.style.backgroundColor = colors.neutral[0];
+                    }
+                  }}
+                >
                   <div
                     style={{
-                      width: '48px',
-                      height: '48px',
-                      borderRadius: borderRadius.full,
-                      backgroundColor:
-                        selectedWindowId === window.id
-                          ? colors.primary[100]
-                          : colors.neutral[100],
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.semibold,
+                      color: selectedDayId === day.id ? colors.primary[700] : colors.text.primary,
                     }}
                   >
-                    <Icons.Clock
-                      size={24}
-                      color={
-                        selectedWindowId === window.id
-                          ? colors.primary[600]
-                          : colors.text.tertiary
-                      }
-                    />
+                    {day.label}
                   </div>
-                  <div>
-                    <h4
-                      style={{
-                        fontSize: typography.fontSize.base,
-                        fontWeight: typography.fontWeight.semibold,
-                        color:
-                          selectedWindowId === window.id
-                            ? colors.primary[700]
-                            : window.available
-                            ? colors.text.primary
-                            : colors.text.tertiary,
-                        margin: 0,
-                        marginBottom: spacing[1],
-                      }}
-                    >
-                      {window.label}
-                    </h4>
-                    <p
-                      style={{
-                        fontSize: typography.fontSize.sm,
-                        color: window.available ? colors.text.secondary : colors.text.tertiary,
-                        margin: 0,
-                      }}
-                    >
-                      {formatTimeWindow(window.start, window.end)}
-                    </p>
-                  </div>
-                </div>
-
-                {selectedWindowId === window.id && (
-                  <Icons.CheckCircle size={24} color={colors.primary[600]} />
-                )}
-                {!window.available && (
-                  <span
+                  <div
                     style={{
                       fontSize: typography.fontSize.xs,
-                      fontWeight: typography.fontWeight.medium,
-                      color: colors.text.tertiary,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
+                      color: selectedDayId === day.id ? colors.primary[600] : colors.text.tertiary,
+                      marginTop: spacing[1],
                     }}
                   >
-                    Unavailable
-                  </span>
-                )}
-              </button>
-            ))
+                    {new Date(day.fullDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Step 2: Select Time Slot */}
+          {selectedDay && (
+            <div>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: typography.fontSize.sm,
+                  fontWeight: typography.fontWeight.medium,
+                  color: colors.text.secondary,
+                  marginBottom: spacing[2],
+                }}
+              >
+                2. Select Time
+              </label>
+              {selectedDay.timeSlots.length === 0 ? (
+                <div
+                  style={{
+                    padding: spacing[4],
+                    backgroundColor: colors.neutral[50],
+                    border: `1px solid ${colors.border.light}`,
+                    borderRadius: borderRadius.lg,
+                    textAlign: 'center',
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      color: colors.text.secondary,
+                      margin: 0,
+                    }}
+                  >
+                    No time slots available for this day
+                  </p>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                    gap: spacing[2],
+                  }}
+                >
+                  {selectedDay.timeSlots.map((slot) => (
+                    <button
+                      key={slot.id}
+                      onClick={() => onWindowSelect(slot.id, slot.start, slot.end)}
+                      disabled={!slot.available}
+                      style={{
+                        padding: spacing[3],
+                        border: `2px solid ${
+                          selectedWindowId === slot.id
+                            ? colors.primary[600]
+                            : slot.available
+                            ? colors.border.light
+                            : colors.neutral[200]
+                        }`,
+                        borderRadius: borderRadius.md,
+                        backgroundColor:
+                          selectedWindowId === slot.id
+                            ? colors.primary[50]
+                            : slot.available
+                            ? colors.neutral[0]
+                            : colors.neutral[50],
+                        cursor: slot.available ? 'pointer' : 'not-allowed',
+                        opacity: slot.available ? 1 : 0.6,
+                        textAlign: 'center',
+                        transition: 'all 200ms ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (slot.available && selectedWindowId !== slot.id) {
+                          e.currentTarget.style.borderColor = colors.primary[300];
+                          e.currentTarget.style.backgroundColor = colors.neutral[50];
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedWindowId !== slot.id) {
+                          e.currentTarget.style.borderColor = slot.available
+                            ? colors.border.light
+                            : colors.neutral[200];
+                          e.currentTarget.style.backgroundColor = slot.available
+                            ? colors.neutral[0]
+                            : colors.neutral[50];
+                        }
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: spacing[2],
+                        }}
+                      >
+                        {selectedWindowId === slot.id && (
+                          <Icons.Check size={16} color={colors.primary[600]} />
+                        )}
+                        <span
+                          style={{
+                            fontSize: typography.fontSize.sm,
+                            fontWeight: selectedWindowId === slot.id ? typography.fontWeight.semibold : typography.fontWeight.medium,
+                            color:
+                              selectedWindowId === slot.id
+                                ? colors.primary[700]
+                                : slot.available
+                                ? colors.text.primary
+                                : colors.text.tertiary,
+                          }}
+                        >
+                          {slot.label}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
 
-      {/* Immediate Confirmation Badge */}
-      {selectedWindowId && (
+      {/* Selected Time Confirmation */}
+      {selectedWindowId && selectedDay && (
         <div
           style={{
-            marginTop: spacing[3],
+            marginTop: spacing[4],
             padding: spacing[3],
             backgroundColor: colors.success[50],
             border: `1px solid ${colors.success[200]}`,
@@ -392,7 +465,8 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
               fontWeight: typography.fontWeight.medium,
             }}
           >
-            Immediate confirmation - Your order will be confirmed instantly
+            {pickupOrDelivery === 'pickup' ? 'Pickup' : 'Delivery'} scheduled for {selectedDay.label},{' '}
+            {selectedDay.timeSlots.find(s => s.id === selectedWindowId)?.label}
           </span>
         </div>
       )}

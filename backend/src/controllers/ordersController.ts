@@ -402,20 +402,18 @@ export async function getOrderById(req: Request, res: Response): Promise<void> {
  * GET /api/suppliers/:supplierId/available-windows
  * Get available delivery/pickup windows for a supplier
  *
- * Rules:
- * - Same-day morning (8AM-12PM): Only available if current time is before 10AM (2 hours buffer)
- * - Same-day afternoon (1PM-5PM): Only available if current time is before 2PM (cutoff for same-day)
- * - Next-day: Always available
- * - 2-day out: Always available
+ * Returns available days and hourly time slots
+ * Same-day delivery/pickup cutoff is 2PM - after that, only future days are available
  */
 export async function getAvailableWindows(_req: Request, res: Response): Promise<void> {
   try {
-    // TODO: Use _req.params.supplierId to fetch supplier-specific windows
+    // TODO: Use _req.params.supplierId to fetch supplier-specific windows from database
 
     const now = new Date();
     const currentHour = now.getHours();
-    const currentMinutes = now.getMinutes();
-    const currentTimeDecimal = currentHour + (currentMinutes / 60);
+    const SAME_DAY_CUTOFF_HOUR = 14; // 2PM cutoff for same-day orders
+    const BUSINESS_START_HOUR = 8;   // 8AM
+    const BUSINESS_END_HOUR = 17;    // 5PM
 
     // Helper to create date with specific hours
     const createDate = (daysOffset: number, hours: number, minutes: number = 0) => {
@@ -425,64 +423,81 @@ export async function getAvailableWindows(_req: Request, res: Response): Promise
       return date;
     };
 
-    const windows = [];
+    // Helper to format day label
+    const formatDayLabel = (daysOffset: number) => {
+      const date = createDate(daysOffset, 0);
+      if (daysOffset === 0) return 'Today';
+      if (daysOffset === 1) return 'Tomorrow';
+      return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    };
 
-    // Same-day Morning (8AM-12PM)
-    // Available only if ordering before 10AM (need 2 hours buffer for preparation)
-    const sameDayMorningAvailable = currentTimeDecimal < 10;
-    if (sameDayMorningAvailable) {
-      windows.push({
-        id: 'same-day-morning',
-        label: 'Today - Morning',
-        start: createDate(0, 8, 0).toISOString(),
-        end: createDate(0, 12, 0).toISOString(),
-        available: true,
+    // Generate available days (next 7 days)
+    const availableDays = [];
+    const startDay = currentHour >= SAME_DAY_CUTOFF_HOUR ? 1 : 0; // Skip today if past cutoff
+
+    for (let dayOffset = startDay; dayOffset <= 7; dayOffset++) {
+      const dayDate = createDate(dayOffset, 0);
+      const dayOfWeek = dayDate.getDay();
+
+      // Skip weekends (0 = Sunday, 6 = Saturday)
+      // TODO: Make this configurable per supplier
+      if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+
+      availableDays.push({
+        id: `day-${dayOffset}`,
+        offset: dayOffset,
+        label: formatDayLabel(dayOffset),
+        date: dayDate.toISOString().split('T')[0],
+        fullDate: dayDate.toISOString(),
       });
     }
 
-    // Same-day Afternoon (1PM-5PM)
-    // Available only if ordering before 2PM (cutoff for same-day orders)
-    const sameDayAfternoonAvailable = currentTimeDecimal < 14;
-    if (sameDayAfternoonAvailable) {
-      windows.push({
-        id: 'same-day-afternoon',
-        label: 'Today - Afternoon',
-        start: createDate(0, 13, 0).toISOString(),
-        end: createDate(0, 17, 0).toISOString(),
-        available: true,
-      });
-    }
+    // Generate hourly time slots for each day
+    const generateTimeSlots = (dayOffset: number) => {
+      const slots = [];
+      let startHour = BUSINESS_START_HOUR;
 
-    // Next-day Morning (8AM-12PM) - Always available
-    windows.push({
-      id: 'next-day-morning',
-      label: 'Tomorrow - Morning',
-      start: createDate(1, 8, 0).toISOString(),
-      end: createDate(1, 12, 0).toISOString(),
-      available: true,
-    });
+      // For today, start from current hour + 2 (minimum 2 hour lead time)
+      if (dayOffset === 0) {
+        startHour = Math.max(BUSINESS_START_HOUR, currentHour + 2);
+      }
 
-    // Next-day Afternoon (1PM-5PM) - Always available
-    windows.push({
-      id: 'next-day-afternoon',
-      label: 'Tomorrow - Afternoon',
-      start: createDate(1, 13, 0).toISOString(),
-      end: createDate(1, 17, 0).toISOString(),
-      available: true,
-    });
+      for (let hour = startHour; hour < BUSINESS_END_HOUR; hour++) {
+        const slotStart = createDate(dayOffset, hour, 0);
+        const slotEnd = createDate(dayOffset, hour + 1, 0);
 
-    // 2 days out - Full day option
-    windows.push({
-      id: 'two-days-out',
-      label: `${createDate(2, 0).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} - All Day`,
-      start: createDate(2, 8, 0).toISOString(),
-      end: createDate(2, 17, 0).toISOString(),
-      available: true,
-    });
+        const formatHour = (h: number) => {
+          const period = h >= 12 ? 'PM' : 'AM';
+          const displayHour = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+          return `${displayHour}:00 ${period}`;
+        };
+
+        slots.push({
+          id: `slot-${dayOffset}-${hour}`,
+          label: `${formatHour(hour)} - ${formatHour(hour + 1)}`,
+          start: slotStart.toISOString(),
+          end: slotEnd.toISOString(),
+          available: true,
+        });
+      }
+
+      return slots;
+    };
+
+    // Build response with days and their time slots
+    const daysWithSlots = availableDays.map(day => ({
+      ...day,
+      timeSlots: generateTimeSlots(day.offset),
+    }));
 
     res.json({
       success: true,
-      data: windows,
+      data: {
+        sameDayCutoff: `${SAME_DAY_CUTOFF_HOUR > 12 ? SAME_DAY_CUTOFF_HOUR - 12 : SAME_DAY_CUTOFF_HOUR}:00 ${SAME_DAY_CUTOFF_HOUR >= 12 ? 'PM' : 'AM'}`,
+        currentTime: now.toISOString(),
+        isSameDayAvailable: currentHour < SAME_DAY_CUTOFF_HOUR,
+        days: daysWithSlots,
+      },
       message: 'Available windows retrieved successfully',
     });
   } catch (error) {
