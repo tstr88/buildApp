@@ -9,6 +9,8 @@ import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface Order {
   id: string;
   order_number: string;
@@ -47,7 +49,7 @@ export const Orders: React.FC = () => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
       const response = await fetch(
-        `http://localhost:3001/api/buyers/orders`,
+        `${API_URL}/api/buyers/orders`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

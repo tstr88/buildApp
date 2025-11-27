@@ -14,6 +14,8 @@ import { DisputeForm } from '../components/orders/DisputeForm';
 import { BuyerWindowProposalModal } from '../components/buyer/BuyerWindowProposalModal';
 import { useWebSocket } from '../context/WebSocketContext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface OrderItem {
   sku_id?: string;
   description: string;
@@ -116,7 +118,7 @@ export const OrderDetail: React.FC = () => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
       console.log('[fetchOrder] Fetching order:', orderId);
-      const response = await fetch(`http://localhost:3001/api/buyers/orders/${orderId}`, {
+      const response = await fetch(`${API_URL}/api/buyers/orders/${orderId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -148,7 +150,7 @@ export const OrderDetail: React.FC = () => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
       const response = await fetch(
-        `http://localhost:3001/api/buyers/orders/${order.order_number}/accept-window`,
+        `${API_URL}/api/buyers/orders/${order.order_number}/accept-window`,
         {
           method: 'POST',
           headers: {
@@ -180,7 +182,7 @@ export const OrderDetail: React.FC = () => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
       const response = await fetch(
-        `http://localhost:3001/api/buyers/orders/${order.order_number}/reject-window`,
+        `${API_URL}/api/buyers/orders/${order.order_number}/reject-window`,
         {
           method: 'POST',
           headers: {
@@ -215,7 +217,7 @@ export const OrderDetail: React.FC = () => {
       try {
         console.log('[OrderDetail] Counter-propose success, refreshing order data');
         const token = localStorage.getItem('buildapp_auth_token');
-        const response = await fetch(`http://localhost:3001/api/buyers/orders/${order.order_number}`, {
+        const response = await fetch(`${API_URL}/api/buyers/orders/${order.order_number}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -262,7 +264,7 @@ export const OrderDetail: React.FC = () => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
       const response = await fetch(
-        `http://localhost:3001/api/buyers/orders/${order.id}/confirm`,
+        `${API_URL}/api/buyers/orders/${order.id}/confirm`,
         {
           method: 'POST',
           headers: {
@@ -302,7 +304,7 @@ export const OrderDetail: React.FC = () => {
       });
 
       const response = await fetch(
-        `http://localhost:3001/api/buyers/orders/${order.id}/dispute`,
+        `${API_URL}/api/buyers/orders/${order.id}/dispute`,
         {
           method: 'POST',
           headers: {
