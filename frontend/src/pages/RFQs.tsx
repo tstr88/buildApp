@@ -10,6 +10,8 @@ import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 import { useWebSocket } from '../context/WebSocketContext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface RFQ {
   id: string;
   project_id: string;
@@ -77,8 +79,8 @@ export const RFQs: React.FC = () => {
 
       const status = statusMap[activeTab];
       const url = status
-        ? `http://localhost:3001/api/buyers/rfqs?status=${status}`
-        : 'http://localhost:3001/api/buyers/rfqs';
+        ? `${API_URL}/api/buyers/rfqs?status=${status}`
+        : `${API_URL}/api/buyers/rfqs`;
 
       const response = await fetch(url, {
         headers: {
