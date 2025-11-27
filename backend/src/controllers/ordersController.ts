@@ -171,6 +171,9 @@ export async function createDirectOrder(req: Request, res: Response): Promise<vo
       normalizedPaymentTerms = 'cod';
     }
 
+    // All direct orders start as pending until supplier confirms
+    const initialStatus = 'pending';
+
     // Create the order
     const orderResult = await client.query(
       `INSERT INTO orders (
@@ -195,7 +198,7 @@ export async function createDirectOrder(req: Request, res: Response): Promise<vo
         notes
       ) VALUES (
         $1, $2, $3, 'material', $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
-        'pending'::order_status,
+        $18::order_status,
         $17
       )
       RETURNING id, order_number, created_at`,
@@ -217,6 +220,7 @@ export async function createDirectOrder(req: Request, res: Response): Promise<vo
         normalizedPaymentTerms,
         negotiable || false,
         notes,
+        initialStatus,
       ]
     );
 
@@ -239,7 +243,7 @@ export async function createDirectOrder(req: Request, res: Response): Promise<vo
         buyer_id: userId,
         total_amount,
         pickup_or_delivery,
-        status: 'pending',
+        status: initialStatus,
       }, supplierUserId);
     }
 

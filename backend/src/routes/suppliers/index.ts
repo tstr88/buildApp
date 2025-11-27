@@ -15,7 +15,7 @@ import {
   bulkUpdateSKUs,
 } from '../../controllers/supplierCatalogController';
 import pool from '../../config/database';
-import { emitWindowProposed, emitWindowAccepted } from '../../websocket';
+import { emitWindowProposed, emitWindowAccepted, emitOrderStatusChanged } from '../../websocket';
 
 const router = Router();
 router.use(authenticate);
@@ -1120,6 +1120,156 @@ router.post('/orders/:orderId/confirm-scheduled-time', asyncHandler(async (req, 
   return res.json({
     success: true,
     message: 'Scheduled time confirmed',
+  });
+}));
+
+// Confirm a pending order (when buyer has selected a time slot)
+router.post('/orders/:orderId/confirm', asyncHandler(async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      error: 'Authentication required',
+    });
+  }
+
+  const { orderId } = req.params;
+  const userId = req.user.id;
+
+  // Get supplier ID
+  const supplierResult = await pool.query(
+    'SELECT id FROM suppliers WHERE user_id = $1',
+    [userId]
+  );
+
+  if (supplierResult.rows.length === 0) {
+    return res.status(404).json({
+      success: false,
+      error: 'Supplier profile not found',
+    });
+  }
+
+  const supplierId = supplierResult.rows[0].id;
+
+  // Check order exists and belongs to this supplier
+  const orderResult = await pool.query(
+    `SELECT id, status, buyer_id
+     FROM orders
+     WHERE order_number = $1 AND supplier_id = $2`,
+    [orderId, supplierId]
+  );
+
+  if (orderResult.rows.length === 0) {
+    return res.status(404).json({
+      success: false,
+      error: 'Order not found',
+    });
+  }
+
+  const order = orderResult.rows[0];
+
+  if (order.status !== 'pending') {
+    return res.status(400).json({
+      success: false,
+      error: 'Order is not in pending status',
+    });
+  }
+
+  // Confirm the order
+  await pool.query(
+    `UPDATE orders
+     SET status = 'confirmed',
+         updated_at = CURRENT_TIMESTAMP
+     WHERE order_number = $1 AND supplier_id = $2`,
+    [orderId, supplierId]
+  );
+
+  // Emit WebSocket event
+  emitOrderStatusChanged({
+    order_number: orderId,
+    order_id: order.id,
+    status: 'confirmed',
+  }, order.buyer_id, userId);
+
+  return res.json({
+    success: true,
+    message: 'Order confirmed',
+  });
+}));
+
+// Reject a pending order
+router.post('/orders/:orderId/reject', asyncHandler(async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      error: 'Authentication required',
+    });
+  }
+
+  const { orderId } = req.params;
+  const { reason } = req.body;
+  const userId = req.user.id;
+
+  // Get supplier ID
+  const supplierResult = await pool.query(
+    'SELECT id FROM suppliers WHERE user_id = $1',
+    [userId]
+  );
+
+  if (supplierResult.rows.length === 0) {
+    return res.status(404).json({
+      success: false,
+      error: 'Supplier profile not found',
+    });
+  }
+
+  const supplierId = supplierResult.rows[0].id;
+
+  // Check order exists and belongs to this supplier
+  const orderResult = await pool.query(
+    `SELECT id, status, buyer_id
+     FROM orders
+     WHERE order_number = $1 AND supplier_id = $2`,
+    [orderId, supplierId]
+  );
+
+  if (orderResult.rows.length === 0) {
+    return res.status(404).json({
+      success: false,
+      error: 'Order not found',
+    });
+  }
+
+  const order = orderResult.rows[0];
+
+  if (order.status !== 'pending') {
+    return res.status(400).json({
+      success: false,
+      error: 'Order is not in pending status',
+    });
+  }
+
+  // Reject the order - set status to cancelled
+  await pool.query(
+    `UPDATE orders
+     SET status = 'cancelled',
+         cancellation_reason = $3,
+         cancelled_by = 'supplier',
+         updated_at = CURRENT_TIMESTAMP
+     WHERE order_number = $1 AND supplier_id = $2`,
+    [orderId, supplierId, reason || 'Rejected by supplier']
+  );
+
+  // Emit WebSocket event
+  emitOrderStatusChanged({
+    order_number: orderId,
+    order_id: order.id,
+    status: 'cancelled',
+    reason: reason || 'Rejected by supplier',
+  }, order.buyer_id, userId);
+
+  return res.json({
+    success: true,
+    message: 'Order rejected',
   });
 }));
 

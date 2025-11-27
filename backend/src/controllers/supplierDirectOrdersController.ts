@@ -382,6 +382,160 @@ export async function confirmScheduledTime(req: Request, res: Response): Promise
 }
 
 /**
+ * POST /api/suppliers/orders/:orderId/confirm
+ * Confirm a pending order (when buyer has selected a time slot)
+ */
+export async function confirmOrder(req: Request, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { orderId } = req.params;
+    const client = await pool.connect();
+
+    try {
+      // First get the supplier_id for this user
+      const supplierResult = await client.query(
+        'SELECT id FROM suppliers WHERE user_id = $1',
+        [userId]
+      );
+
+      if (supplierResult.rows.length === 0) {
+        res.status(404).json({ error: 'Supplier profile not found' });
+        return;
+      }
+
+      const supplierId = supplierResult.rows[0].id;
+
+      // Verify order exists and belongs to this supplier
+      const orderResult = await client.query(
+        `SELECT id, promised_window_start, promised_window_end, status, buyer_id
+         FROM orders
+         WHERE order_number = $1 AND supplier_id = $2`,
+        [orderId, supplierId]
+      );
+
+      if (orderResult.rows.length === 0) {
+        res.status(404).json({ error: 'Order not found' });
+        return;
+      }
+
+      const order = orderResult.rows[0];
+
+      if (order.status !== 'pending') {
+        res.status(400).json({ error: 'Order is not in pending status' });
+        return;
+      }
+
+      // Confirm the order - move status to confirmed
+      await client.query(
+        `UPDATE orders
+         SET status = 'confirmed',
+             updated_at = NOW()
+         WHERE id = $1`,
+        [order.id]
+      );
+
+      // Emit WebSocket event to buyer and supplier
+      emitOrderStatusChanged({
+        order_number: orderId,
+        order_id: order.id,
+        status: 'confirmed',
+      }, order.buyer_id, userId);
+
+      res.json({ success: true, message: 'Order confirmed' });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Error confirming order:', error);
+    res.status(500).json({ error: 'Failed to confirm order' });
+  }
+}
+
+/**
+ * POST /api/suppliers/orders/:orderId/reject
+ * Reject a pending order
+ */
+export async function rejectOrder(req: Request, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { orderId } = req.params;
+    const { reason } = req.body;
+    const client = await pool.connect();
+
+    try {
+      // First get the supplier_id for this user
+      const supplierResult = await client.query(
+        'SELECT id FROM suppliers WHERE user_id = $1',
+        [userId]
+      );
+
+      if (supplierResult.rows.length === 0) {
+        res.status(404).json({ error: 'Supplier profile not found' });
+        return;
+      }
+
+      const supplierId = supplierResult.rows[0].id;
+
+      // Verify order exists and belongs to this supplier
+      const orderResult = await client.query(
+        `SELECT id, status, buyer_id
+         FROM orders
+         WHERE order_number = $1 AND supplier_id = $2`,
+        [orderId, supplierId]
+      );
+
+      if (orderResult.rows.length === 0) {
+        res.status(404).json({ error: 'Order not found' });
+        return;
+      }
+
+      const order = orderResult.rows[0];
+
+      if (order.status !== 'pending') {
+        res.status(400).json({ error: 'Order is not in pending status' });
+        return;
+      }
+
+      // Reject the order - move status to cancelled
+      await client.query(
+        `UPDATE orders
+         SET status = 'cancelled',
+             cancellation_reason = $2,
+             cancelled_by = 'supplier',
+             updated_at = NOW()
+         WHERE id = $1`,
+        [order.id, reason || 'Rejected by supplier']
+      );
+
+      // Emit WebSocket event to buyer and supplier
+      emitOrderStatusChanged({
+        order_number: orderId,
+        order_id: order.id,
+        status: 'cancelled',
+        reason: reason || 'Rejected by supplier',
+      }, order.buyer_id, userId);
+
+      res.json({ success: true, message: 'Order rejected' });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Error rejecting order:', error);
+    res.status(500).json({ error: 'Failed to reject order' });
+  }
+}
+
+/**
  * POST /api/suppliers/orders/:orderId/accept-window
  * Accept buyer's counter-proposed window
  */

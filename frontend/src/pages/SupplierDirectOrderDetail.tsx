@@ -204,14 +204,14 @@ export function SupplierDirectOrderDetail() {
     }
   };
 
-  // Accept the time that buyer selected during checkout (not a counter-proposal)
-  const handleAcceptBuyerScheduledTime = async () => {
+  // Confirm an order (when buyer selected time from available slots)
+  const handleConfirmOrder = async () => {
     if (!order) return;
 
     try {
       const token = localStorage.getItem('buildapp_auth_token');
       const response = await fetch(
-        `${API_URL}/api/suppliers/orders/${order.order_id}/confirm-scheduled-time`,
+        `${API_URL}/api/suppliers/orders/${order.order_id}/confirm`,
         {
           method: 'POST',
           headers: {
@@ -224,17 +224,49 @@ export function SupplierDirectOrderDetail() {
       if (response.ok) {
         setShowAcceptSuccess(true);
         await fetchOrderDetail();
-        // Auto-hide success message after 2 seconds
         setTimeout(() => {
           setShowAcceptSuccess(false);
         }, 2000);
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to confirm scheduled time');
+        alert(error.error || 'Failed to confirm order');
       }
     } catch (error) {
-      console.error('Failed to confirm scheduled time:', error);
-      alert('Failed to confirm scheduled time');
+      console.error('Failed to confirm order:', error);
+      alert('Failed to confirm order');
+    }
+  };
+
+  // Reject an order
+  const handleRejectOrder = async () => {
+    if (!order) return;
+
+    const reason = window.prompt('Please provide a reason for rejecting this order (optional):');
+
+    try {
+      const token = localStorage.getItem('buildapp_auth_token');
+      const response = await fetch(
+        `${API_URL}/api/suppliers/orders/${order.order_id}/reject`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ reason }),
+        }
+      );
+
+      if (response.ok) {
+        await fetchOrderDetail();
+        alert('Order rejected');
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to reject order');
+      }
+    } catch (error) {
+      console.error('Failed to reject order:', error);
+      alert('Failed to reject order');
     }
   };
 
@@ -668,6 +700,7 @@ export function SupplierDirectOrderDetail() {
               )}
             </div>
           ) : order.status === 'confirmed' && order.scheduled_window_start && order.scheduled_window_end ? (
+            /* Order confirmed - buyer selected time from available slots (auto-confirmed) */
             <div>
               <div
                 style={{
@@ -685,38 +718,17 @@ export function SupplierDirectOrderDetail() {
                   </span>
                 </div>
                 <div style={{ fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>
-                  {new Date(order.scheduled_window_start).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                  {' '}
-                  {new Date(order.scheduled_window_start).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                  {' - '}
-                  {new Date(order.scheduled_window_end).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(order.scheduled_window_start).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                  {' at '}
+                  {new Date(order.scheduled_window_start).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                 </div>
+                <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0, marginTop: spacing[2] }}>
+                  {t('supplierOrders.buyerSelectedFromAvailability', 'Buyer selected this time from your available time slots')}
+                </p>
               </div>
-              <button
-                onClick={handleProposeWindow}
-                style={{
-                  padding: `${spacing[2]} ${spacing[4]}`,
-                  backgroundColor: 'transparent',
-                  border: `1px solid ${colors.border.default}`,
-                  borderRadius: borderRadius.md,
-                  fontSize: typography.fontSize.sm,
-                  fontWeight: typography.fontWeight.medium,
-                  color: colors.text.primary,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = colors.neutral[50];
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-              >
-                {t('supplierOrders.requestReschedule', 'Request Reschedule')}
-              </button>
             </div>
           ) : order.status === 'pending' && order.scheduled_window_start && order.scheduled_window_end ? (
-            /* Buyer selected exact time from supplier's available slots - supplier just confirms */
+            /* Pending order with buyer-selected time - supplier needs to confirm or reject */
             <div>
               <div
                 style={{
@@ -735,7 +747,7 @@ export function SupplierDirectOrderDetail() {
                       : t('supplierOrders.buyerRequestedDelivery', 'Buyer Requested Delivery Time')}
                   </span>
                 </div>
-                <div style={{ fontSize: typography.fontSize.base, color: colors.text.primary, marginBottom: spacing[2] }}>
+                <div style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary, marginBottom: spacing[2] }}>
                   {new Date(order.scheduled_window_start).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                   {' at '}
                   {new Date(order.scheduled_window_start).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
@@ -743,30 +755,60 @@ export function SupplierDirectOrderDetail() {
                 <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0, marginBottom: spacing[3] }}>
                   {t('supplierOrders.timeFromYourAvailability', 'This time was selected from your available time slots')}
                 </p>
-                <button
-                  onClick={handleAcceptBuyerScheduledTime}
-                  style={{
-                    padding: `${spacing[2]} ${spacing[4]}`,
-                    backgroundColor: colors.success[600],
-                    color: colors.text.inverse,
-                    border: 'none',
-                    borderRadius: borderRadius.md,
-                    fontSize: typography.fontSize.sm,
-                    fontWeight: typography.fontWeight.medium,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = colors.success[700];
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = colors.success[600];
-                  }}
-                >
-                  {order.delivery_type === 'pickup'
-                    ? t('supplierOrders.confirmPickupTime', 'Confirm Pickup Time')
-                    : t('supplierOrders.confirmDeliveryTime', 'Confirm Delivery Time')}
-                </button>
+                <div style={{ display: 'flex', gap: spacing[2] }}>
+                  <button
+                    onClick={handleConfirmOrder}
+                    style={{
+                      padding: `${spacing[2]} ${spacing[4]}`,
+                      backgroundColor: colors.success[600],
+                      color: colors.text.inverse,
+                      border: 'none',
+                      borderRadius: borderRadius.md,
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[2],
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = colors.success[700];
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = colors.success[600];
+                    }}
+                  >
+                    <Icons.CheckCircle size={16} />
+                    {t('supplierOrders.confirmOrder', 'Confirm Order')}
+                  </button>
+                  <button
+                    onClick={handleRejectOrder}
+                    style={{
+                      padding: `${spacing[2]} ${spacing[4]}`,
+                      backgroundColor: 'transparent',
+                      color: colors.error[600],
+                      border: `1px solid ${colors.error[300]}`,
+                      borderRadius: borderRadius.md,
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[2],
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = colors.error[50];
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <Icons.XCircle size={16} />
+                    {t('supplierOrders.rejectOrder', 'Reject Order')}
+                  </button>
+                </div>
               </div>
             </div>
           ) : order.status === 'pending' ? (
