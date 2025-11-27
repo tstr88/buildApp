@@ -87,6 +87,19 @@ export const RFQDetail: React.FC = () => {
     return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   };
 
+  const formatDateTime = (dateString: string | null) => {
+    if (!dateString) return 'Not specified';
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
   const handleAcceptOffer = async () => {
     if (!selectedOfferId) return;
 
@@ -450,7 +463,7 @@ export const RFQDetail: React.FC = () => {
                     marginBottom: spacing[2],
                   }}
                 >
-                  {formatDate(rfq.preferred_window_start)} - {formatDate(rfq.preferred_window_end)}
+                  {formatDateTime(rfq.preferred_window_start)} - {formatDateTime(rfq.preferred_window_end)}
                 </p>
               </div>
             ) : (
@@ -697,7 +710,7 @@ export const RFQDetail: React.FC = () => {
                       <div style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
                         {offer.delivery_window_start && offer.delivery_window_end ? (
                           <>
-                            {formatDate(offer.delivery_window_start)} - {formatDate(offer.delivery_window_end)}
+                            {formatDateTime(offer.delivery_window_start)} - {formatDateTime(offer.delivery_window_end)}
                           </>
                         ) : (
                           'Not specified'
