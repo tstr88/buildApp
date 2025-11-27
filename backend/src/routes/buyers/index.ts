@@ -326,6 +326,130 @@ router.post('/orders/:orderId/counter-propose-window', asyncHandler(async (req, 
 }));
 
 /**
+ * POST /api/buyers/orders/:orderId/confirm
+ * Confirm delivery of an order
+ */
+router.post('/orders/:orderId/confirm', asyncHandler(async (req, res) => {
+  const buyerId = req.user?.id;
+  const { orderId } = req.params;
+
+  // Check order exists and belongs to this buyer
+  const orderResult = await pool.query(
+    `SELECT id, order_number, status, buyer_id, pickup_or_delivery, supplier_id
+     FROM orders
+     WHERE id = $1 AND buyer_id = $2`,
+    [orderId, buyerId]
+  );
+
+  if (orderResult.rows.length === 0) {
+    return res.status(404).json({
+      success: false,
+      message: 'Order not found',
+    });
+  }
+
+  const order = orderResult.rows[0];
+
+  if (order.status !== 'delivered') {
+    return res.status(400).json({
+      success: false,
+      message: 'Order must be in delivered status to confirm',
+    });
+  }
+
+  // Confirm the order - move status to completed
+  await pool.query(
+    `UPDATE orders
+     SET status = 'completed',
+         confirmed_at = CURRENT_TIMESTAMP,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = $1`,
+    [orderId]
+  );
+
+  return res.json({
+    success: true,
+    message: 'Order confirmed successfully',
+  });
+}));
+
+/**
+ * POST /api/buyers/orders/:orderId/confirm-pickup
+ * Buyer confirms they picked up the order (for pickup orders: in_transit -> delivered)
+ */
+router.post('/orders/:orderId/confirm-pickup', asyncHandler(async (req, res) => {
+  const buyerId = req.user?.id;
+  const { orderId } = req.params;
+
+  // Check order exists and belongs to this buyer
+  const orderResult = await pool.query(
+    `SELECT id, order_number, status, buyer_id, pickup_or_delivery, supplier_id
+     FROM orders
+     WHERE id = $1 AND buyer_id = $2`,
+    [orderId, buyerId]
+  );
+
+  if (orderResult.rows.length === 0) {
+    return res.status(404).json({
+      success: false,
+      message: 'Order not found',
+    });
+  }
+
+  const order = orderResult.rows[0];
+
+  if (order.pickup_or_delivery !== 'pickup') {
+    return res.status(400).json({
+      success: false,
+      message: 'This action is only for pickup orders',
+    });
+  }
+
+  if (order.status !== 'in_transit') {
+    return res.status(400).json({
+      success: false,
+      message: 'Order must be ready for pickup before confirming',
+    });
+  }
+
+  // Calculate confirmation deadline (24 hours from now)
+  const confirmationDeadline = new Date();
+  confirmationDeadline.setHours(confirmationDeadline.getHours() + 24);
+
+  // Mark order as delivered (picked up by buyer)
+  await pool.query(
+    `UPDATE orders
+     SET status = 'delivered',
+         delivered_at = CURRENT_TIMESTAMP,
+         confirmation_deadline = $2,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = $1`,
+    [orderId, confirmationDeadline]
+  );
+
+  // Get supplier user_id for WebSocket notification
+  const supplierResult = await pool.query(
+    'SELECT user_id FROM suppliers WHERE id = $1',
+    [order.supplier_id]
+  );
+  const supplierUserId = supplierResult.rows[0]?.user_id;
+
+  // Emit WebSocket event
+  if (supplierUserId) {
+    emitWindowAccepted({
+      order_number: order.order_number,
+      order_id: order.id,
+      status: 'delivered',
+    }, supplierUserId);
+  }
+
+  return res.json({
+    success: true,
+    message: 'Pickup confirmed successfully',
+  });
+}));
+
+/**
  * GET /api/suppliers/:supplierId/available-windows
  * Get available delivery/pickup windows for a supplier
  */

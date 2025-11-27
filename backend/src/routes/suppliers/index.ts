@@ -1273,6 +1273,172 @@ router.post('/orders/:orderId/reject', asyncHandler(async (req, res) => {
   });
 }));
 
+// Mark order as ready for pickup (for pickup orders: confirmed -> in_transit)
+router.post('/orders/:orderId/mark-ready', asyncHandler(async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      error: 'Authentication required',
+    });
+  }
+
+  const { orderId } = req.params;
+  const userId = req.user.id;
+
+  // Get supplier ID
+  const supplierResult = await pool.query(
+    'SELECT id FROM suppliers WHERE user_id = $1',
+    [userId]
+  );
+
+  if (supplierResult.rows.length === 0) {
+    return res.status(404).json({
+      success: false,
+      error: 'Supplier profile not found',
+    });
+  }
+
+  const supplierId = supplierResult.rows[0].id;
+
+  // Check order exists and belongs to this supplier
+  const orderResult = await pool.query(
+    `SELECT id, status, buyer_id, pickup_or_delivery
+     FROM orders
+     WHERE order_number = $1 AND supplier_id = $2`,
+    [orderId, supplierId]
+  );
+
+  if (orderResult.rows.length === 0) {
+    return res.status(404).json({
+      success: false,
+      error: 'Order not found',
+    });
+  }
+
+  const order = orderResult.rows[0];
+
+  if (order.pickup_or_delivery !== 'pickup') {
+    return res.status(400).json({
+      success: false,
+      error: 'This action is only for pickup orders',
+    });
+  }
+
+  if (order.status !== 'confirmed') {
+    return res.status(400).json({
+      success: false,
+      error: 'Order must be confirmed before marking ready',
+    });
+  }
+
+  // Mark order as ready for pickup (in_transit status)
+  await pool.query(
+    `UPDATE orders
+     SET status = 'in_transit',
+         updated_at = CURRENT_TIMESTAMP
+     WHERE order_number = $1 AND supplier_id = $2`,
+    [orderId, supplierId]
+  );
+
+  // Emit WebSocket event
+  emitOrderStatusChanged({
+    order_number: orderId,
+    order_id: order.id,
+    status: 'in_transit',
+  }, order.buyer_id, userId);
+
+  return res.json({
+    success: true,
+    message: 'Order marked as ready for pickup',
+  });
+}));
+
+// Confirm pickup happened (for pickup orders: in_transit -> delivered)
+router.post('/orders/:orderId/confirm-pickup', asyncHandler(async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      error: 'Authentication required',
+    });
+  }
+
+  const { orderId } = req.params;
+  const userId = req.user.id;
+
+  // Get supplier ID
+  const supplierResult = await pool.query(
+    'SELECT id FROM suppliers WHERE user_id = $1',
+    [userId]
+  );
+
+  if (supplierResult.rows.length === 0) {
+    return res.status(404).json({
+      success: false,
+      error: 'Supplier profile not found',
+    });
+  }
+
+  const supplierId = supplierResult.rows[0].id;
+
+  // Check order exists and belongs to this supplier
+  const orderResult = await pool.query(
+    `SELECT id, status, buyer_id, pickup_or_delivery
+     FROM orders
+     WHERE order_number = $1 AND supplier_id = $2`,
+    [orderId, supplierId]
+  );
+
+  if (orderResult.rows.length === 0) {
+    return res.status(404).json({
+      success: false,
+      error: 'Order not found',
+    });
+  }
+
+  const order = orderResult.rows[0];
+
+  if (order.pickup_or_delivery !== 'pickup') {
+    return res.status(400).json({
+      success: false,
+      error: 'This action is only for pickup orders',
+    });
+  }
+
+  if (order.status !== 'in_transit') {
+    return res.status(400).json({
+      success: false,
+      error: 'Order must be ready for pickup before confirming',
+    });
+  }
+
+  // Calculate confirmation deadline (24 hours from now)
+  const confirmationDeadline = new Date();
+  confirmationDeadline.setHours(confirmationDeadline.getHours() + 24);
+
+  // Mark order as delivered (picked up)
+  await pool.query(
+    `UPDATE orders
+     SET status = 'delivered',
+         delivered_at = CURRENT_TIMESTAMP,
+         confirmation_deadline = $3,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE order_number = $1 AND supplier_id = $2`,
+    [orderId, supplierId, confirmationDeadline]
+  );
+
+  // Emit WebSocket event
+  emitOrderStatusChanged({
+    order_number: orderId,
+    order_id: order.id,
+    status: 'delivered',
+  }, order.buyer_id, userId);
+
+  return res.json({
+    success: true,
+    message: 'Pickup confirmed',
+  });
+}));
+
 router.get('/deliveries', asyncHandler(async (_req, res) => {
   success(res, [], 'Deliveries retrieved successfully');
 }));

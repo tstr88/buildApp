@@ -289,6 +289,39 @@ export const OrderDetail: React.FC = () => {
     }
   };
 
+  // Confirm pickup for buyer (for pickup orders: in_transit -> delivered)
+  const handleConfirmPickup = async () => {
+    if (!order) return;
+
+    setIsSubmitting(true);
+    try {
+      const token = localStorage.getItem('buildapp_auth_token');
+      const response = await fetch(
+        `${API_URL}/api/buyers/orders/${order.id}/confirm-pickup`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.ok) {
+        alert('Pickup confirmed successfully');
+        fetchOrder(order.id);
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Failed to confirm pickup');
+      }
+    } catch (error) {
+      console.error('Failed to confirm pickup:', error);
+      alert('Failed to confirm pickup');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSubmitDispute = async (issue: string, description: string, photos: File[]) => {
     if (!order) return;
 
@@ -352,6 +385,21 @@ export const OrderDetail: React.FC = () => {
   };
 
   const getStatusLabel = (status: string) => {
+    // For pickup orders, use different labels for in_transit and delivered
+    if (order?.pickup_or_delivery === 'pickup') {
+      const pickupLabels: Record<string, string> = {
+        pending: 'Pending',
+        pending_schedule: 'Schedule TBD',
+        scheduled: 'Scheduled',
+        confirmed: 'Confirmed',
+        in_transit: 'Ready for Pickup',
+        delivered: 'Picked Up',
+        completed: 'Completed',
+        cancelled: 'Cancelled',
+        disputed: 'Disputed',
+      };
+      return pickupLabels[status] || status;
+    }
     const labels: Record<string, string> = {
       pending: 'Pending',
       pending_schedule: 'Schedule TBD',
@@ -1040,6 +1088,91 @@ export const OrderDetail: React.FC = () => {
               pickupOrDelivery={order.pickup_or_delivery}
             />
           </div>
+
+          {/* Ready for Pickup Banner (for pickup orders when status is in_transit) */}
+          {order.pickup_or_delivery === 'pickup' && order.status === 'in_transit' && (
+            <div
+              style={{
+                backgroundColor: colors.success[50],
+                borderRadius: borderRadius.lg,
+                border: `2px solid ${colors.success[300]}`,
+                padding: spacing[4],
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[2] }}>
+                <Icons.Package size={24} color={colors.success[600]} />
+                <h3
+                  style={{
+                    fontSize: typography.fontSize.lg,
+                    fontWeight: typography.fontWeight.semibold,
+                    color: colors.success[700],
+                    margin: 0,
+                  }}
+                >
+                  Order Ready for Pickup!
+                </h3>
+              </div>
+              <p
+                style={{
+                  fontSize: typography.fontSize.sm,
+                  color: colors.text.secondary,
+                  margin: 0,
+                  marginBottom: spacing[3],
+                }}
+              >
+                Your order is ready at the supplier location. Please pick it up at your scheduled time.
+              </p>
+              <div
+                style={{
+                  padding: spacing[3],
+                  backgroundColor: colors.neutral[0],
+                  borderRadius: borderRadius.md,
+                  border: `1px solid ${colors.border.light}`,
+                  marginBottom: spacing[3],
+                }}
+              >
+                <p style={{ fontSize: typography.fontSize.sm, color: colors.text.tertiary, margin: 0, marginBottom: spacing[1] }}>
+                  Pickup Location
+                </p>
+                <p style={{ fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.medium, color: colors.text.primary, margin: 0 }}>
+                  {order.supplier_name}
+                </p>
+                {order.supplier_address && (
+                  <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, margin: 0, marginTop: spacing[1] }}>
+                    {order.supplier_address}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={handleConfirmPickup}
+                disabled={isSubmitting}
+                style={{
+                  padding: `${spacing[3]} ${spacing[5]}`,
+                  backgroundColor: colors.success[600],
+                  color: colors.text.inverse,
+                  border: 'none',
+                  borderRadius: borderRadius.md,
+                  fontSize: typography.fontSize.base,
+                  fontWeight: typography.fontWeight.semibold,
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                  opacity: isSubmitting ? 0.7 : 1,
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: spacing[2],
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSubmitting) e.currentTarget.style.backgroundColor = colors.success[700];
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSubmitting) e.currentTarget.style.backgroundColor = colors.success[600];
+                }}
+              >
+                <Icons.CheckCircle size={18} />
+                {isSubmitting ? 'Confirming...' : 'I Picked Up My Order'}
+              </button>
+            </div>
+          )}
 
           {/* Delivery Proof (if delivered) */}
           {order.delivered_at && order.delivery_proof_photo && !showDisputeForm && (

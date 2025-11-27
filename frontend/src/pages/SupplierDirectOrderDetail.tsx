@@ -3,7 +3,7 @@
  * View and manage a specific direct order
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
@@ -65,12 +65,6 @@ export function SupplierDirectOrderDetail() {
   const [showWindowProposalModal, setShowWindowProposalModal] = useState(false);
   const [showMarkDeliveredModal, setShowMarkDeliveredModal] = useState(false);
   const [showAcceptSuccess, setShowAcceptSuccess] = useState(false);
-  const [prepChecklist, setPrepChecklist] = useState({
-    items_prepared: false,
-    vehicle_assigned: false,
-    contact_confirmed: false,
-  });
-  const [internalNotes, setInternalNotes] = useState('');
   const { socket, subscribeToOrder, unsubscribeFromOrder } = useWebSocket();
 
   useEffect(() => {
@@ -130,7 +124,6 @@ export function SupplierDirectOrderDetail() {
         });
         console.log('[SupplierOrderDetail] Calling setOrder with new data');
         setOrder(data);
-        setPrepChecklist(data.prep_checklist || prepChecklist);
         console.log('[SupplierOrderDetail] State updated successfully');
       } else {
         console.error('Failed to fetch order detail');
@@ -143,32 +136,78 @@ export function SupplierDirectOrderDetail() {
     }
   };
 
-  const handleChecklistUpdate = async (field: keyof typeof prepChecklist) => {
-    const newChecklist = { ...prepChecklist, [field]: !prepChecklist[field] };
-    setPrepChecklist(newChecklist);
-
-    try {
-      const token = localStorage.getItem('buildapp_auth_token');
-      await fetch(`${API_URL}/api/suppliers/orders/${orderId}/checklist`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({ checklist: newChecklist }),
-      });
-    } catch (error) {
-      console.error('Failed to update checklist:', error);
-    }
-  };
-
   const handleProposeWindow = () => {
     setShowWindowProposalModal(true);
   };
 
   const handleMarkDelivered = () => {
     setShowMarkDeliveredModal(true);
+  };
+
+  // Mark order as ready for pickup (for pickup orders: confirmed -> in_transit)
+  const handleMarkReadyForPickup = async () => {
+    if (!order) return;
+
+    try {
+      const token = localStorage.getItem('buildapp_auth_token');
+      const response = await fetch(
+        `${API_URL}/api/suppliers/orders/${order.order_id}/mark-ready`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.ok) {
+        setShowAcceptSuccess(true);
+        await fetchOrderDetail();
+        setTimeout(() => {
+          setShowAcceptSuccess(false);
+        }, 2000);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to mark order as ready');
+      }
+    } catch (error) {
+      console.error('Failed to mark ready for pickup:', error);
+      alert('Failed to mark order as ready');
+    }
+  };
+
+  // Confirm pickup happened (for pickup orders: in_transit -> delivered)
+  const handleConfirmPickup = async () => {
+    if (!order) return;
+
+    try {
+      const token = localStorage.getItem('buildapp_auth_token');
+      const response = await fetch(
+        `${API_URL}/api/suppliers/orders/${order.order_id}/confirm-pickup`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.ok) {
+        setShowAcceptSuccess(true);
+        await fetchOrderDetail();
+        setTimeout(() => {
+          setShowAcceptSuccess(false);
+        }, 2000);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to confirm pickup');
+      }
+    } catch (error) {
+      console.error('Failed to confirm pickup:', error);
+      alert('Failed to confirm pickup');
+    }
   };
 
   const handleAcceptBuyerWindow = async () => {
@@ -297,17 +336,6 @@ export function SupplierDirectOrderDetail() {
         {config.label}
       </span>
     );
-  };
-
-  const isDeliveryDay = () => {
-    if (!order?.scheduled_window_start) return false;
-    const today = new Date();
-    const deliveryDate = new Date(order.scheduled_window_start);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    return deliveryDate.toDateString() === today.toDateString() ||
-           deliveryDate.toDateString() === tomorrow.toDateString();
   };
 
   if (loading) {
@@ -862,108 +890,57 @@ export function SupplierDirectOrderDetail() {
         </div>
       )}
 
-      {/* Delivery/Pickup Prep */}
-      {order.status === 'confirmed' && (
+      {/* Mark Ready for Pickup (for pickup orders when confirmed) */}
+      {order.status === 'confirmed' && order.delivery_type === 'pickup' && (
         <div
           style={{
-            backgroundColor: colors.neutral[0],
+            backgroundColor: colors.primary[50],
             padding: spacing[4],
             borderRadius: borderRadius.lg,
-            border: `1px solid ${colors.border.light}`,
+            border: `1px solid ${colors.primary[200]}`,
             marginBottom: spacing[4],
           }}
         >
-          <div style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary, marginBottom: spacing[3] }}>
-            {order.delivery_type === 'pickup' ? t('supplierOrders.pickupPrep', 'Pickup Preparation') : t('supplierOrders.deliveryPrep', 'Delivery Preparation')}
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[2] }}>
+            <Icons.Package size={20} color={colors.primary[600]} />
+            <span style={{ fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, color: colors.primary[700] }}>
+              {t('supplierOrders.prepareForPickup', 'Prepare Order for Pickup')}
+            </span>
           </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[2], marginBottom: spacing[3] }}>
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: spacing[2],
-                cursor: 'pointer',
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={prepChecklist.items_prepared}
-                onChange={() => handleChecklistUpdate('items_prepared')}
-                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-              />
-              <span style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
-                {t('supplierOrders.itemsPrepared', 'Items prepared')}
-              </span>
-            </label>
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: spacing[2],
-                cursor: 'pointer',
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={prepChecklist.vehicle_assigned}
-                onChange={() => handleChecklistUpdate('vehicle_assigned')}
-                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-              />
-              <span style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
-                {order.delivery_type === 'pickup'
-                  ? t('supplierOrders.slotAssigned', 'Pickup slot assigned')
-                  : t('supplierOrders.vehicleAssigned', 'Delivery vehicle assigned')}
-              </span>
-            </label>
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: spacing[2],
-                cursor: 'pointer',
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={prepChecklist.contact_confirmed}
-                onChange={() => handleChecklistUpdate('contact_confirmed')}
-                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-              />
-              <span style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
-                {t('supplierOrders.contactConfirmed', 'Buyer contact confirmed')}
-              </span>
-            </label>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.text.primary, marginBottom: spacing[2] }}>
-              {t('supplierOrders.internalNotes', 'Internal Notes')}
-              <span style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, fontWeight: typography.fontWeight.normal, marginLeft: spacing[1] }}>
-                ({t('supplierOrders.notVisibleToBuyer', 'not visible to buyer')})
-              </span>
-            </label>
-            <textarea
-              value={internalNotes}
-              onChange={(e) => setInternalNotes(e.target.value)}
-              placeholder={t('supplierOrders.notesPlaceholder', 'Add internal notes...')}
-              style={{
-                width: '100%',
-                minHeight: '80px',
-                padding: spacing[3],
-                fontSize: typography.fontSize.sm,
-                border: `1px solid ${colors.border.default}`,
-                borderRadius: borderRadius.md,
-                fontFamily: 'inherit',
-                resize: 'vertical',
-              }}
-            />
-          </div>
+          <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, margin: 0, marginBottom: spacing[3] }}>
+            {t('supplierOrders.markReadyDescription', 'When the order is ready, mark it so the buyer knows they can come pick it up.')}
+          </p>
+          <button
+            onClick={handleMarkReadyForPickup}
+            style={{
+              padding: `${spacing[3]} ${spacing[5]}`,
+              backgroundColor: colors.primary[600],
+              color: colors.text.inverse,
+              border: 'none',
+              borderRadius: borderRadius.md,
+              fontSize: typography.fontSize.base,
+              fontWeight: typography.fontWeight.semibold,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: spacing[2],
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = colors.primary[700];
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = colors.primary[600];
+            }}
+          >
+            <Icons.CheckCircle size={18} />
+            {t('supplierOrders.markReadyForPickup', 'Mark Ready for Pickup')}
+          </button>
         </div>
       )}
 
-      {/* Mark Delivered Button */}
-      {isDeliveryDay() && order.status === 'confirmed' && (
+      {/* Mark as Out for Delivery (for delivery orders when confirmed) */}
+      {order.status === 'confirmed' && order.delivery_type === 'delivery' && (
         <div
           style={{
             backgroundColor: colors.primary[50],
@@ -974,11 +951,9 @@ export function SupplierDirectOrderDetail() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[3] }}>
-            <Icons.CheckCircle size={20} color={colors.primary[600]} />
+            <Icons.Truck size={20} color={colors.primary[600]} />
             <span style={{ fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, color: colors.primary[700] }}>
-              {order.delivery_type === 'pickup'
-                ? t('supplierOrders.readyForPickup', 'Ready for pickup?')
-                : t('supplierOrders.readyForDelivery', 'Ready to deliver?')}
+              {t('supplierOrders.readyForDelivery', 'Ready to deliver?')}
             </span>
           </div>
           <button
@@ -1001,13 +976,62 @@ export function SupplierDirectOrderDetail() {
               e.currentTarget.style.backgroundColor = colors.primary[600];
             }}
           >
-            {order.delivery_type === 'pickup' ? t('supplierOrders.markHandedOver', 'Mark as Handed Over') : t('supplierOrders.markDelivered', 'Mark as Delivered')}
+            {t('supplierOrders.markDelivered', 'Mark as Delivered')}
           </button>
         </div>
       )}
 
-      {/* Post-Delivery Status */}
-      {order.status === 'delivered' && order.delivery_event && (
+      {/* Ready for Pickup Status - Supplier can confirm pickup happened */}
+      {order.status === 'in_transit' && order.delivery_type === 'pickup' && (
+        <div
+          style={{
+            backgroundColor: colors.success[50],
+            padding: spacing[4],
+            borderRadius: borderRadius.lg,
+            border: `1px solid ${colors.success[200]}`,
+            marginBottom: spacing[4],
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[2] }}>
+            <Icons.Package size={20} color={colors.success[600]} />
+            <span style={{ fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, color: colors.success[700] }}>
+              {t('supplierOrders.orderReadyForPickup', 'Order Ready for Pickup')}
+            </span>
+          </div>
+          <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, margin: 0, marginBottom: spacing[3] }}>
+            {t('supplierOrders.waitingForBuyerPickup', 'Waiting for buyer to pick up the order. When pickup is complete, confirm below.')}
+          </p>
+          <button
+            onClick={handleConfirmPickup}
+            style={{
+              padding: `${spacing[3]} ${spacing[5]}`,
+              backgroundColor: colors.success[600],
+              color: colors.text.inverse,
+              border: 'none',
+              borderRadius: borderRadius.md,
+              fontSize: typography.fontSize.base,
+              fontWeight: typography.fontWeight.semibold,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: spacing[2],
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = colors.success[700];
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = colors.success[600];
+            }}
+          >
+            <Icons.CheckCircle size={18} />
+            {t('supplierOrders.confirmPickupComplete', 'Confirm Pickup Complete')}
+          </button>
+        </div>
+      )}
+
+      {/* Post-Delivery Status (for delivery orders) */}
+      {order.status === 'delivered' && order.delivery_type === 'delivery' && order.delivery_event && (
         <div
           style={{
             backgroundColor: colors.neutral[0],
@@ -1041,6 +1065,29 @@ export function SupplierDirectOrderDetail() {
               {t('supplierOrders.confirmationDeadline', 'Confirmation deadline')}: {new Date(order.delivery_event.confirmation_deadline).toLocaleString()}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Pickup Completed Status (for pickup orders after confirmation) */}
+      {order.status === 'delivered' && order.delivery_type === 'pickup' && (
+        <div
+          style={{
+            backgroundColor: colors.info[50],
+            padding: spacing[4],
+            borderRadius: borderRadius.lg,
+            border: `1px solid ${colors.info[200]}`,
+            marginBottom: spacing[4],
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[2] }}>
+            <Icons.CheckCircle size={20} color={colors.info[600]} />
+            <span style={{ fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, color: colors.info[700] }}>
+              {t('supplierOrders.pickupConfirmed', 'Pickup Confirmed')}
+            </span>
+          </div>
+          <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, margin: 0 }}>
+            {t('supplierOrders.waitingForBuyerConfirmation', 'Waiting for buyer to confirm receipt of order.')}
+          </p>
         </div>
       )}
 

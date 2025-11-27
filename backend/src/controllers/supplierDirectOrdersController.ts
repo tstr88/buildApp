@@ -536,6 +536,172 @@ export async function rejectOrder(req: Request, res: Response): Promise<void> {
 }
 
 /**
+ * POST /api/suppliers/orders/:orderId/mark-ready
+ * Mark order as ready for pickup (for pickup orders: confirmed -> in_transit)
+ */
+export async function markReadyForPickup(req: Request, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { orderId } = req.params;
+    const client = await pool.connect();
+
+    try {
+      // First get the supplier_id for this user
+      const supplierResult = await client.query(
+        'SELECT id FROM suppliers WHERE user_id = $1',
+        [userId]
+      );
+
+      if (supplierResult.rows.length === 0) {
+        res.status(404).json({ error: 'Supplier profile not found' });
+        return;
+      }
+
+      const supplierId = supplierResult.rows[0].id;
+
+      // Verify order exists and belongs to this supplier
+      const orderResult = await client.query(
+        `SELECT id, status, buyer_id, pickup_or_delivery
+         FROM orders
+         WHERE order_number = $1 AND supplier_id = $2`,
+        [orderId, supplierId]
+      );
+
+      if (orderResult.rows.length === 0) {
+        res.status(404).json({ error: 'Order not found' });
+        return;
+      }
+
+      const order = orderResult.rows[0];
+
+      if (order.pickup_or_delivery !== 'pickup') {
+        res.status(400).json({ error: 'This action is only for pickup orders' });
+        return;
+      }
+
+      if (order.status !== 'confirmed') {
+        res.status(400).json({ error: 'Order must be confirmed before marking ready' });
+        return;
+      }
+
+      // Mark order as ready for pickup (in_transit status)
+      await client.query(
+        `UPDATE orders
+         SET status = 'in_transit',
+             updated_at = NOW()
+         WHERE id = $1`,
+        [order.id]
+      );
+
+      // Emit WebSocket event to buyer and supplier
+      emitOrderStatusChanged({
+        order_number: orderId,
+        order_id: order.id,
+        status: 'in_transit',
+      }, order.buyer_id, userId);
+
+      res.json({ success: true, message: 'Order marked as ready for pickup' });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Error marking ready for pickup:', error);
+    res.status(500).json({ error: 'Failed to mark order as ready' });
+  }
+}
+
+/**
+ * POST /api/suppliers/orders/:orderId/confirm-pickup
+ * Confirm pickup happened (for pickup orders: in_transit -> delivered)
+ */
+export async function confirmPickup(req: Request, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { orderId } = req.params;
+    const client = await pool.connect();
+
+    try {
+      // First get the supplier_id for this user
+      const supplierResult = await client.query(
+        'SELECT id FROM suppliers WHERE user_id = $1',
+        [userId]
+      );
+
+      if (supplierResult.rows.length === 0) {
+        res.status(404).json({ error: 'Supplier profile not found' });
+        return;
+      }
+
+      const supplierId = supplierResult.rows[0].id;
+
+      // Verify order exists and belongs to this supplier
+      const orderResult = await client.query(
+        `SELECT id, status, buyer_id, pickup_or_delivery
+         FROM orders
+         WHERE order_number = $1 AND supplier_id = $2`,
+        [orderId, supplierId]
+      );
+
+      if (orderResult.rows.length === 0) {
+        res.status(404).json({ error: 'Order not found' });
+        return;
+      }
+
+      const order = orderResult.rows[0];
+
+      if (order.pickup_or_delivery !== 'pickup') {
+        res.status(400).json({ error: 'This action is only for pickup orders' });
+        return;
+      }
+
+      if (order.status !== 'in_transit') {
+        res.status(400).json({ error: 'Order must be ready for pickup before confirming' });
+        return;
+      }
+
+      // Calculate confirmation deadline (24 hours from now)
+      const confirmationDeadline = new Date();
+      confirmationDeadline.setHours(confirmationDeadline.getHours() + 24);
+
+      // Mark order as delivered (picked up)
+      await client.query(
+        `UPDATE orders
+         SET status = 'delivered',
+             delivered_at = NOW(),
+             confirmation_deadline = $2,
+             updated_at = NOW()
+         WHERE id = $1`,
+        [order.id, confirmationDeadline]
+      );
+
+      // Emit WebSocket event to buyer and supplier
+      emitOrderStatusChanged({
+        order_number: orderId,
+        order_id: order.id,
+        status: 'delivered',
+      }, order.buyer_id, userId);
+
+      res.json({ success: true, message: 'Pickup confirmed' });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Error confirming pickup:', error);
+    res.status(500).json({ error: 'Failed to confirm pickup' });
+  }
+}
+
+/**
  * POST /api/suppliers/orders/:orderId/accept-window
  * Accept buyer's counter-proposed window
  */
