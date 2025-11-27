@@ -29,7 +29,7 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
   orderStatus,
   createdAt,
   scheduledStart,
-  scheduledEnd,
+  scheduledEnd: _scheduledEnd,
   deliveredAt,
   confirmedAt,
   deliveryProofPhoto,
@@ -46,9 +46,18 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
     });
   };
 
-  const formatTimeWindow = () => {
-    if (!scheduledStart || !scheduledEnd) return 'To be confirmed';
-    return `${formatTimestamp(scheduledStart)} - ${formatTimestamp(scheduledEnd)}`;
+  const formatScheduledTime = () => {
+    if (!scheduledStart) return 'To be confirmed';
+    // Show single time since buyer selects exact time, not a range
+    const date = new Date(scheduledStart);
+    return date.toLocaleString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
   };
 
   // Determine step statuses based on order status
@@ -90,12 +99,12 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
       description: 'Order placed successfully',
     },
     {
-      label: 'Window Confirmed',
+      label: 'Time Confirmed',
       status: getStepStatus('window_confirmed'),
-      timestamp: scheduledStart ? formatTimeWindow() : undefined,
+      timestamp: scheduledStart ? formatScheduledTime() : undefined,
       description: scheduledStart
-        ? 'Delivery schedule confirmed'
-        : 'Waiting for supplier to confirm schedule',
+        ? 'Pickup/delivery time confirmed'
+        : 'Waiting for supplier to confirm time',
     },
     {
       label: 'Out for Delivery',
