@@ -29,7 +29,7 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
   orderStatus,
   createdAt,
   scheduledStart,
-  scheduledEnd: _scheduledEnd,
+  scheduledEnd,
   deliveredAt,
   confirmedAt,
   deliveryProofPhoto,
@@ -47,17 +47,8 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
   };
 
   const formatTimeWindow = () => {
-    if (!scheduledStart) return 'To be confirmed';
-    // Show single time since buyer selects exact time, not a range
-    const date = new Date(scheduledStart);
-    return date.toLocaleString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
+    if (!scheduledStart || !scheduledEnd) return 'To be confirmed';
+    return `${formatTimestamp(scheduledStart)} - ${formatTimestamp(scheduledEnd)}`;
   };
 
   // Determine step statuses based on order status
