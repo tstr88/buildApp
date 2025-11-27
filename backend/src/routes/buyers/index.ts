@@ -333,11 +333,11 @@ router.post('/orders/:orderId/confirm', asyncHandler(async (req, res) => {
   const buyerId = req.user?.id;
   const { orderId } = req.params;
 
-  // Check order exists and belongs to this buyer
+  // Check order exists and belongs to this buyer (query by order_number for consistency)
   const orderResult = await pool.query(
     `SELECT id, order_number, status, buyer_id, pickup_or_delivery, supplier_id
      FROM orders
-     WHERE id = $1 AND buyer_id = $2`,
+     WHERE order_number = $1 AND buyer_id = $2`,
     [orderId, buyerId]
   );
 
@@ -364,7 +364,7 @@ router.post('/orders/:orderId/confirm', asyncHandler(async (req, res) => {
          confirmed_at = CURRENT_TIMESTAMP,
          updated_at = CURRENT_TIMESTAMP
      WHERE id = $1`,
-    [orderId]
+    [order.id]
   );
 
   return res.json({
@@ -381,11 +381,11 @@ router.post('/orders/:orderId/confirm-pickup', asyncHandler(async (req, res) => 
   const buyerId = req.user?.id;
   const { orderId } = req.params;
 
-  // Check order exists and belongs to this buyer
+  // Check order exists and belongs to this buyer (query by order_number for consistency)
   const orderResult = await pool.query(
     `SELECT id, order_number, status, buyer_id, pickup_or_delivery, supplier_id
      FROM orders
-     WHERE id = $1 AND buyer_id = $2`,
+     WHERE order_number = $1 AND buyer_id = $2`,
     [orderId, buyerId]
   );
 
@@ -424,7 +424,7 @@ router.post('/orders/:orderId/confirm-pickup', asyncHandler(async (req, res) => 
          confirmation_deadline = $2,
          updated_at = CURRENT_TIMESTAMP
      WHERE id = $1`,
-    [orderId, confirmationDeadline]
+    [order.id, confirmationDeadline]
   );
 
   // Get supplier user_id for WebSocket notification

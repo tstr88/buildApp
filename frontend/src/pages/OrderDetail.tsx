@@ -13,6 +13,7 @@ import { ConfirmationBar } from '../components/orders/ConfirmationBar';
 import { DisputeForm } from '../components/orders/DisputeForm';
 import { BuyerWindowProposalModal } from '../components/buyer/BuyerWindowProposalModal';
 import { useWebSocket } from '../context/WebSocketContext';
+import { useToast } from '../hooks/useToast';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -77,6 +78,7 @@ export const OrderDetail: React.FC = () => {
   const [showCounterProposeSuccess, setShowCounterProposeSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { socket, subscribeToOrder, unsubscribeFromOrder } = useWebSocket();
+  const toast = useToast();
 
   useEffect(() => {
     if (id) {
@@ -131,12 +133,12 @@ export const OrderDetail: React.FC = () => {
       } else {
         const errorData = await response.json();
         console.error('[fetchOrder] Error:', errorData);
-        alert('Order not found');
+        toast.error('Order not found');
         navigate('/orders');
       }
     } catch (error) {
       console.error('Failed to fetch order:', error);
-      alert('Failed to load order');
+      toast.error('Failed to load order');
       navigate('/orders');
     } finally {
       setLoading(false);
@@ -161,15 +163,15 @@ export const OrderDetail: React.FC = () => {
       );
 
       if (response.ok) {
-        alert('Window accepted successfully');
+        toast.success('Window accepted successfully');
         fetchOrder(order.order_number);
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to accept window');
+        toast.error(error.error || 'Failed to accept window');
       }
     } catch (error) {
       console.error('Failed to accept window:', error);
-      alert('Failed to accept window');
+      toast.error('Failed to accept window');
     } finally {
       setIsSubmitting(false);
     }
@@ -193,15 +195,15 @@ export const OrderDetail: React.FC = () => {
       );
 
       if (response.ok) {
-        alert('Window rejected successfully');
+        toast.success('Window rejected successfully');
         fetchOrder(order.order_number);
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to reject window');
+        toast.error(error.error || 'Failed to reject window');
       }
     } catch (error) {
       console.error('Failed to reject window:', error);
-      alert('Failed to reject window');
+      toast.error('Failed to reject window');
     } finally {
       setIsSubmitting(false);
     }
@@ -264,7 +266,7 @@ export const OrderDetail: React.FC = () => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
       const response = await fetch(
-        `${API_URL}/api/buyers/orders/${order.id}/confirm`,
+        `${API_URL}/api/buyers/orders/${order.order_number}/confirm`,
         {
           method: 'POST',
           headers: {
@@ -275,15 +277,15 @@ export const OrderDetail: React.FC = () => {
       );
 
       if (response.ok) {
-        alert('Delivery confirmed successfully');
-        fetchOrder(order.id);
+        toast.success('Delivery confirmed successfully');
+        fetchOrder(order.order_number);
       } else {
         const error = await response.json();
-        alert(error.message || 'Failed to confirm delivery');
+        toast.error(error.message || 'Failed to confirm delivery');
       }
     } catch (error) {
       console.error('Failed to confirm delivery:', error);
-      alert('Failed to confirm delivery');
+      toast.error('Failed to confirm delivery');
     } finally {
       setIsSubmitting(false);
     }
@@ -297,7 +299,7 @@ export const OrderDetail: React.FC = () => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
       const response = await fetch(
-        `${API_URL}/api/buyers/orders/${order.id}/confirm-pickup`,
+        `${API_URL}/api/buyers/orders/${order.order_number}/confirm-pickup`,
         {
           method: 'POST',
           headers: {
@@ -308,15 +310,15 @@ export const OrderDetail: React.FC = () => {
       );
 
       if (response.ok) {
-        alert('Pickup confirmed successfully');
-        fetchOrder(order.id);
+        toast.success('Pickup confirmed successfully');
+        fetchOrder(order.order_number);
       } else {
         const error = await response.json();
-        alert(error.message || 'Failed to confirm pickup');
+        toast.error(error.message || 'Failed to confirm pickup');
       }
     } catch (error) {
       console.error('Failed to confirm pickup:', error);
-      alert('Failed to confirm pickup');
+      toast.error('Failed to confirm pickup');
     } finally {
       setIsSubmitting(false);
     }
@@ -337,7 +339,7 @@ export const OrderDetail: React.FC = () => {
       });
 
       const response = await fetch(
-        `${API_URL}/api/buyers/orders/${order.id}/dispute`,
+        `${API_URL}/api/buyers/orders/${order.order_number}/dispute`,
         {
           method: 'POST',
           headers: {
@@ -348,16 +350,16 @@ export const OrderDetail: React.FC = () => {
       );
 
       if (response.ok) {
-        alert('Dispute reported successfully. The supplier will be notified.');
+        toast.success('Dispute reported successfully', 'The supplier will be notified.');
         setShowDisputeForm(false);
-        fetchOrder(order.id);
+        fetchOrder(order.order_number);
       } else {
         const error = await response.json();
-        alert(error.message || 'Failed to submit dispute');
+        toast.error(error.message || 'Failed to submit dispute');
       }
     } catch (error) {
       console.error('Failed to submit dispute:', error);
-      alert('Failed to submit dispute');
+      toast.error('Failed to submit dispute');
     } finally {
       setIsSubmitting(false);
     }
