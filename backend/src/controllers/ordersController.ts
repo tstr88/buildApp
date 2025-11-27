@@ -421,7 +421,7 @@ export async function getAvailableWindows(req: Request, res: Response): Promise<
     const currentHour = userLocalTime.getHours();
     const SAME_DAY_CUTOFF_HOUR = 14; // 2PM cutoff for same-day orders
     const BUSINESS_START_HOUR = 8;   // 8AM
-    const BUSINESS_END_HOUR = 17;    // 5PM
+    const BUSINESS_END_HOUR = 18;    // 6PM (supplier hours: Mon-Sat, 8AM-6PM)
 
     // Helper to create date with specific hours (in user's local timezone)
     const createDate = (daysOffset: number, hours: number, minutes: number = 0) => {
@@ -447,9 +447,9 @@ export async function getAvailableWindows(req: Request, res: Response): Promise<
       const dayDate = createDate(dayOffset, 0);
       const dayOfWeek = dayDate.getDay();
 
-      // Skip weekends (0 = Sunday, 6 = Saturday)
-      // TODO: Make this configurable per supplier
-      if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+      // Skip Sunday only (supplier hours: Mon-Sat)
+      // TODO: Make this configurable per supplier from database
+      if (dayOfWeek === 0) continue;
 
       availableDays.push({
         id: `day-${dayOffset}`,
@@ -485,6 +485,7 @@ export async function getAvailableWindows(req: Request, res: Response): Promise<
           label: `${formatHour(hour)} - ${formatHour(hour + 1)}`,
           start: slotStart.toISOString(),
           end: slotEnd.toISOString(),
+          hour: hour, // Send hour for frontend display
           available: true,
         });
       }

@@ -432,11 +432,9 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
                 >
                   {selectedDay.timeSlots.map((slot) => {
                     const isSelected = selectedWindowId === slot.id;
-                    const startTime = new Date(slot.start).toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      hour12: true,
-                    });
+                    // Use the label from backend which is already formatted correctly
+                    // e.g., "8:00 AM - 9:00 AM" -> extract just "8:00 AM"
+                    const startTime = slot.label.split(' - ')[0];
 
                     return (
                       <button
