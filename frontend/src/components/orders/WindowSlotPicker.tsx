@@ -8,6 +8,8 @@ import React, { useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface TimeWindow {
   id: string;
   label: string;
@@ -49,7 +51,7 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
     try {
       const token = localStorage.getItem('buildapp_auth_token');
       const response = await fetch(
-        `http://localhost:3001/api/buyers/suppliers/${supplierId}/available-windows`,
+        `${API_URL}/api/buyers/suppliers/${supplierId}/available-windows`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
