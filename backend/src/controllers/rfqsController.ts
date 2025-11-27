@@ -6,6 +6,7 @@
 import { Request, Response } from 'express';
 import pool from '../config/database';
 import { emitRFQCreated } from '../websocket';
+import { notifyRfqReceived } from '../services/NotificationHelpers';
 
 interface RFQLine {
   sku_id?: string;
@@ -363,6 +364,19 @@ export async function createRFQ(req: Request, res: Response): Promise<void> {
     // Send real-time notifications to suppliers
     if (supplierUserIds.length > 0) {
       emitRFQCreated(rfq.id, supplierUserIds);
+    }
+
+    // Get buyer type for notification
+    const buyerResult = await pool.query(
+      `SELECT user_type FROM users WHERE id = $1`,
+      [userId]
+    );
+    const buyerType = buyerResult.rows[0]?.user_type || 'buyer';
+    const location = delivery_address || 'Unknown location';
+
+    // Send bell notifications to each supplier
+    for (const supplierUserId of supplierUserIds) {
+      notifyRfqReceived(supplierUserId, buyerType, location, rfq.id);
     }
 
     res.status(201).json({
