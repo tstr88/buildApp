@@ -555,11 +555,9 @@ export function SupplierDirectOrderDetail() {
                       </span>
                     </div>
                     <div style={{ fontSize: typography.fontSize.base, color: colors.text.primary, marginBottom: spacing[3] }}>
-                      {new Date(order.proposed_window_start).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                      {' '}
-                      {new Date(order.proposed_window_start).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                      {' - '}
-                      {new Date(order.proposed_window_end).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(order.proposed_window_start).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                      {' at '}
+                      {new Date(order.proposed_window_start).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                     </div>
                     <div style={{ display: 'flex', gap: spacing[2] }}>
                       <button

@@ -378,6 +378,22 @@ export const OrderDetail: React.FC = () => {
     });
   };
 
+  // Format scheduled time - shows "Friday, November 28 at 4:00 PM"
+  const formatScheduledTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const dateStr = date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    });
+    const timeStr = date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    return `${dateStr} at ${timeStr}`;
+  };
+
   if (loading) {
     return (
       <div
@@ -772,7 +788,7 @@ export const OrderDetail: React.FC = () => {
                       margin: 0,
                     }}
                   >
-                    {formatDateTime(order.promised_window_start)} - {formatDateTime(order.promised_window_end)}
+                    {formatScheduledTime(order.promised_window_start)}
                   </p>
                 </div>
               </div>

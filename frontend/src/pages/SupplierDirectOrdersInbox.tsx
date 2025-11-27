@@ -134,17 +134,21 @@ export function SupplierDirectOrdersInbox() {
     );
   };
 
-  const formatDeliveryWindow = (start?: string, end?: string) => {
-    if (!start || !end) return t('supplierOrders.needsScheduling', 'Needs scheduling');
+  const formatDeliveryWindow = (start?: string, _end?: string) => {
+    if (!start) return t('supplierOrders.needsScheduling', 'Needs scheduling');
 
     const startDate = new Date(start);
-    const endDate = new Date(end);
-    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-
-    if (startDate.toDateString() === endDate.toDateString()) {
-      return startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-    return `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    const dateStr = startDate.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+    const timeStr = startDate.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    return `${dateStr} at ${timeStr}`;
   };
 
   return (

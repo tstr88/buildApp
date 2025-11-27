@@ -423,12 +423,20 @@ export async function getAvailableWindows(req: Request, res: Response): Promise<
     const BUSINESS_START_HOUR = 8;   // 8AM
     const BUSINESS_END_HOUR = 18;    // 6PM (supplier hours: Mon-Sat, 8AM-6PM)
 
-    // Helper to create date with specific hours (in user's local timezone)
+    // Helper to create date with specific hours in user's local timezone
+    // Returns a Date object representing the correct UTC time
     const createDate = (daysOffset: number, hours: number, minutes: number = 0) => {
+      // Start with user's local "today" at midnight
       const date = new Date(userLocalTime);
       date.setDate(date.getDate() + daysOffset);
       date.setHours(hours, minutes, 0, 0);
-      return date;
+
+      // The date is currently in server timezone, but we want it in user's timezone
+      // Add back the timezone offset to convert to correct UTC
+      // timezoneOffset is negative for UTC+X (e.g., -240 for UTC+4)
+      // So we need to ADD the offset (in ms) to get correct UTC time
+      const utcTime = new Date(date.getTime() + (timezoneOffset * 60 * 1000));
+      return utcTime;
     };
 
     // Helper to format day label
