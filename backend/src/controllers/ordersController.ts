@@ -401,36 +401,84 @@ export async function getOrderById(req: Request, res: Response): Promise<void> {
 /**
  * GET /api/suppliers/:supplierId/available-windows
  * Get available delivery/pickup windows for a supplier
+ *
+ * Rules:
+ * - Same-day morning (8AM-12PM): Only available if current time is before 10AM (2 hours buffer)
+ * - Same-day afternoon (1PM-5PM): Only available if current time is before 2PM (cutoff for same-day)
+ * - Next-day: Always available
+ * - 2-day out: Always available
  */
 export async function getAvailableWindows(_req: Request, res: Response): Promise<void> {
   try {
     // TODO: Use _req.params.supplierId to fetch supplier-specific windows
 
-    // For now, return predefined windows
-    // In production, this would check supplier's calendar and availability
-    const windows = [
-      {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinutes = now.getMinutes();
+    const currentTimeDecimal = currentHour + (currentMinutes / 60);
+
+    // Helper to create date with specific hours
+    const createDate = (daysOffset: number, hours: number, minutes: number = 0) => {
+      const date = new Date(now);
+      date.setDate(date.getDate() + daysOffset);
+      date.setHours(hours, minutes, 0, 0);
+      return date;
+    };
+
+    const windows = [];
+
+    // Same-day Morning (8AM-12PM)
+    // Available only if ordering before 10AM (need 2 hours buffer for preparation)
+    const sameDayMorningAvailable = currentTimeDecimal < 10;
+    if (sameDayMorningAvailable) {
+      windows.push({
         id: 'same-day-morning',
-        label: 'Same-day Morning',
-        start: new Date(new Date().setHours(8, 0, 0, 0)).toISOString(),
-        end: new Date(new Date().setHours(12, 0, 0, 0)).toISOString(),
+        label: 'Today - Morning',
+        start: createDate(0, 8, 0).toISOString(),
+        end: createDate(0, 12, 0).toISOString(),
         available: true,
-      },
-      {
+      });
+    }
+
+    // Same-day Afternoon (1PM-5PM)
+    // Available only if ordering before 2PM (cutoff for same-day orders)
+    const sameDayAfternoonAvailable = currentTimeDecimal < 14;
+    if (sameDayAfternoonAvailable) {
+      windows.push({
         id: 'same-day-afternoon',
-        label: 'Same-day Afternoon',
-        start: new Date(new Date().setHours(13, 0, 0, 0)).toISOString(),
-        end: new Date(new Date().setHours(17, 0, 0, 0)).toISOString(),
+        label: 'Today - Afternoon',
+        start: createDate(0, 13, 0).toISOString(),
+        end: createDate(0, 17, 0).toISOString(),
         available: true,
-      },
-      {
-        id: 'next-day',
-        label: 'Next-day',
-        start: new Date(new Date(Date.now() + 86400000).setHours(8, 0, 0, 0)).toISOString(),
-        end: new Date(new Date(Date.now() + 86400000).setHours(17, 0, 0, 0)).toISOString(),
-        available: true,
-      },
-    ];
+      });
+    }
+
+    // Next-day Morning (8AM-12PM) - Always available
+    windows.push({
+      id: 'next-day-morning',
+      label: 'Tomorrow - Morning',
+      start: createDate(1, 8, 0).toISOString(),
+      end: createDate(1, 12, 0).toISOString(),
+      available: true,
+    });
+
+    // Next-day Afternoon (1PM-5PM) - Always available
+    windows.push({
+      id: 'next-day-afternoon',
+      label: 'Tomorrow - Afternoon',
+      start: createDate(1, 13, 0).toISOString(),
+      end: createDate(1, 17, 0).toISOString(),
+      available: true,
+    });
+
+    // 2 days out - Full day option
+    windows.push({
+      id: 'two-days-out',
+      label: `${createDate(2, 0).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} - All Day`,
+      start: createDate(2, 8, 0).toISOString(),
+      end: createDate(2, 17, 0).toISOString(),
+      available: true,
+    });
 
     res.json({
       success: true,
