@@ -272,12 +272,13 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[5] }}>
           {/* Date Selector - Horizontal scrollable calendar */}
-          <div>
+          <div style={{ overflow: 'visible' }}>
             <div
               style={{
                 display: 'flex',
                 gap: spacing[2],
                 overflowX: 'auto',
+                paddingTop: spacing[3],
                 paddingBottom: spacing[2],
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none',
