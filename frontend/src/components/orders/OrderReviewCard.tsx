@@ -40,16 +40,25 @@ export const OrderReviewCard: React.FC<OrderReviewCardProps> = ({
   onPlaceOrder,
   isSubmitting = false,
 }) => {
-  const formatDate = (dateString?: string) => {
+  // Format the scheduled time for display
+  // Shows: "Friday, November 28 at 5:00 PM" (matching what user selected)
+  const formatScheduledTime = (dateString?: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      month: 'short',
+
+    const dateStr = date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
       day: 'numeric',
+    });
+
+    const timeStr = date.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
     });
+
+    return `${dateStr} at ${timeStr}`;
   };
 
   return (
@@ -264,8 +273,8 @@ export const OrderReviewCard: React.FC<OrderReviewCardProps> = ({
             >
               {isNegotiable
                 ? 'To be confirmed by supplier'
-                : scheduledWindow?.start && scheduledWindow?.end
-                ? `${formatDate(scheduledWindow.start)} - ${formatDate(scheduledWindow.end)}`
+                : scheduledWindow?.start
+                ? formatScheduledTime(scheduledWindow.start)
                 : 'TBD'}
             </p>
           </div>
