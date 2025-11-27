@@ -405,19 +405,27 @@ export async function getOrderById(req: Request, res: Response): Promise<void> {
  * Returns available days and hourly time slots
  * Same-day delivery/pickup cutoff is 2PM - after that, only future days are available
  */
-export async function getAvailableWindows(_req: Request, res: Response): Promise<void> {
+export async function getAvailableWindows(req: Request, res: Response): Promise<void> {
   try {
-    // TODO: Use _req.params.supplierId to fetch supplier-specific windows from database
+    // TODO: Use req.params.supplierId to fetch supplier-specific windows from database
 
+    // Get timezone offset from query param (in minutes, e.g., -240 for UTC+4)
+    const timezoneOffset = parseInt(req.query.tzOffset as string) || 0;
+
+    // Create "now" adjusted to user's timezone
     const now = new Date();
-    const currentHour = now.getHours();
+    // JavaScript's getTimezoneOffset returns minutes, positive for behind UTC
+    // We need to adjust: server UTC time + user's offset adjustment
+    const userLocalTime = new Date(now.getTime() - (timezoneOffset * 60 * 1000));
+
+    const currentHour = userLocalTime.getHours();
     const SAME_DAY_CUTOFF_HOUR = 14; // 2PM cutoff for same-day orders
     const BUSINESS_START_HOUR = 8;   // 8AM
     const BUSINESS_END_HOUR = 17;    // 5PM
 
-    // Helper to create date with specific hours
+    // Helper to create date with specific hours (in user's local timezone)
     const createDate = (daysOffset: number, hours: number, minutes: number = 0) => {
-      const date = new Date(now);
+      const date = new Date(userLocalTime);
       date.setDate(date.getDate() + daysOffset);
       date.setHours(hours, minutes, 0, 0);
       return date;

@@ -72,8 +72,10 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
     setLoading(true);
     try {
       const token = localStorage.getItem('buildapp_auth_token');
+      // Send timezone offset so server can calculate correct local time
+      const tzOffset = new Date().getTimezoneOffset();
       const response = await fetch(
-        `${API_URL}/api/buyers/suppliers/${supplierId}/available-windows`,
+        `${API_URL}/api/buyers/suppliers/${supplierId}/available-windows?tzOffset=${tzOffset}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
