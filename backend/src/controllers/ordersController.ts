@@ -410,15 +410,17 @@ export async function getAvailableWindows(req: Request, res: Response): Promise<
     // TODO: Use req.params.supplierId to fetch supplier-specific windows from database
 
     // Get timezone offset from query param (in minutes, e.g., -240 for UTC+4)
+    // Note: JavaScript's getTimezoneOffset() returns positive for west of UTC
+    // So UTC+4 (Georgia) returns -240
     const timezoneOffset = parseInt(req.query.tzOffset as string) || 0;
 
-    // Create "now" adjusted to user's timezone
+    // Calculate user's current local time
     const now = new Date();
-    // JavaScript's getTimezoneOffset returns minutes, positive for behind UTC
-    // We need to adjust: server UTC time + user's offset adjustment
-    const userLocalTime = new Date(now.getTime() - (timezoneOffset * 60 * 1000));
+    // Convert server time to UTC, then to user's local time
+    // User's offset from UTC in ms = -timezoneOffset * 60 * 1000
+    const userLocalTime = new Date(now.getTime() - timezoneOffset * 60 * 1000);
 
-    const currentHour = userLocalTime.getHours();
+    const currentHour = userLocalTime.getUTCHours(); // Use UTC hours since we adjusted the time
     const SAME_DAY_CUTOFF_HOUR = 14; // 2PM cutoff for same-day orders
     const BUSINESS_START_HOUR = 8;   // 8AM
     const BUSINESS_END_HOUR = 18;    // 6PM (supplier hours: Mon-Sat, 8AM-6PM)
@@ -426,25 +428,59 @@ export async function getAvailableWindows(req: Request, res: Response): Promise<
     // Helper to create date with specific hours in user's local timezone
     // Returns a Date object representing the correct UTC time
     const createDate = (daysOffset: number, hours: number, minutes: number = 0) => {
-      // Start with user's local "today" at midnight
-      const date = new Date(userLocalTime);
+      // We want to create a time that, when displayed in the user's timezone, shows the correct hour.
+      //
+      // Example: User is in UTC+4 (Georgia), tzOffset = -240
+      // They want 4 PM local time.
+      // 4 PM in UTC+4 = 12:00 UTC
+      // So we need: UTC hour = local hour - (offset in hours)
+      // offset in hours = -240 / -60 = 4
+      // UTC hour = 16 - 4 = 12 ✓
+      //
+      // JavaScript Date works in the server's local timezone, so we:
+      // 1. Create a date for the target day
+      // 2. Set it to the desired LOCAL hour for the USER
+      // 3. Then subtract the user's timezone offset to get correct UTC
+
+      // Start with current date
+      const date = new Date();
       date.setDate(date.getDate() + daysOffset);
       date.setHours(hours, minutes, 0, 0);
 
-      // The date is currently in server timezone, but we want it in user's timezone
-      // Add back the timezone offset to convert to correct UTC
-      // timezoneOffset is negative for UTC+X (e.g., -240 for UTC+4)
-      // So we need to ADD the offset (in ms) to get correct UTC time
-      const utcTime = new Date(date.getTime() + (timezoneOffset * 60 * 1000));
-      return utcTime;
+      // Now 'date' is set to 'hours' in SERVER's timezone
+      // We need to adjust so that when converted to user's timezone, it shows 'hours'
+      //
+      // User's offset from UTC (in ms): -timezoneOffset * 60 * 1000
+      // (negative because getTimezoneOffset returns positive for west of UTC)
+      //
+      // Server's offset from UTC (in ms): -date.getTimezoneOffset() * 60 * 1000
+      //
+      // Adjustment needed: (userOffset - serverOffset)
+      const serverOffsetMs = date.getTimezoneOffset() * 60 * 1000;
+      const userOffsetMs = timezoneOffset * 60 * 1000;
+      const adjustmentMs = userOffsetMs - serverOffsetMs;
+
+      return new Date(date.getTime() + adjustmentMs);
     };
 
-    // Helper to format day label
+    // Helper to get user's local date for a given offset
+    const getUserLocalDate = (daysOffset: number) => {
+      const date = new Date(userLocalTime);
+      date.setUTCDate(date.getUTCDate() + daysOffset);
+      return date;
+    };
+
+    // Helper to format day label using user's local date
     const formatDayLabel = (daysOffset: number) => {
-      const date = createDate(daysOffset, 0);
       if (daysOffset === 0) return 'Today';
       if (daysOffset === 1) return 'Tomorrow';
-      return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+      const date = getUserLocalDate(daysOffset);
+      // Format in UTC since userLocalTime is adjusted to represent user's local time in UTC
+      const weekday = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][date.getUTCDay()];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const month = months[date.getUTCMonth()];
+      const day = date.getUTCDate();
+      return `${weekday}, ${month} ${day}`;
     };
 
     // Generate available days (next 7 days)
@@ -452,18 +488,19 @@ export async function getAvailableWindows(req: Request, res: Response): Promise<
     const startDay = currentHour >= SAME_DAY_CUTOFF_HOUR ? 1 : 0; // Skip today if past cutoff
 
     for (let dayOffset = startDay; dayOffset <= 7; dayOffset++) {
-      const dayDate = createDate(dayOffset, 0);
-      const dayOfWeek = dayDate.getDay();
+      const userDate = getUserLocalDate(dayOffset);
+      const dayOfWeek = userDate.getUTCDay();
 
       // Skip Sunday only (supplier hours: Mon-Sat)
       // TODO: Make this configurable per supplier from database
       if (dayOfWeek === 0) continue;
 
+      const dayDate = createDate(dayOffset, 12); // Use noon to avoid date boundary issues
       availableDays.push({
         id: `day-${dayOffset}`,
         offset: dayOffset,
         label: formatDayLabel(dayOffset),
-        date: dayDate.toISOString().split('T')[0],
+        date: `${userDate.getUTCFullYear()}-${String(userDate.getUTCMonth() + 1).padStart(2, '0')}-${String(userDate.getUTCDate()).padStart(2, '0')}`,
         fullDate: dayDate.toISOString(),
       });
     }
