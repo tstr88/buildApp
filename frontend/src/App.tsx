@@ -7,6 +7,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { WebSocketProvider } from './context/WebSocketContext';
+import { ToastProvider } from './hooks/useToast';
 import { NotificationToast } from './components/notifications/NotificationToast';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -105,6 +106,7 @@ function App() {
   return (
     <AuthProvider>
       <WebSocketProvider>
+        <ToastProvider>
         <NotificationToast />
         <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
@@ -222,6 +224,7 @@ function App() {
         </Routes>
         </Suspense>
         </BrowserRouter>
+        </ToastProvider>
       </WebSocketProvider>
     </AuthProvider>
   );
