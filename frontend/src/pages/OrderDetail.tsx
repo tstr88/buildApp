@@ -1037,6 +1037,7 @@ export const OrderDetail: React.FC = () => {
               deliveredAt={order.delivered_at}
               confirmedAt={order.confirmed_at}
               deliveryProofPhoto={order.delivery_proof_photo}
+              pickupOrDelivery={order.pickup_or_delivery}
             />
           </div>
 

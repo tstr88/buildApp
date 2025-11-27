@@ -23,6 +23,7 @@ interface OrderTimelineProps {
   deliveredAt?: string;
   confirmedAt?: string;
   deliveryProofPhoto?: string;
+  pickupOrDelivery?: 'pickup' | 'delivery';
 }
 
 export const OrderTimeline: React.FC<OrderTimelineProps> = ({
@@ -33,7 +34,9 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
   deliveredAt,
   confirmedAt,
   deliveryProofPhoto,
+  pickupOrDelivery = 'delivery',
 }) => {
+  const isPickup = pickupOrDelivery === 'pickup';
   const formatTimestamp = (dateString?: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -103,23 +106,25 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
       status: getStepStatus('window_confirmed'),
       timestamp: scheduledStart ? formatScheduledTime() : undefined,
       description: scheduledStart
-        ? 'Pickup/delivery time confirmed'
-        : 'Waiting for supplier to confirm time',
+        ? `${isPickup ? 'Pickup' : 'Delivery'} time confirmed`
+        : `Waiting for supplier to confirm ${isPickup ? 'pickup' : 'delivery'} time`,
     },
     {
-      label: 'Out for Delivery',
+      label: isPickup ? 'Ready for Pickup' : 'Out for Delivery',
       status: getStepStatus('in_transit'),
       timestamp:
         orderStatus === 'in_transit' || orderStatus === 'delivered' || orderStatus === 'completed'
-          ? 'In transit'
+          ? isPickup ? 'Ready' : 'In transit'
           : undefined,
-      description: 'Order is on the way',
+      description: isPickup ? 'Order is ready at supplier location' : 'Order is on the way',
     },
     {
-      label: 'Delivered',
+      label: isPickup ? 'Picked Up' : 'Delivered',
       status: getStepStatus('delivered'),
       timestamp: deliveredAt ? formatTimestamp(deliveredAt) : undefined,
-      description: deliveredAt ? 'Order delivered to location' : 'Pending delivery',
+      description: deliveredAt
+        ? (isPickup ? 'Order picked up' : 'Order delivered to location')
+        : (isPickup ? 'Pending pickup' : 'Pending delivery'),
       photo: deliveryProofPhoto,
     },
     {
@@ -130,7 +135,7 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
         ? 'Order completed'
         : deliveredAt
         ? '24-hour confirmation period'
-        : 'Awaiting delivery',
+        : (isPickup ? 'Awaiting pickup' : 'Awaiting delivery'),
     },
   ];
 
