@@ -5,6 +5,7 @@
 
 import { Request, Response } from 'express';
 import pool from '../config/database';
+import { emitRFQCreated } from '../websocket';
 
 interface RFQLine {
   sku_id?: string;
@@ -352,7 +353,17 @@ export async function createRFQ(req: Request, res: Response): Promise<void> {
       `INSERT INTO rfq_recipients (rfq_id, supplier_id) VALUES ${recipientValues}`
     );
 
-    // TODO: Send notifications to suppliers
+    // Get user_ids for the suppliers to send WebSocket notifications
+    const supplierUsersResult = await pool.query(
+      `SELECT user_id FROM suppliers WHERE id = ANY($1)`,
+      [supplier_ids]
+    );
+    const supplierUserIds = supplierUsersResult.rows.map((row) => row.user_id);
+
+    // Send real-time notifications to suppliers
+    if (supplierUserIds.length > 0) {
+      emitRFQCreated(rfq.id, supplierUserIds);
+    }
 
     res.status(201).json({
       success: true,

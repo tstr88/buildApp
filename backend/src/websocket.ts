@@ -179,3 +179,17 @@ export const emitOfferCreated = (rfqId: string, buyerUserId: string) => {
 
   console.log(`[WebSocket] Emitted offer:created for RFQ ${rfqId} to buyer ${buyerUserId}`);
 };
+
+export const emitRFQCreated = (rfqId: string, supplierUserIds: string[]) => {
+  const socketIO = getIO();
+
+  // Notify each supplier that they received a new RFQ
+  supplierUserIds.forEach((userId) => {
+    socketIO.to(`user:${userId}`).emit('rfq:created', { rfqId });
+  });
+
+  // Notify all suppliers (for RFQ list page)
+  socketIO.to('suppliers').emit('rfqs:list-updated');
+
+  console.log(`[WebSocket] Emitted rfq:created to ${supplierUserIds.length} suppliers for RFQ ${rfqId}`);
+};
