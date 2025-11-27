@@ -312,10 +312,13 @@ export const DirectOrder: React.FC = () => {
     setSelectedProjectId(null);
   };
 
-  const handleWindowSelect = (windowId: string, start: string, end: string) => {
+  const [windowDisplayLabel, setWindowDisplayLabel] = useState<string>('');
+
+  const handleWindowSelect = (windowId: string, start: string, end: string, displayLabel?: string) => {
     setSelectedWindowId(windowId);
     setWindowStart(start);
     setWindowEnd(end);
+    setWindowDisplayLabel(displayLabel || '');
   };
 
   const handlePlaceOrder = async () => {
@@ -1061,9 +1064,7 @@ export const DirectOrder: React.FC = () => {
               grandTotal={total}
               pickupOrDelivery={pickupOrDelivery}
               deliveryAddress={deliveryAddress}
-              scheduledWindow={
-                windowStart && windowEnd ? { start: windowStart, end: windowEnd } : null
-              }
+              scheduledWindowLabel={windowDisplayLabel}
               isNegotiable={scheduleMode === 'negotiable'}
               paymentTerms={selectedSupplier.payment_terms?.[0] || 'cod'}
               onPlaceOrder={handlePlaceOrder}

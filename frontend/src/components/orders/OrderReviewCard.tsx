@@ -16,10 +16,7 @@ interface OrderReviewCardProps {
   grandTotal: number;
   pickupOrDelivery: 'pickup' | 'delivery';
   deliveryAddress?: string;
-  scheduledWindow?: {
-    start?: string;
-    end?: string;
-  } | null;
+  scheduledWindowLabel?: string;
   isNegotiable?: boolean;
   paymentTerms?: string;
   onPlaceOrder: () => void;
@@ -34,32 +31,12 @@ export const OrderReviewCard: React.FC<OrderReviewCardProps> = ({
   grandTotal,
   pickupOrDelivery,
   deliveryAddress,
-  scheduledWindow,
+  scheduledWindowLabel,
   isNegotiable = false,
   paymentTerms = 'cod',
   onPlaceOrder,
   isSubmitting = false,
 }) => {
-  // Format the scheduled time for display
-  // Shows: "Friday, November 28 at 5:00 PM" (matching what user selected)
-  const formatScheduledTime = (dateString?: string) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-
-    const dateStr = date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-    });
-
-    const timeStr = date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-
-    return `${dateStr} at ${timeStr}`;
-  };
 
   return (
     <div
@@ -273,9 +250,7 @@ export const OrderReviewCard: React.FC<OrderReviewCardProps> = ({
             >
               {isNegotiable
                 ? 'To be confirmed by supplier'
-                : scheduledWindow?.start
-                ? formatScheduledTime(scheduledWindow.start)
-                : 'TBD'}
+                : scheduledWindowLabel || 'TBD'}
             </p>
           </div>
         </div>

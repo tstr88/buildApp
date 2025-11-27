@@ -37,7 +37,7 @@ interface WindowSlotPickerProps {
   supplierId: string;
   mode: 'approximate' | 'negotiable';
   selectedWindowId?: string | null;
-  onWindowSelect: (windowId: string, start: string, end: string) => void;
+  onWindowSelect: (windowId: string, start: string, end: string, displayLabel?: string) => void;
   preferredWindowNote?: string;
   onPreferredNoteChange?: (note: string) => void;
   pickupOrDelivery?: 'pickup' | 'delivery';
@@ -295,7 +295,7 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
                     onClick={() => {
                       setSelectedDayId(day.id);
                       if (selectedWindowId) {
-                        onWindowSelect('', '', '');
+                        onWindowSelect('', '', '', '');
                       }
                     }}
                     style={{
@@ -436,10 +436,14 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
                     // e.g., "8:00 AM - 9:00 AM" -> extract just "8:00 AM"
                     const startTime = slot.label.split(' - ')[0];
 
+                    // Create display label combining day and time for review step
+                    // e.g., "Friday, November 28 at 4:00 PM"
+                    const displayLabel = `${selectedDay.label} at ${startTime}`;
+
                     return (
                       <button
                         key={slot.id}
-                        onClick={() => onWindowSelect(slot.id, slot.start, slot.end)}
+                        onClick={() => onWindowSelect(slot.id, slot.start, slot.end, displayLabel)}
                         disabled={!slot.available}
                         style={{
                           padding: `${spacing[3]} ${spacing[2]}`,
