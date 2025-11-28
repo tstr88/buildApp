@@ -28,8 +28,7 @@ const BUYER_MENU: MenuItem[] = [
   { id: 'catalog', icon: 'Catalog', labelKey: 'nav.catalog', path: '/catalog' },
   { id: 'rentals', icon: 'Rentals', labelKey: 'nav.rentals', path: '/rentals' },
   { id: 'factories', icon: 'Factory', labelKey: 'nav.factories', path: '/factories' },
-  { id: 'orders', icon: 'FileText', labelKey: 'nav.orders', path: '/orders' },
-  { id: 'notifications', icon: 'Bell', labelKey: 'nav.notifications', path: '/notifications', divider: true },
+  { id: 'orders', icon: 'FileText', labelKey: 'nav.orders', path: '/orders', divider: true },
   { id: 'settings', icon: 'Settings', labelKey: 'nav.settings', path: '/settings' },
 ];
 
@@ -39,8 +38,7 @@ const SUPPLIER_MENU: MenuItem[] = [
   { id: 'catalog', icon: 'Catalog', labelKey: 'nav.catalog', path: '/supplier/catalog' },
   { id: 'orders', icon: 'FileText', labelKey: 'nav.orders', path: '/supplier/orders' },
   { id: 'performance', icon: 'TrendingUp', labelKey: 'nav.performance', path: '/supplier/performance' },
-  { id: 'billing', icon: 'DollarSign', labelKey: 'nav.billing', path: '/supplier/billing' },
-  { id: 'notifications', icon: 'Bell', labelKey: 'nav.notifications', path: '/notifications', divider: true },
+  { id: 'billing', icon: 'DollarSign', labelKey: 'nav.billing', path: '/supplier/billing', divider: true },
   { id: 'settings', icon: 'Settings', labelKey: 'nav.settings', path: '/settings' },
 ];
 
