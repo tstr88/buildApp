@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 import { Icons } from '../icons/Icons';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { useAuth } from '../../context/AuthContext';
-import { NotificationBellConnected } from './NotificationBellConnected';
 import { colors, spacing, shadows, transitions, typography } from '../../theme/tokens';
 
 interface MenuItem {
@@ -98,13 +97,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
         overflow: 'hidden',
       }}
     >
-      {/* Logo and Notification Bell */}
+      {/* Logo */}
       <div
         style={{
           height: '64px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
           padding: collapsed ? spacing[4] : spacing[6],
           borderBottom: `1px solid ${colors.border.light}`,
         }}
@@ -119,7 +117,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
         >
           {collapsed ? 'bA' : 'buildApp'}
         </div>
-        {!collapsed && <NotificationBellConnected />}
       </div>
 
       {/* Menu Items */}

@@ -11,11 +11,12 @@ import { useWebSocket } from '../../context/WebSocketContext';
 
 interface Notification {
   id: string;
-  type: 'order_created' | 'window_proposed' | 'window_accepted' | 'status_changed' | 'order_updated';
+  type: 'order_created' | 'window_proposed' | 'window_accepted' | 'status_changed' | 'order_updated' | 'rfq_received';
   title: string;
   message: string;
   timestamp: Date;
   orderId?: string;
+  rfqId?: string;
 }
 
 export function NotificationToast() {
@@ -25,6 +26,20 @@ export function NotificationToast() {
 
   useEffect(() => {
     if (!socket) return;
+
+    // Listen for RFQ created events (for suppliers)
+    socket.on('rfq:created', (data: any) => {
+      console.log('[NotificationToast] Received rfq:created event', data);
+      const notification: Notification = {
+        id: `${Date.now()}-rfq`,
+        type: 'rfq_received',
+        title: t('notifications.newRfq', 'New RFQ Received'),
+        message: t('notifications.newRfqMessage', 'You have received a new request for quote'),
+        timestamp: new Date(),
+        rfqId: data?.rfqId,
+      };
+      addNotification(notification);
+    });
 
     // Listen for order created events
     socket.on('order:created', (order: any) => {
@@ -87,6 +102,7 @@ export function NotificationToast() {
 
     // Cleanup listeners on unmount
     return () => {
+      socket.off('rfq:created');
       socket.off('order:created');
       socket.off('order:window-proposed');
       socket.off('order:window-accepted');
@@ -109,6 +125,8 @@ export function NotificationToast() {
 
   const getIcon = (type: Notification['type']) => {
     switch (type) {
+      case 'rfq_received':
+        return <Icons.FileText size={20} color={colors.primary[600]} />;
       case 'order_created':
         return <Icons.ShoppingCart size={20} color={colors.primary[600]} />;
       case 'window_proposed':
@@ -126,6 +144,8 @@ export function NotificationToast() {
 
   const getBackgroundColor = (type: Notification['type']) => {
     switch (type) {
+      case 'rfq_received':
+        return colors.primary[50];
       case 'order_created':
         return colors.primary[50];
       case 'window_proposed':
@@ -143,6 +163,8 @@ export function NotificationToast() {
 
   const getBorderColor = (type: Notification['type']) => {
     switch (type) {
+      case 'rfq_received':
+        return colors.primary[200];
       case 'order_created':
         return colors.primary[200];
       case 'window_proposed':

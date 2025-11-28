@@ -22,14 +22,13 @@ const BUYER_TABS: TabItem[] = [
   { id: 'home', icon: 'Home', labelKey: 'nav.home', path: '/home' },
   { id: 'projects', icon: 'Projects', labelKey: 'nav.projects', path: '/projects' },
   { id: 'rfqs', icon: 'RFQs', labelKey: 'nav.rfqs', path: '/rfqs' },
-  { id: 'notifications', icon: 'Bell', labelKey: 'nav.notifications', path: '/notifications' },
   { id: 'profile', icon: 'Profile', labelKey: 'nav.profile', path: '/profile' },
 ];
 
 const SUPPLIER_TABS: TabItem[] = [
   { id: 'dashboard', icon: 'Home', labelKey: 'nav.dashboard', path: '/supplier/dashboard' },
   { id: 'rfqs', icon: 'RFQs', labelKey: 'nav.rfqs', path: '/supplier/rfqs' },
-  { id: 'notifications', icon: 'Bell', labelKey: 'nav.notifications', path: '/notifications' },
+  { id: 'catalog', icon: 'Catalog', labelKey: 'nav.catalog', path: '/supplier/catalog' },
   { id: 'profile', icon: 'Profile', labelKey: 'nav.profile', path: '/profile' },
 ];
 
