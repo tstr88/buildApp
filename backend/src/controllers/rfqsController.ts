@@ -375,7 +375,9 @@ export async function createRFQ(req: Request, res: Response): Promise<void> {
     const location = delivery_address || 'Unknown location';
 
     // Send bell notifications to each supplier
+    console.log(`[RFQ] Sending bell notifications to ${supplierUserIds.length} suppliers for RFQ ${rfq.id}`);
     for (const supplierUserId of supplierUserIds) {
+      console.log(`[RFQ] Calling notifyRfqReceived for supplier user ${supplierUserId}`);
       notifyRfqReceived(supplierUserId, buyerType, location, rfq.id);
     }
 

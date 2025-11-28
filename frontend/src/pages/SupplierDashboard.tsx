@@ -3,11 +3,12 @@
  * Main dashboard for suppliers showing RFQs, offers, deliveries, and performance
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
+import { useWebSocket } from '../context/WebSocketContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -33,6 +34,7 @@ interface RecentActivity {
 export function SupplierDashboard() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { socket } = useWebSocket();
   const [stats, setStats] = useState<DashboardStats>({
     newRFQs: 0,
     offersWaitingApproval: 0,
@@ -46,11 +48,7 @@ export function SupplierDashboard() {
   const [loading, setLoading] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
 
@@ -81,7 +79,31 @@ export function SupplierDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Initial load
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  // Listen for WebSocket events to refresh stats
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleRefresh = () => {
+      fetchDashboardData();
+    };
+
+    socket.on('rfqs:list-updated', handleRefresh);
+    socket.on('rfq:created', handleRefresh);
+    socket.on('orders:list-updated', handleRefresh);
+
+    return () => {
+      socket.off('rfqs:list-updated', handleRefresh);
+      socket.off('rfq:created', handleRefresh);
+      socket.off('orders:list-updated', handleRefresh);
+    };
+  }, [socket, fetchDashboardData]);
 
   const getActivityIcon = (type: string) => {
     switch (type) {
