@@ -33,6 +33,10 @@ export const AppLayout: React.FC = () => {
           flex: 1,
           marginLeft: isMobile ? 0 : sidebarCollapsed ? '64px' : '240px',
           transition: 'margin-left 200ms ease',
+          paddingBottom: isMobile ? '80px' : 0,
+          width: isMobile ? '100vw' : 'auto',
+          maxWidth: '100%',
+          overflowX: 'hidden',
         }}
       >
         <Outlet />

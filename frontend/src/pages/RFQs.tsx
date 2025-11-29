@@ -159,10 +159,17 @@ export const RFQs: React.FC = () => {
     <>
       <style>{`
         .rfqs-page {
-          max-width: 1000px;
+          max-width: 100%;
+          width: 100%;
           margin: 0 auto;
           padding: ${spacing[4]};
           box-sizing: border-box;
+          overflow-x: hidden;
+        }
+        @media (min-width: 640px) {
+          .rfqs-page {
+            max-width: 1000px;
+          }
         }
         .rfqs-header {
           display: flex;
