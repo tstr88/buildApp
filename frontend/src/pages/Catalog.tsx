@@ -402,16 +402,19 @@ export const Catalog: React.FC = () => {
               borderTopRightRadius: borderRadius.xl,
               boxShadow: shadows.xl,
               zIndex: 1050,
-              maxHeight: '80vh',
-              overflow: 'auto',
-              paddingBottom: 'env(safe-area-inset-bottom, 20px)',
+              maxHeight: '85vh',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
             }}
           >
+            {/* Drag Handle */}
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'center',
                 padding: spacing[3],
+                flexShrink: 0,
               }}
             >
               <div
@@ -423,18 +426,81 @@ export const Catalog: React.FC = () => {
                 }}
               />
             </div>
-            <div style={{ padding: `0 ${spacing[4]} ${spacing[4]}` }}>
+
+            {/* Header with Title and Close */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: `0 ${spacing[4]} ${spacing[3]}`,
+                borderBottom: `1px solid ${colors.border.light}`,
+                flexShrink: 0,
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: typography.fontSize.lg,
+                  fontWeight: typography.fontWeight.semibold,
+                  color: colors.text.primary,
+                  margin: 0,
+                }}
+              >
+                {t('catalogPage.filters.title')}
+              </h3>
+              <button
+                onClick={() => setShowFilters(false)}
+                style={{
+                  padding: spacing[2],
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Icons.X size={24} color={colors.text.secondary} />
+              </button>
+            </div>
+
+            {/* Scrollable Filter Content */}
+            <div
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                padding: spacing[4],
+                WebkitOverflowScrolling: 'touch',
+                // Prevent scroll chaining to parent
+                overscrollBehavior: 'contain',
+                // Ensure touch scrolling works
+                touchAction: 'pan-y',
+              }}
+            >
               <CatalogFilters
                 filters={filters}
                 onChange={handleFilterChange}
                 onReset={handleResetFilters}
+                isMobile={true}
               />
+            </div>
+
+            {/* Fixed Apply Button at Bottom */}
+            <div
+              style={{
+                padding: spacing[4],
+                paddingBottom: `calc(${spacing[4]} + env(safe-area-inset-bottom, 0px))`,
+                borderTop: `1px solid ${colors.border.light}`,
+                backgroundColor: colors.neutral[0],
+                flexShrink: 0,
+              }}
+            >
               <button
                 onClick={() => setShowFilters(false)}
                 style={{
                   width: '100%',
                   padding: spacing[3],
-                  marginTop: spacing[4],
                   backgroundColor: colors.primary[600],
                   color: colors.neutral[0],
                   border: 'none',
