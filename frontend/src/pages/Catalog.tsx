@@ -190,43 +190,56 @@ export const Catalog: React.FC = () => {
         }
         .catalog-controls {
           display: flex;
+          flex-direction: column;
+          gap: ${spacing[2]};
+        }
+        .catalog-controls-top {
+          display: flex;
           justify-content: space-between;
           align-items: center;
           gap: ${spacing[3]};
-          flex-wrap: wrap;
         }
-        @media (max-width: 640px) {
-          .catalog-controls {
-            gap: ${spacing[2]};
+        @media (max-width: 768px) {
+          .catalog-controls-top {
+            width: 100%;
           }
-        }
-        .catalog-controls-left {
-          display: flex;
-          align-items: center;
-          gap: ${spacing[2]};
         }
         .catalog-controls-right {
           display: flex;
           align-items: center;
           gap: ${spacing[2]};
         }
+        .results-count-row {
+          display: flex;
+          align-items: center;
+        }
+        .results-count {
+          font-size: ${typography.fontSize.sm};
+          color: ${colors.text.secondary};
+          white-space: nowrap;
+        }
+        @media (max-width: 480px) {
+          .results-count {
+            font-size: ${typography.fontSize.xs};
+          }
+        }
         .mobile-filter-btn {
           display: none;
+          padding: ${spacing[2]} ${spacing[3]};
+          background-color: ${colors.neutral[0]};
+          border: 1px solid ${colors.border.light};
+          border-radius: ${borderRadius.md};
+          font-size: ${typography.fontSize.sm};
+          font-weight: ${typography.fontWeight.medium};
+          color: ${colors.text.primary};
+          cursor: pointer;
+          align-items: center;
+          gap: ${spacing[2]};
+          white-space: nowrap;
         }
         @media (max-width: 768px) {
           .mobile-filter-btn {
             display: flex;
-            padding: ${spacing[2]} ${spacing[3]};
-            background-color: ${colors.neutral[0]};
-            border: 1px solid ${colors.border.light};
-            border-radius: ${borderRadius.md};
-            font-size: ${typography.fontSize.sm};
-            font-weight: ${typography.fontWeight.medium};
-            color: ${colors.text.primary};
-            cursor: pointer;
-            align-items: center;
-            gap: ${spacing[2]};
-            white-space: nowrap;
           }
         }
         .view-toggle {
@@ -242,19 +255,23 @@ export const Catalog: React.FC = () => {
         }
         .sort-select {
           padding: ${spacing[2]} ${spacing[3]};
+          padding-right: ${spacing[8]};
           font-size: ${typography.fontSize.sm};
           border: 1px solid ${colors.border.light};
           border-radius: ${borderRadius.md};
           background-color: ${colors.neutral[0]};
           color: ${colors.text.primary};
           cursor: pointer;
-          max-width: 180px;
+          appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right ${spacing[2]} center;
         }
         @media (max-width: 480px) {
           .sort-select {
-            max-width: 140px;
             font-size: ${typography.fontSize.xs};
             padding: ${spacing[2]};
+            padding-right: ${spacing[6]};
           }
         }
       `}</style>
@@ -305,73 +322,70 @@ export const Catalog: React.FC = () => {
 
           {/* Controls Row */}
           <div className="catalog-controls">
-            <div className="catalog-controls-left">
+            {/* Top row: Filters + View Toggle + Sort */}
+            <div className="catalog-controls-top">
               {/* Mobile Filter Button */}
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className="mobile-filter-btn"
               >
-                <Icons.Filter size={16} />
-                {t('catalogPage.filtersButton')}
+                <Icons.SlidersHorizontal size={16} />
+                <span>{t('catalogPage.filtersButton')}</span>
               </button>
 
-              {/* Results Count */}
-              <span
-                style={{
-                  fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {totalResults} {totalResults === 1 ? t('catalogPage.result') : t('catalogPage.results')}
-              </span>
+              <div className="catalog-controls-right">
+                {/* View Mode Toggle */}
+                <div className="view-toggle">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    style={{
+                      padding: spacing[2],
+                      backgroundColor: viewMode === 'grid' ? colors.primary[50] : colors.neutral[0],
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Icons.Grid size={18} color={viewMode === 'grid' ? colors.primary[600] : colors.text.tertiary} />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    style={{
+                      padding: spacing[2],
+                      backgroundColor: viewMode === 'list' ? colors.primary[50] : colors.neutral[0],
+                      border: 'none',
+                      borderLeft: `1px solid ${colors.border.light}`,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Icons.List size={18} color={viewMode === 'list' ? colors.primary[600] : colors.text.tertiary} />
+                  </button>
+                </div>
+
+                {/* Sort Dropdown */}
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="sort-select"
+                >
+                  <option value="relevance">{t('catalogPage.sort.relevance')}</option>
+                  <option value="price_asc">{t('catalogPage.sort.priceAsc')}</option>
+                  <option value="price_desc">{t('catalogPage.sort.priceDesc')}</option>
+                  <option value="updated_desc">{t('catalogPage.sort.updated')}</option>
+                </select>
+              </div>
             </div>
 
-            <div className="catalog-controls-right">
-              {/* View Mode Toggle */}
-              <div className="view-toggle">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  style={{
-                    padding: spacing[2],
-                    backgroundColor: viewMode === 'grid' ? colors.primary[50] : colors.neutral[0],
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Icons.Grid size={18} color={viewMode === 'grid' ? colors.primary[600] : colors.text.tertiary} />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  style={{
-                    padding: spacing[2],
-                    backgroundColor: viewMode === 'list' ? colors.primary[50] : colors.neutral[0],
-                    border: 'none',
-                    borderLeft: `1px solid ${colors.border.light}`,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Icons.List size={18} color={viewMode === 'list' ? colors.primary[600] : colors.text.tertiary} />
-                </button>
-              </div>
-
-              {/* Sort Dropdown */}
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="sort-select"
-              >
-                <option value="relevance">{t('catalogPage.sort.relevance')}</option>
-                <option value="price_asc">{t('catalogPage.sort.priceAsc')}</option>
-                <option value="price_desc">{t('catalogPage.sort.priceDesc')}</option>
-                <option value="updated_desc">{t('catalogPage.sort.updated')}</option>
-              </select>
+            {/* Bottom row: Results Count */}
+            <div className="results-count-row">
+              <span className="results-count">
+                {totalResults} {totalResults === 1 ? t('catalogPage.result') : t('catalogPage.results')}
+              </span>
             </div>
           </div>
         </div>
