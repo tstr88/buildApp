@@ -161,6 +161,9 @@ export const RFQs: React.FC = () => {
       style={{
         maxWidth: '1000px',
         margin: '0 auto',
+        width: '100%',
+        boxSizing: 'border-box',
+        overflowX: 'hidden',
       }}
     >
       <style>{`
@@ -171,6 +174,9 @@ export const RFQs: React.FC = () => {
           .rfqs-page {
             padding: ${spacing[6]};
           }
+        }
+        * {
+          box-sizing: border-box;
         }
         .rfqs-header {
           display: flex;

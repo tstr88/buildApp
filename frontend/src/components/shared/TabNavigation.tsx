@@ -1,6 +1,7 @@
 /**
  * TabNavigation Component
  * Unified tab navigation for consistent tab display across all list pages
+ * Mobile-optimized with horizontal scrolling
  */
 
 import React from 'react';
@@ -25,46 +26,55 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
   onTabChange,
 }) => {
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: spacing[1],
-        borderBottom: `1px solid ${colors.border.light}`,
-        marginBottom: spacing[4],
-        overflowX: 'auto',
-        WebkitOverflowScrolling: 'touch',
-        msOverflowStyle: 'none',
-        scrollbarWidth: 'none',
-      }}
-    >
-      {tabs.map((tab) => {
-        const isActive = activeTab === tab.id;
-        return (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            style={{
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              gap: spacing[2],
-              padding: `${spacing[3]} ${spacing[4]}`,
-              border: 'none',
-              backgroundColor: 'transparent',
-              cursor: 'pointer',
-              fontSize: typography.fontSize.sm,
-              fontWeight: isActive
-                ? typography.fontWeight.semibold
-                : typography.fontWeight.medium,
-              color: isActive ? colors.primary[600] : colors.text.secondary,
-              whiteSpace: 'nowrap',
-              transition: `all ${transitions.fast} ease`,
-              borderBottom: isActive
-                ? `2px solid ${colors.primary[600]}`
-                : '2px solid transparent',
-              marginBottom: '-1px',
-            }}
-          >
+    <>
+      <style>{`
+        .tab-navigation-container {
+          display: flex;
+          gap: ${spacing[1]};
+          border-bottom: 1px solid ${colors.border.light};
+          margin-bottom: ${spacing[4]};
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .tab-navigation-container::-webkit-scrollbar {
+          display: none;
+        }
+        .tab-button {
+          position: relative;
+          display: flex;
+          align-items: center;
+          gap: ${spacing[1]};
+          padding: ${spacing[2]} ${spacing[3]};
+          border: none;
+          background-color: transparent;
+          cursor: pointer;
+          font-size: ${typography.fontSize.sm};
+          white-space: nowrap;
+          transition: all ${transitions.fast} ease;
+          margin-bottom: -1px;
+          flex-shrink: 0;
+        }
+      `}</style>
+      <div className="tab-navigation-container">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              className="tab-button"
+              onClick={() => onTabChange(tab.id)}
+              style={{
+                fontWeight: isActive
+                  ? typography.fontWeight.semibold
+                  : typography.fontWeight.medium,
+                color: isActive ? colors.primary[600] : colors.text.secondary,
+                borderBottom: isActive
+                  ? `2px solid ${colors.primary[600]}`
+                  : '2px solid transparent',
+              }}
+            >
             {tab.label}
 
             {/* Count badge */}
@@ -111,7 +121,8 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
           </button>
         );
       })}
-    </div>
+      </div>
+    </>
   );
 };
 
