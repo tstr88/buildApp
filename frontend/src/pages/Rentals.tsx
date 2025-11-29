@@ -40,7 +40,6 @@ interface RentalFiltersState {
   maxWeeklyRate?: number;
 }
 
-type ViewMode = 'grid' | 'list';
 type SortOption = 'recommended' | 'price_low' | 'price_high' | 'name';
 
 const Rentals: React.FC = () => {
@@ -49,7 +48,6 @@ const Rentals: React.FC = () => {
 
   const [tools, setTools] = useState<RentalTool[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortOption>('recommended');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -166,69 +164,65 @@ const Rentals: React.FC = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          gap: ${spacing[3]};
-          flex-wrap: wrap;
-        }
-        @media (max-width: 640px) {
-          .rentals-controls {
-            gap: ${spacing[2]};
-          }
+          gap: ${spacing[2]};
         }
         .rentals-controls-left {
           display: flex;
           align-items: center;
           gap: ${spacing[2]};
+          flex-shrink: 0;
         }
         .rentals-controls-right {
           display: flex;
           align-items: center;
           gap: ${spacing[2]};
+          flex-shrink: 0;
         }
         .mobile-filter-btn {
           display: none;
+          padding: ${spacing[2]} ${spacing[2]};
+          background-color: ${colors.neutral[0]};
+          border: 1px solid ${colors.border.light};
+          border-radius: ${borderRadius.md};
+          font-size: ${typography.fontSize.sm};
+          font-weight: ${typography.fontWeight.medium};
+          color: ${colors.text.primary};
+          cursor: pointer;
+          align-items: center;
+          gap: ${spacing[1]};
+          white-space: nowrap;
         }
         @media (max-width: 768px) {
           .mobile-filter-btn {
             display: flex;
-            padding: ${spacing[2]} ${spacing[3]};
-            background-color: ${colors.neutral[0]};
-            border: 1px solid ${colors.border.light};
-            border-radius: ${borderRadius.md};
-            font-size: ${typography.fontSize.sm};
-            font-weight: ${typography.fontWeight.medium};
-            color: ${colors.text.primary};
-            cursor: pointer;
-            align-items: center;
-            gap: ${spacing[2]};
-            white-space: nowrap;
           }
         }
-        .view-toggle {
-          display: flex;
-          border: 1px solid ${colors.border.light};
-          border-radius: ${borderRadius.md};
-          overflow: hidden;
+        .results-count {
+          font-size: ${typography.fontSize.sm};
+          color: ${colors.text.secondary};
+          white-space: nowrap;
         }
         @media (max-width: 480px) {
-          .view-toggle {
-            display: none;
+          .results-count {
+            font-size: ${typography.fontSize.xs};
           }
         }
         .sort-select {
-          padding: ${spacing[2]} ${spacing[3]};
+          padding: ${spacing[2]} ${spacing[2]};
           font-size: ${typography.fontSize.sm};
           border: 1px solid ${colors.border.light};
           border-radius: ${borderRadius.md};
           background-color: ${colors.neutral[0]};
           color: ${colors.text.primary};
           cursor: pointer;
-          max-width: 180px;
+          min-width: 0;
+          flex-shrink: 1;
         }
         @media (max-width: 480px) {
           .sort-select {
-            max-width: 140px;
             font-size: ${typography.fontSize.xs};
-            padding: ${spacing[2]};
+            padding: ${spacing[1]} ${spacing[2]};
+            max-width: 120px;
           }
         }
       `}</style>
@@ -287,56 +281,17 @@ const Rentals: React.FC = () => {
                   onClick={() => setShowFilters(!showFilters)}
                   className="mobile-filter-btn"
                 >
-                  <Icons.Filter size={16} />
+                  <Icons.SlidersHorizontal size={16} />
                   {t('rentalsPage.filtersButton', 'Filters')}
                 </button>
 
                 {/* Results Count */}
-                <span
-                  style={{
-                    fontSize: typography.fontSize.sm,
-                    color: colors.text.secondary,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
+                <span className="results-count">
                   {totalResults} {totalResults === 1 ? t('rentalsPage.result') : t('rentalsPage.results')}
                 </span>
               </div>
 
               <div className="rentals-controls-right">
-                {/* View Mode Toggle */}
-                <div className="view-toggle">
-                  <button
-                    onClick={() => setViewMode('grid')}
-                    style={{
-                      padding: spacing[2],
-                      backgroundColor: viewMode === 'grid' ? colors.primary[50] : colors.neutral[0],
-                      border: 'none',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Icons.Grid size={18} color={viewMode === 'grid' ? colors.primary[600] : colors.text.tertiary} />
-                  </button>
-                  <button
-                    onClick={() => setViewMode('list')}
-                    style={{
-                      padding: spacing[2],
-                      backgroundColor: viewMode === 'list' ? colors.primary[50] : colors.neutral[0],
-                      border: 'none',
-                      borderLeft: `1px solid ${colors.border.light}`,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Icons.List size={18} color={viewMode === 'list' ? colors.primary[600] : colors.text.tertiary} />
-                  </button>
-                </div>
-
                 {/* Sort Dropdown */}
                 <select
                   value={sortBy}
@@ -598,13 +553,12 @@ const Rentals: React.FC = () => {
               </div>
             ) : (
               <>
-                {/* Results Grid/List */}
+                {/* Results Grid */}
                 <div
                   className="results-container"
                   style={{
-                    display: viewMode === 'grid' ? 'grid' : 'flex',
-                    flexDirection: viewMode === 'list' ? 'column' : undefined,
-                    gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(280px, 1fr))' : undefined,
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                     gap: spacing[4],
                   }}
                 >
