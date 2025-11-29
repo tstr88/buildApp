@@ -31,6 +31,7 @@ const tbilisiLocations = [
 interface DemoSupplier {
   phone: string;
   name: string;
+  email: string;
   businessName: string;
   taxId: string;
   location: typeof tbilisiLocations[0];
@@ -71,6 +72,7 @@ const demoSuppliers: DemoSupplier[] = [
     location: tbilisiLocations[0],
     categories: ['concrete', 'aggregates'],
     about: 'თბილისის ბეტონის ქარხანა 2005 წლიდან აწარმოებს მაღალხარისხიან ბეტონს. გვაქვს საკუთარი მიქსერის პარკი და ვემსახურებით მთელ თბილისს.',
+    email: 'tbilisi.concrete@demo.buildapp.ge',
   },
   // 2. Steel & Metal Supplier
   {
@@ -81,6 +83,7 @@ const demoSuppliers: DemoSupplier[] = [
     location: tbilisiLocations[1],
     categories: ['steel', 'metals'],
     about: 'კავკასიის მეტალი არის ლიდერი არმატურისა და ლითონის მასალების მომწოდებელი საქართველოში. მარაგში გვაქვს 500+ ტონა პროდუქცია.',
+    email: 'kavkaz.metal@demo.buildapp.ge',
   },
   // 3. Blocks & Bricks Supplier
   {
@@ -91,6 +94,7 @@ const demoSuppliers: DemoSupplier[] = [
     location: tbilisiLocations[2],
     categories: ['blocks', 'bricks', 'masonry'],
     about: 'ვაწარმოებთ და ვაწვდით ყველა ტიპის სამშენებლო ბლოკს: ბეტონის, ცეცხლგამძლე, თერმოიზოლაციურ ბლოკებს.',
+    email: 'geo.blocks@demo.buildapp.ge',
   },
   // 4. Sand & Gravel Supplier
   {
@@ -101,6 +105,7 @@ const demoSuppliers: DemoSupplier[] = [
     location: tbilisiLocations[3],
     categories: ['aggregates', 'sand', 'gravel'],
     about: 'ვემსახურებით სამშენებლო ინდუსტრიას 15 წელზე მეტია. გვაქვს საკუთარი კარიერები და უზრუნველვყოფთ მაღალხარისხიან ინერტულ მასალებს.',
+    email: 'sand.gravel@demo.buildapp.ge',
   },
   // 5. Cement & Dry Mixes Supplier
   {
@@ -111,6 +116,7 @@ const demoSuppliers: DemoSupplier[] = [
     location: tbilisiLocations[4],
     categories: ['cement', 'dry_mixes', 'plaster'],
     about: 'ოფიციალური დისტრიბუტორი: Heidelberg Cement, Knauf, Caparol. გვაქვს სრული ასორტიმენტი მშრალი ნარევებისა და ცემენტის.',
+    email: 'cement.house@demo.buildapp.ge',
   },
   // 6. Equipment Rental - Heavy
   {
@@ -121,6 +127,7 @@ const demoSuppliers: DemoSupplier[] = [
     location: tbilisiLocations[5],
     categories: ['rental_equipment', 'heavy_machinery'],
     about: 'ვაქირავებთ ექსკავატორებს, ბულდოზერებს, კრანებს და სხვა მძიმე ტექნიკას. მექანიკოსთა ბრიგადა 24/7.',
+    email: 'heavy.rental@demo.buildapp.ge',
   },
   // 7. Equipment Rental - Tools
   {
@@ -131,6 +138,7 @@ const demoSuppliers: DemoSupplier[] = [
     location: tbilisiLocations[6],
     categories: ['rental_tools', 'power_tools'],
     about: 'ვაქირავებთ პროფესიონალურ სამშენებლო იარაღებს: Hilti, Bosch, Makita. ტექნიკური მომსახურება და ინსტრუქტაჟი უფასოა.',
+    email: 'protools@demo.buildapp.ge',
   },
 ];
 
@@ -255,10 +263,10 @@ async function seedDemoData() {
       } else {
         // Create user
         const userResult = await client.query(
-          `INSERT INTO users (phone, name, user_type, is_verified, language)
-           VALUES ($1, $2, 'supplier', true, 'ka')
+          `INSERT INTO users (phone, name, email, user_type, is_verified, language)
+           VALUES ($1, $2, $3, 'supplier', true, 'ka')
            RETURNING id`,
-          [supplier.phone, supplier.name]
+          [supplier.phone, supplier.name, supplier.email]
         );
         userId = userResult.rows[0].id;
         console.log(`  ✓ Created user: ${supplier.name}`);
