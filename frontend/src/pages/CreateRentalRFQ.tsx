@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 import * as Icons from 'lucide-react';
+import { API_BASE_URL } from '../services/api/client';
 
 interface RentalTool {
   id: string;
@@ -56,7 +57,7 @@ const CreateRentalRFQ: React.FC = () => {
       const token = localStorage.getItem('buildapp_auth_token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:3001/api/buyers/projects', {
+      const response = await fetch(`${API_BASE_URL}/buyers/projects`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -71,7 +72,7 @@ const CreateRentalRFQ: React.FC = () => {
 
   const fetchAvailableTools = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/rentals/tools?sort=recommended');
+      const response = await fetch(`${API_BASE_URL}/rentals/tools?sort=recommended`);
       if (response.ok) {
         const result = await response.json();
         setAvailableTools(result.data?.tools || []);
@@ -86,7 +87,7 @@ const CreateRentalRFQ: React.FC = () => {
     try {
       // Fetch each tool by ID
       const toolPromises = toolIds.map(async (toolId) => {
-        const response = await fetch(`http://localhost:3001/api/rentals/tools/${toolId}`);
+        const response = await fetch(`${API_BASE_URL}/rentals/tools/${toolId}`);
         if (response.ok) {
           const result = await response.json();
           return result.data;
@@ -111,7 +112,7 @@ const CreateRentalRFQ: React.FC = () => {
   const fetchRelatedTools = async (supplierId: string, excludeIds: string[]) => {
     try {
       const response = await fetch(
-        `http://localhost:3001/api/rentals/tools?supplier_id=${supplierId}&sort=recommended`
+        `${API_BASE_URL}/rentals/tools?supplier_id=${supplierId}&sort=recommended`
       );
       if (response.ok) {
         const result = await response.json();
@@ -175,7 +176,7 @@ const CreateRentalRFQ: React.FC = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:3001/api/buyers/rental-rfqs', {
+      const response = await fetch(`${API_BASE_URL}/buyers/rental-rfqs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

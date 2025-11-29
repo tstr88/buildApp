@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 import * as Icons from 'lucide-react';
 import { ConditionCheckForm } from '../components/rentals/ConditionCheckForm';
+import { API_BASE_URL } from '../services/api/client';
 
 interface RentalBooking {
   id: string;
@@ -86,7 +87,7 @@ const RentalBookingDetail: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:3001/api/buyers/rentals/${bookingId}`, {
+      const response = await fetch(`${API_BASE_URL}/buyers/rentals/${bookingId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -240,7 +241,7 @@ const RentalBookingDetail: React.FC = () => {
       const photoUrls = await convertFilesToDataURLs(data.photos);
 
       const response = await fetch(
-        `http://localhost:3001/api/buyers/rentals/${bookingId}/confirm-handover`,
+        `${API_BASE_URL}/buyers/rentals/${bookingId}/confirm-handover`,
         {
           method: 'POST',
           headers: {
@@ -281,7 +282,7 @@ const RentalBookingDetail: React.FC = () => {
       const photoUrls = await convertFilesToDataURLs(data.photos);
 
       const response = await fetch(
-        `http://localhost:3001/api/buyers/rentals/${bookingId}/confirm-return`,
+        `${API_BASE_URL}/buyers/rentals/${bookingId}/confirm-return`,
         {
           method: 'POST',
           headers: {

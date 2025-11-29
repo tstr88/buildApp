@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius } from '../../theme/tokens';
+import { API_BASE_URL } from '../../services/api/client';
 
 interface RentalFiltersProps {
   filters: {
@@ -46,7 +47,7 @@ export const RentalFilters: React.FC<RentalFiltersProps> = ({
 
   const fetchSuppliers = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/factories?sort=reliability');
+      const response = await fetch(`${API_BASE_URL}/factories?sort=reliability`);
       if (response.ok) {
         const result = await response.json();
         const data = result.data || {};

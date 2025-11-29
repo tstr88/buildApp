@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { colors, spacing, typography, borderRadius } from '../theme/tokens';
 import * as Icons from 'lucide-react';
 import { RentalDatePicker } from '../components/rentals/RentalDatePicker';
+import { API_BASE_URL } from '../services/api/client';
 
 interface RentalTool {
   id: string;
@@ -48,7 +49,7 @@ const BookRentalTool: React.FC = () => {
 
   const fetchToolDetails = async () => {
     try {
-      const response = await fetch(`http://localhost:3001/api/rentals/tools/${toolId}`);
+      const response = await fetch(`${API_BASE_URL}/rentals/tools/${toolId}`);
       if (response.ok) {
         const result = await response.json();
         setSelectedTools([result.data]);
@@ -68,7 +69,7 @@ const BookRentalTool: React.FC = () => {
   const fetchRelatedTools = async (supplierId: string, excludeIds: string[]) => {
     try {
       const response = await fetch(
-        `http://localhost:3001/api/rentals/tools?supplier_id=${supplierId}&sort=recommended`
+        `${API_BASE_URL}/rentals/tools?supplier_id=${supplierId}&sort=recommended`
       );
       if (response.ok) {
         const result = await response.json();
@@ -85,7 +86,7 @@ const BookRentalTool: React.FC = () => {
   const fetchProjects = async () => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch('http://localhost:3001/api/buyers/projects', {
+      const response = await fetch(`${API_BASE_URL}/buyers/projects`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -165,7 +166,7 @@ const BookRentalTool: React.FC = () => {
 
       // Book all selected tools
       const bookingPromises = selectedTools.map((tool) =>
-        fetch('http://localhost:3001/api/buyers/rentals/book', {
+        fetch(`${API_BASE_URL}/buyers/rentals/book`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

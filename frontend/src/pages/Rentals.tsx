@@ -5,6 +5,7 @@ import { colors, spacing, typography, borderRadius } from '../theme/tokens';
 import * as Icons from 'lucide-react';
 import { RentalToolCard } from '../components/rentals/RentalToolCard';
 import { RentalFilters } from '../components/rentals/RentalFilters';
+import { API_BASE_URL } from '../services/api/client';
 
 interface RentalTool {
   id: string;
@@ -64,7 +65,7 @@ const Rentals: React.FC = () => {
       params.set('sort', sortBy);
       params.set('lang', i18n.language);
 
-      const response = await fetch(`http://localhost:3001/api/rentals/tools?${params.toString()}`);
+      const response = await fetch(`${API_BASE_URL}/rentals/tools?${params.toString()}`);
 
       if (response.ok) {
         const result = await response.json();

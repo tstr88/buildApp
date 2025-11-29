@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius } from '../theme/tokens';
+import { API_BASE_URL } from '../services/api/client';
 
 interface RentalToolDetail {
   id: string;
@@ -43,7 +44,7 @@ export const RentalToolDetail: React.FC = () => {
   const fetchTool = async (toolId: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3001/api/rentals/tools/${toolId}`);
+      const response = await fetch(`${API_BASE_URL}/rentals/tools/${toolId}`);
 
       if (response.ok) {
         const data = await response.json();
