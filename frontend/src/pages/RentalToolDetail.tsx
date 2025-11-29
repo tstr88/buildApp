@@ -1,12 +1,14 @@
 /**
  * Rental Tool Detail Page
  * View complete details of a single rental tool
+ * Mobile-first responsive design
  */
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
-import { colors, spacing, typography, borderRadius } from '../theme/tokens';
+import { colors, spacing, typography, borderRadius, shadows, heights } from '../theme/tokens';
 import { API_BASE_URL } from '../services/api/client';
 
 interface RentalToolDetail {
@@ -32,6 +34,7 @@ interface RentalToolDetail {
 export const RentalToolDetail: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { t } = useTranslation();
   const [tool, setTool] = useState<RentalToolDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -50,12 +53,10 @@ export const RentalToolDetail: React.FC = () => {
         const data = await response.json();
         setTool(data.data);
       } else {
-        alert('Tool not found');
         navigate('/rentals');
       }
     } catch (error) {
       console.error('Failed to fetch tool:', error);
-      alert('Failed to load tool');
       navigate('/rentals');
     } finally {
       setLoading(false);
@@ -101,465 +102,584 @@ export const RentalToolDetail: React.FC = () => {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: colors.neutral[50] }}>
-      {/* Header */}
-      <div
-        style={{
-          backgroundColor: colors.neutral[0],
-          borderBottom: `1px solid ${colors.border.light}`,
-          padding: `${spacing[4]} ${spacing[6]}`,
-        }}
-      >
-        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-          <button
-            onClick={() => navigate('/rentals')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: spacing[2],
-              padding: `${spacing[2]} ${spacing[3]}`,
-              backgroundColor: colors.neutral[0],
-              border: `1px solid ${colors.border.light}`,
-              borderRadius: borderRadius.md,
-              fontSize: typography.fontSize.sm,
-              fontWeight: typography.fontWeight.medium,
-              color: colors.text.primary,
-              cursor: 'pointer',
-              marginBottom: spacing[4],
-            }}
-          >
-            <Icons.ArrowLeft size={16} />
-            Back to Tool Rentals
-          </button>
+    <>
+      <style>{`
+        .rental-detail-page {
+          min-height: 100vh;
+          background-color: ${colors.neutral[50]};
+          padding-bottom: calc(${heights.bottomNav} + env(safe-area-inset-bottom, 0px) + 100px);
+        }
 
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3] }}>
-            <Icons.Wrench size={24} color={colors.primary[600]} />
-            <div>
-              <h1
-                style={{
-                  fontSize: typography.fontSize['2xl'],
-                  fontWeight: typography.fontWeight.bold,
-                  color: colors.text.primary,
-                  margin: 0,
-                  marginBottom: spacing[1],
-                }}
-              >
-                {tool.tool_name}
-              </h1>
-              {tool.spec_string && (
-                <p
-                  style={{
-                    fontSize: typography.fontSize.base,
-                    color: colors.text.secondary,
-                    margin: 0,
-                  }}
-                >
-                  {tool.spec_string}
-                </p>
-              )}
+        .rental-header {
+          background-color: ${colors.neutral[0]};
+          border-bottom: 1px solid ${colors.border.light};
+          padding: ${spacing[4]};
+          position: sticky;
+          top: 0;
+          z-index: 10;
+        }
+
+        .rental-header-content {
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+
+        .back-button {
+          display: inline-flex;
+          align-items: center;
+          gap: ${spacing[2]};
+          padding: ${spacing[2]} ${spacing[3]};
+          background-color: ${colors.neutral[50]};
+          border: none;
+          border-radius: ${borderRadius.lg};
+          font-size: ${typography.fontSize.sm};
+          font-weight: ${typography.fontWeight.medium};
+          color: ${colors.text.secondary};
+          cursor: pointer;
+          margin-bottom: ${spacing[3]};
+          transition: all 150ms ease;
+        }
+
+        .back-button:active {
+          background-color: ${colors.neutral[100]};
+        }
+
+        .rental-title-row {
+          display: flex;
+          align-items: flex-start;
+          gap: ${spacing[3]};
+        }
+
+        .rental-icon-wrapper {
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background-color: ${colors.primary[50]};
+          border-radius: ${borderRadius.lg};
+          flex-shrink: 0;
+        }
+
+        .rental-title {
+          font-size: ${typography.fontSize.lg};
+          font-weight: ${typography.fontWeight.bold};
+          color: ${colors.text.primary};
+          margin: 0;
+          margin-bottom: ${spacing[1]};
+          line-height: 1.3;
+        }
+
+        @media (min-width: 640px) {
+          .rental-title {
+            font-size: ${typography.fontSize.xl};
+          }
+        }
+
+        .rental-spec {
+          font-size: ${typography.fontSize.sm};
+          color: ${colors.text.secondary};
+          margin: 0;
+        }
+
+        .rental-content {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: ${spacing[4]};
+        }
+
+        @media (min-width: 1024px) {
+          .rental-content {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: ${spacing[6]};
+            padding: ${spacing[6]};
+          }
+        }
+
+        .rental-main {
+          display: flex;
+          flex-direction: column;
+          gap: ${spacing[4]};
+        }
+
+        .rental-image-container {
+          background-color: ${colors.neutral[0]};
+          border-radius: ${borderRadius.xl};
+          border: 1px solid ${colors.border.light};
+          overflow: hidden;
+          position: relative;
+        }
+
+        .rental-image {
+          width: 100%;
+          aspect-ratio: 4 / 3;
+          background-color: ${colors.neutral[100]};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        @media (min-width: 1024px) {
+          .rental-image {
+            aspect-ratio: 16 / 10;
+          }
+        }
+
+        .rental-image img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .direct-badge {
+          position: absolute;
+          top: ${spacing[3]};
+          right: ${spacing[3]};
+          background-color: ${colors.primary[600]};
+          color: ${colors.neutral[0]};
+          padding: ${spacing[1.5]} ${spacing[3]};
+          border-radius: ${borderRadius.full};
+          font-size: ${typography.fontSize.xs};
+          font-weight: ${typography.fontWeight.semibold};
+          display: flex;
+          align-items: center;
+          gap: ${spacing[1]};
+        }
+
+        .rental-card {
+          background-color: ${colors.neutral[0]};
+          border-radius: ${borderRadius.xl};
+          border: 1px solid ${colors.border.light};
+          padding: ${spacing[4]};
+        }
+
+        .rental-card-title {
+          font-size: ${typography.fontSize.base};
+          font-weight: ${typography.fontWeight.semibold};
+          color: ${colors.text.primary};
+          margin: 0;
+          margin-bottom: ${spacing[3]};
+        }
+
+        .rental-card-text {
+          font-size: ${typography.fontSize.sm};
+          color: ${colors.text.secondary};
+          margin: 0;
+          line-height: 1.6;
+        }
+
+        .spec-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: ${spacing[2]} 0;
+        }
+
+        .spec-row:not(:last-child) {
+          border-bottom: 1px solid ${colors.border.light};
+        }
+
+        .spec-label {
+          font-size: ${typography.fontSize.sm};
+          color: ${colors.text.secondary};
+        }
+
+        .spec-value {
+          font-size: ${typography.fontSize.sm};
+          color: ${colors.text.primary};
+          font-weight: ${typography.fontWeight.medium};
+        }
+
+        .supplier-info-item {
+          display: flex;
+          align-items: center;
+          gap: ${spacing[3]};
+          padding: ${spacing[2]} 0;
+        }
+
+        .supplier-info-icon {
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background-color: ${colors.primary[50]};
+          border-radius: ${borderRadius.lg};
+          flex-shrink: 0;
+        }
+
+        .supplier-info-text {
+          font-size: ${typography.fontSize.sm};
+          color: ${colors.text.primary};
+          font-weight: ${typography.fontWeight.medium};
+        }
+
+        .rental-sidebar {
+          margin-top: ${spacing[4]};
+        }
+
+        @media (min-width: 1024px) {
+          .rental-sidebar {
+            margin-top: 0;
+          }
+        }
+
+        .rental-purchase-card {
+          background-color: ${colors.neutral[0]};
+          border-radius: ${borderRadius.xl};
+          border: 1px solid ${colors.border.light};
+          padding: ${spacing[4]};
+          position: sticky;
+          top: 80px;
+        }
+
+        .rental-price-primary {
+          font-size: ${typography.fontSize['2xl']};
+          font-weight: ${typography.fontWeight.bold};
+          color: ${colors.primary[600]};
+          margin: 0;
+          margin-bottom: ${spacing[2]};
+        }
+
+        .rental-price-unit {
+          font-size: ${typography.fontSize.base};
+          font-weight: ${typography.fontWeight.normal};
+          color: ${colors.text.secondary};
+        }
+
+        .rental-price-secondary {
+          font-size: ${typography.fontSize.lg};
+          font-weight: ${typography.fontWeight.semibold};
+          color: ${colors.text.primary};
+          margin: 0;
+        }
+
+        .rental-deposit {
+          font-size: ${typography.fontSize.sm};
+          color: ${colors.text.secondary};
+          margin: 0;
+          margin-top: ${spacing[2]};
+        }
+
+        .rental-features {
+          display: flex;
+          flex-direction: column;
+          gap: ${spacing[2]};
+          padding: ${spacing[4]} 0;
+          margin-bottom: ${spacing[4]};
+          border-bottom: 1px solid ${colors.border.light};
+        }
+
+        .rental-feature {
+          display: flex;
+          align-items: center;
+          gap: ${spacing[3]};
+          padding: ${spacing[2]} ${spacing[3]};
+          background-color: ${colors.neutral[50]};
+          border-radius: ${borderRadius.lg};
+        }
+
+        .rental-feature-text {
+          font-size: ${typography.fontSize.sm};
+          color: ${colors.text.primary};
+          margin: 0;
+        }
+
+        .rental-actions {
+          display: flex;
+          flex-direction: column;
+          gap: ${spacing[3]};
+        }
+
+        .rental-action-btn {
+          width: 100%;
+          padding: ${spacing[3]} ${spacing[4]};
+          border-radius: ${borderRadius.lg};
+          font-size: ${typography.fontSize.base};
+          font-weight: ${typography.fontWeight.semibold};
+          cursor: pointer;
+          transition: all 150ms ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: ${spacing[2]};
+        }
+
+        .rental-action-btn-primary {
+          background-color: ${colors.primary[600]};
+          border: none;
+          color: ${colors.neutral[0]};
+        }
+
+        .rental-action-btn-primary:active {
+          background-color: ${colors.primary[700]};
+        }
+
+        .rental-action-btn-secondary {
+          background-color: ${colors.neutral[0]};
+          border: 1px solid ${colors.primary[600]};
+          color: ${colors.primary[600]};
+        }
+
+        .rental-action-btn-secondary:active {
+          background-color: ${colors.primary[50]};
+        }
+
+        /* Mobile fixed bottom CTA */
+        .rental-mobile-cta {
+          display: block;
+          position: fixed;
+          bottom: calc(${heights.bottomNav} + env(safe-area-inset-bottom, 0px));
+          left: 0;
+          right: 0;
+          background-color: ${colors.neutral[0]};
+          border-top: 1px solid ${colors.border.light};
+          padding: ${spacing[3]} ${spacing[4]};
+          z-index: 100;
+          box-shadow: ${shadows.lg};
+        }
+
+        @media (min-width: 1024px) {
+          .rental-mobile-cta {
+            display: none;
+          }
+        }
+
+        .rental-mobile-cta-content {
+          display: flex;
+          align-items: center;
+          gap: ${spacing[3]};
+        }
+
+        .rental-mobile-cta-price {
+          flex: 1;
+        }
+
+        .rental-mobile-cta-price-value {
+          font-size: ${typography.fontSize.lg};
+          font-weight: ${typography.fontWeight.bold};
+          color: ${colors.primary[600]};
+          margin: 0;
+        }
+
+        .rental-mobile-cta-price-unit {
+          font-size: ${typography.fontSize.xs};
+          color: ${colors.text.secondary};
+          margin: 0;
+        }
+
+        .rental-mobile-cta-buttons {
+          display: flex;
+          gap: ${spacing[2]};
+        }
+
+        .rental-mobile-cta-btn {
+          padding: ${spacing[3]} ${spacing[4]};
+          border-radius: ${borderRadius.lg};
+          font-size: ${typography.fontSize.sm};
+          font-weight: ${typography.fontWeight.semibold};
+          cursor: pointer;
+          white-space: nowrap;
+        }
+
+        .rental-mobile-cta-btn-primary {
+          background-color: ${colors.primary[600]};
+          border: none;
+          color: ${colors.neutral[0]};
+        }
+
+        .rental-mobile-cta-btn-secondary {
+          background-color: ${colors.neutral[100]};
+          border: none;
+          color: ${colors.text.primary};
+        }
+
+        /* Hide sidebar purchase card on mobile */
+        @media (max-width: 1023px) {
+          .rental-purchase-card {
+            display: none;
+          }
+        }
+      `}</style>
+
+      <div className="rental-detail-page">
+        {/* Header */}
+        <div className="rental-header">
+          <div className="rental-header-content">
+            <button className="back-button" onClick={() => navigate('/rentals')}>
+              <Icons.ArrowLeft size={18} />
+              {t('common.back', 'Back')}
+            </button>
+
+            <div className="rental-title-row">
+              <div className="rental-icon-wrapper">
+                <Icons.Wrench size={20} color={colors.primary[600]} />
+              </div>
+              <div>
+                <h1 className="rental-title">{tool.tool_name}</h1>
+                {tool.spec_string && <p className="rental-spec">{tool.spec_string}</p>}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div
-        style={{
-          maxWidth: '1400px',
-          margin: '0 auto',
-          padding: spacing[6],
-          display: 'grid',
-          gridTemplateColumns: '1fr 400px',
-          gap: spacing[6],
-        }}
-      >
-        {/* Left Column - Tool Details */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[6] }}>
-          {/* Tool Image */}
-          <div
-            style={{
-              backgroundColor: colors.neutral[0],
-              borderRadius: borderRadius.lg,
-              border: `1px solid ${colors.border.light}`,
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                width: '100%',
-                height: '400px',
-                backgroundColor: colors.neutral[100],
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-              }}
-            >
-              {tool.photo_url ? (
-                <img
-                  src={tool.photo_url}
-                  alt={tool.tool_name}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                  }}
-                />
-              ) : (
-                <Icons.Wrench size={96} color={colors.neutral[400]} />
-              )}
-
+        {/* Main Content */}
+        <div className="rental-content">
+          {/* Left Column - Tool Details */}
+          <div className="rental-main">
+            {/* Tool Image */}
+            <div className="rental-image-container">
+              <div className="rental-image">
+                {tool.photo_url ? (
+                  <img src={tool.photo_url} alt={tool.tool_name} />
+                ) : (
+                  <Icons.Wrench size={64} color={colors.neutral[300]} />
+                )}
+              </div>
               {tool.direct_booking_available && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: spacing[2],
-                    right: spacing[2],
-                    backgroundColor: colors.primary[600],
-                    color: colors.neutral[0],
-                    padding: `${spacing[1]} ${spacing[2]}`,
-                    borderRadius: borderRadius.full,
-                    fontSize: typography.fontSize.xs,
-                    fontWeight: typography.fontWeight.semibold,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: spacing[1],
-                  }}
-                >
+                <div className="direct-badge">
                   <Icons.Zap size={12} />
-                  Direct Booking
+                  {t('rentalDetail.directBooking', 'Direct Booking')}
                 </div>
               )}
+            </div>
+
+            {/* Description */}
+            {tool.description && (
+              <div className="rental-card">
+                <h3 className="rental-card-title">{t('rentalDetail.description', 'Description')}</h3>
+                <p className="rental-card-text">{tool.description}</p>
+              </div>
+            )}
+
+            {/* Tool Specifications */}
+            <div className="rental-card">
+              <h3 className="rental-card-title">{t('rentalDetail.specifications', 'Specifications')}</h3>
+              <div>
+                {tool.category && (
+                  <div className="spec-row">
+                    <span className="spec-label">{t('rentalDetail.category', 'Category')}</span>
+                    <span className="spec-value" style={{ textTransform: 'capitalize' }}>
+                      {tool.category}
+                    </span>
+                  </div>
+                )}
+                {tool.brand && (
+                  <div className="spec-row">
+                    <span className="spec-label">{t('rentalDetail.brand', 'Brand')}</span>
+                    <span className="spec-value">{tool.brand}</span>
+                  </div>
+                )}
+                {tool.condition && (
+                  <div className="spec-row">
+                    <span className="spec-label">{t('rentalDetail.condition', 'Condition')}</span>
+                    <span className="spec-value">{tool.condition}</span>
+                  </div>
+                )}
+                {tool.year && (
+                  <div className="spec-row">
+                    <span className="spec-label">{t('rentalDetail.year', 'Year')}</span>
+                    <span className="spec-value">{tool.year}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Supplier Info */}
+            <div className="rental-card">
+              <h3 className="rental-card-title">{t('rentalDetail.supplierInfo', 'Supplier Information')}</h3>
+              <div className="supplier-info-item">
+                <div className="supplier-info-icon">
+                  <Icons.Building2 size={18} color={colors.primary[600]} />
+                </div>
+                <span className="supplier-info-text">{tool.supplier_name}</span>
+              </div>
             </div>
           </div>
 
-          {/* Description */}
-          {tool.description && (
-            <div
-              style={{
-                backgroundColor: colors.neutral[0],
-                borderRadius: borderRadius.lg,
-                border: `1px solid ${colors.border.light}`,
-                padding: spacing[4],
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: typography.fontSize.lg,
-                  fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
-                  margin: 0,
-                  marginBottom: spacing[3],
-                }}
-              >
-                Description
-              </h3>
-              <p
-                style={{
-                  fontSize: typography.fontSize.base,
-                  color: colors.text.secondary,
-                  margin: 0,
-                  lineHeight: 1.6,
-                }}
-              >
-                {tool.description}
-              </p>
-            </div>
-          )}
+          {/* Right Column - Rental Info (Desktop only) */}
+          <div className="rental-sidebar">
+            <div className="rental-purchase-card">
+              {/* Rental Rates */}
+              <div style={{ marginBottom: spacing[4] }}>
+                {tool.daily_rate && (
+                  <p className="rental-price-primary">
+                    {tool.daily_rate.toLocaleString()} ₾
+                    <span className="rental-price-unit"> / {t('rentalDetail.day', 'day')}</span>
+                  </p>
+                )}
+                {tool.weekly_rate && (
+                  <p className="rental-price-secondary">
+                    {tool.weekly_rate.toLocaleString()} ₾
+                    <span className="rental-price-unit"> / {t('rentalDetail.week', 'week')}</span>
+                  </p>
+                )}
+                {tool.deposit_amount && (
+                  <p className="rental-deposit">
+                    {tool.deposit_amount.toLocaleString()} ₾ {t('rentalDetail.depositRequired', 'deposit required')}
+                  </p>
+                )}
+              </div>
 
-          {/* Tool Specifications */}
-          <div
-            style={{
-              backgroundColor: colors.neutral[0],
-              borderRadius: borderRadius.lg,
-              border: `1px solid ${colors.border.light}`,
-              padding: spacing[4],
-            }}
-          >
-            <h3
-              style={{
-                fontSize: typography.fontSize.lg,
-                fontWeight: typography.fontWeight.semibold,
-                color: colors.text.primary,
-                margin: 0,
-                marginBottom: spacing[3],
-              }}
-            >
-              Specifications
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
-              {tool.category && (
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-                    Category
-                  </span>
-                  <span
-                    style={{
-                      fontSize: typography.fontSize.sm,
-                      color: colors.text.primary,
-                      fontWeight: typography.fontWeight.medium,
-                      textTransform: 'capitalize',
-                    }}
-                  >
-                    {tool.category}
-                  </span>
-                </div>
-              )}
+              {/* Availability Features */}
+              <div className="rental-features">
+                {tool.pickup_available && (
+                  <div className="rental-feature">
+                    <Icons.MapPin size={18} color={colors.success[600]} />
+                    <p className="rental-feature-text">{t('rentalDetail.pickup', 'Pickup available')}</p>
+                  </div>
+                )}
+                {tool.delivery_available && (
+                  <div className="rental-feature">
+                    <Icons.Truck size={18} color={colors.success[600]} />
+                    <p className="rental-feature-text">{t('rentalDetail.delivery', 'Delivery available')}</p>
+                  </div>
+                )}
+              </div>
 
-              {tool.brand && (
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-                    Brand
-                  </span>
-                  <span
-                    style={{
-                      fontSize: typography.fontSize.sm,
-                      color: colors.text.primary,
-                      fontWeight: typography.fontWeight.medium,
-                    }}
-                  >
-                    {tool.brand}
-                  </span>
-                </div>
-              )}
-
-              {tool.condition && (
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-                    Condition
-                  </span>
-                  <span
-                    style={{
-                      fontSize: typography.fontSize.sm,
-                      color: colors.text.primary,
-                      fontWeight: typography.fontWeight.medium,
-                    }}
-                  >
-                    {tool.condition}
-                  </span>
-                </div>
-              )}
-
-              {tool.year && (
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-                    Year
-                  </span>
-                  <span
-                    style={{
-                      fontSize: typography.fontSize.sm,
-                      color: colors.text.primary,
-                      fontWeight: typography.fontWeight.medium,
-                    }}
-                  >
-                    {tool.year}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Supplier Info */}
-          <div
-            style={{
-              backgroundColor: colors.neutral[0],
-              borderRadius: borderRadius.lg,
-              border: `1px solid ${colors.border.light}`,
-              padding: spacing[4],
-            }}
-          >
-            <h3
-              style={{
-                fontSize: typography.fontSize.lg,
-                fontWeight: typography.fontWeight.semibold,
-                color: colors.text.primary,
-                margin: 0,
-                marginBottom: spacing[3],
-              }}
-            >
-              Supplier Information
-            </h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-              <Icons.Building2 size={20} color={colors.primary[600]} />
-              <span
-                style={{
-                  fontSize: typography.fontSize.base,
-                  color: colors.text.primary,
-                  fontWeight: typography.fontWeight.medium,
-                }}
-              >
-                {tool.supplier_name}
-              </span>
+              {/* Action Buttons */}
+              <div className="rental-actions">
+                <button className="rental-action-btn rental-action-btn-secondary" onClick={handleRequestQuote}>
+                  {t('rentalDetail.requestQuote', 'Request Quote')}
+                </button>
+                {tool.direct_booking_available && (
+                  <button className="rental-action-btn rental-action-btn-primary" onClick={handleBookNow}>
+                    <Icons.Calendar size={18} />
+                    {t('rentalDetail.bookNow', 'Book Now')}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right Column - Rental Info */}
-        <div>
-          <div
-            style={{
-              backgroundColor: colors.neutral[0],
-              borderRadius: borderRadius.lg,
-              border: `1px solid ${colors.border.light}`,
-              padding: spacing[4],
-              position: 'sticky',
-              top: spacing[6],
-            }}
-          >
-            {/* Rental Rates */}
-            <div style={{ marginBottom: spacing[4] }}>
-              {tool.daily_rate && (
-                <div style={{ marginBottom: spacing[2] }}>
-                  <p
-                    style={{
-                      fontSize: typography.fontSize['2xl'],
-                      fontWeight: typography.fontWeight.bold,
-                      color: colors.primary[600],
-                      margin: 0,
-                    }}
-                  >
-                    {tool.daily_rate.toLocaleString()} ₾
-                    <span
-                      style={{
-                        fontSize: typography.fontSize.base,
-                        fontWeight: typography.fontWeight.normal,
-                        color: colors.text.secondary,
-                      }}
-                    >
-                      {' '}
-                      / day
-                    </span>
-                  </p>
-                </div>
-              )}
-
-              {tool.weekly_rate && (
-                <p
-                  style={{
-                    fontSize: typography.fontSize.lg,
-                    fontWeight: typography.fontWeight.semibold,
-                    color: colors.text.primary,
-                    margin: 0,
-                  }}
-                >
-                  {tool.weekly_rate.toLocaleString()} ₾
-                  <span
-                    style={{
-                      fontSize: typography.fontSize.base,
-                      fontWeight: typography.fontWeight.normal,
-                      color: colors.text.secondary,
-                    }}
-                  >
-                    {' '}
-                    / week
-                  </span>
-                </p>
-              )}
-
-              {tool.deposit_amount && (
-                <p
-                  style={{
-                    fontSize: typography.fontSize.sm,
-                    color: colors.text.secondary,
-                    margin: 0,
-                    marginTop: spacing[2],
-                  }}
-                >
-                  {tool.deposit_amount.toLocaleString()} ₾ deposit required
-                </p>
+        {/* Mobile Fixed Bottom CTA */}
+        <div className="rental-mobile-cta">
+          <div className="rental-mobile-cta-content">
+            <div className="rental-mobile-cta-price">
+              {tool.daily_rate ? (
+                <>
+                  <p className="rental-mobile-cta-price-value">{tool.daily_rate.toLocaleString()} ₾</p>
+                  <p className="rental-mobile-cta-price-unit">/ {t('rentalDetail.day', 'day')}</p>
+                </>
+              ) : (
+                <p className="rental-mobile-cta-price-value">{t('rentalDetail.getQuote', 'Get Quote')}</p>
               )}
             </div>
-
-            {/* Availability */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: spacing[3],
-                marginBottom: spacing[4],
-                paddingBottom: spacing[4],
-                borderBottom: `1px solid ${colors.border.light}`,
-              }}
-            >
-              {tool.pickup_available && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-                  <Icons.MapPin size={20} color={colors.success[600]} />
-                  <span style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
-                    Pickup available
-                  </span>
-                </div>
-              )}
-
-              {tool.delivery_available && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-                  <Icons.Truck size={20} color={colors.success[600]} />
-                  <span style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
-                    Delivery available
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[2] }}>
-              <button
-                onClick={handleRequestQuote}
-                style={{
-                  width: '100%',
-                  padding: `${spacing[3]} ${spacing[4]}`,
-                  backgroundColor: colors.neutral[0],
-                  border: `1px solid ${colors.primary[600]}`,
-                  borderRadius: borderRadius.md,
-                  fontSize: typography.fontSize.base,
-                  fontWeight: typography.fontWeight.medium,
-                  color: colors.primary[600],
-                  cursor: 'pointer',
-                  transition: 'all 200ms ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = colors.primary[50];
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = colors.neutral[0];
-                }}
-              >
-                Request Quote
+            <div className="rental-mobile-cta-buttons">
+              <button className="rental-mobile-cta-btn rental-mobile-cta-btn-secondary" onClick={handleRequestQuote}>
+                {t('rentalDetail.quote', 'Quote')}
               </button>
-
               {tool.direct_booking_available && (
-                <button
-                  onClick={handleBookNow}
-                  style={{
-                    width: '100%',
-                    padding: `${spacing[3]} ${spacing[4]}`,
-                    backgroundColor: colors.primary[600],
-                    border: 'none',
-                    borderRadius: borderRadius.md,
-                    fontSize: typography.fontSize.base,
-                    fontWeight: typography.fontWeight.semibold,
-                    color: colors.neutral[0],
-                    cursor: 'pointer',
-                    transition: 'all 200ms ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: spacing[2],
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = colors.primary[700];
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = colors.primary[600];
-                  }}
-                >
-                  <Icons.Calendar size={20} />
-                  Book Now
+                <button className="rental-mobile-cta-btn rental-mobile-cta-btn-primary" onClick={handleBookNow}>
+                  {t('rentalDetail.book', 'Book')}
                 </button>
               )}
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
