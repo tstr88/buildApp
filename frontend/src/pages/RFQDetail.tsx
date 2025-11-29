@@ -1,6 +1,7 @@
 /**
  * RFQ Detail Page
  * Shows full RFQ information with offers
+ * Mobile-optimized responsive design
  */
 
 import React, { useState, useEffect } from 'react';
@@ -84,7 +85,7 @@ export const RFQDetail: React.FC = () => {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Not specified';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   const formatDateTime = (dateString: string | null) => {
@@ -93,7 +94,6 @@ export const RFQDetail: React.FC = () => {
     return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
@@ -146,7 +146,7 @@ export const RFQDetail: React.FC = () => {
       if (response.ok) {
         setShowDeclineModal(false);
         setDeclineReason('');
-        fetchRFQDetail(); // Refresh to show updated status
+        fetchRFQDetail();
       } else {
         const data = await response.json();
         alert(data.error || 'Failed to decline offer');
@@ -168,11 +168,12 @@ export const RFQDetail: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          padding: spacing[4],
         }}
       >
         <div style={{ textAlign: 'center' }}>
-          <Icons.Loader size={48} color={colors.text.tertiary} style={{ margin: '0 auto', marginBottom: spacing[4] }} />
-          <p style={{ fontSize: typography.fontSize.base, color: colors.text.tertiary }}>
+          <Icons.Loader size={40} color={colors.text.tertiary} style={{ margin: '0 auto', marginBottom: spacing[3] }} />
+          <p style={{ fontSize: typography.fontSize.base, color: colors.text.tertiary, margin: 0 }}>
             Loading RFQ...
           </p>
         </div>
@@ -189,9 +190,10 @@ export const RFQDetail: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          padding: spacing[4],
         }}
       >
-        <p style={{ fontSize: typography.fontSize.base, color: colors.text.tertiary }}>
+        <p style={{ fontSize: typography.fontSize.base, color: colors.text.tertiary, margin: 0 }}>
           RFQ not found
         </p>
       </div>
@@ -200,12 +202,87 @@ export const RFQDetail: React.FC = () => {
 
   return (
     <div
+      className="rfq-detail-page"
       style={{
         minHeight: '100vh',
         backgroundColor: colors.neutral[50],
-        padding: spacing[6],
       }}
     >
+      <style>{`
+        .rfq-detail-page {
+          padding: ${spacing[3]};
+        }
+        @media (min-width: 640px) {
+          .rfq-detail-page {
+            padding: ${spacing[6]};
+          }
+        }
+        .rfq-two-col-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: ${spacing[3]};
+        }
+        @media (min-width: 640px) {
+          .rfq-two-col-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: ${spacing[4]};
+          }
+        }
+        .rfq-offer-info-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: ${spacing[2]};
+        }
+        @media (min-width: 480px) {
+          .rfq-offer-info-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: ${spacing[3]};
+          }
+        }
+        .rfq-action-buttons {
+          display: flex;
+          flex-direction: column;
+          gap: ${spacing[2]};
+        }
+        @media (min-width: 480px) {
+          .rfq-action-buttons {
+            flex-direction: row;
+            gap: ${spacing[3]};
+          }
+        }
+        .rfq-header-meta {
+          display: flex;
+          flex-direction: column;
+          gap: ${spacing[2]};
+        }
+        @media (min-width: 480px) {
+          .rfq-header-meta {
+            flex-direction: row;
+            align-items: center;
+            gap: ${spacing[4]};
+          }
+        }
+        .rfq-map-container {
+          height: 200px;
+        }
+        @media (min-width: 640px) {
+          .rfq-map-container {
+            height: 300px;
+          }
+        }
+        .rfq-modal-buttons {
+          display: flex;
+          flex-direction: column-reverse;
+          gap: ${spacing[2]};
+        }
+        @media (min-width: 480px) {
+          .rfq-modal-buttons {
+            flex-direction: row;
+            gap: ${spacing[3]};
+          }
+        }
+      `}</style>
+
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         {/* Header */}
         <button
@@ -214,19 +291,13 @@ export const RFQDetail: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             gap: spacing[2],
-            padding: `${spacing[2]} ${spacing[3]}`,
+            padding: `${spacing[2]} 0`,
             backgroundColor: 'transparent',
             border: 'none',
             color: colors.text.secondary,
             fontSize: typography.fontSize.sm,
             cursor: 'pointer',
-            marginBottom: spacing[4],
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = colors.primary[600];
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = colors.text.secondary;
+            marginBottom: spacing[3],
           }}
         >
           <Icons.ArrowLeft size={16} />
@@ -234,29 +305,30 @@ export const RFQDetail: React.FC = () => {
         </button>
 
         {/* Title Section */}
-        <div style={{ marginBottom: spacing[6] }}>
+        <div style={{ marginBottom: spacing[4] }}>
           <h1
             style={{
-              fontSize: typography.fontSize['3xl'],
+              fontSize: typography.fontSize['2xl'],
               fontWeight: typography.fontWeight.bold,
               color: colors.text.primary,
               margin: 0,
               marginBottom: spacing[2],
+              lineHeight: 1.2,
             }}
           >
             {rfq.title || `RFQ - ${formatDate(rfq.created_at)}`}
           </h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[4] }}>
+          <div className="rfq-header-meta">
             <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-              <Icons.MapPin size={18} color={colors.text.tertiary} />
-              <span style={{ fontSize: typography.fontSize.base, color: colors.text.secondary }}>
+              <Icons.MapPin size={16} color={colors.text.tertiary} />
+              <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
                 {rfq.project_name}
               </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-              <Icons.Calendar size={18} color={colors.text.tertiary} />
-              <span style={{ fontSize: typography.fontSize.base, color: colors.text.secondary }}>
-                Created {formatDate(rfq.created_at)}
+              <Icons.Calendar size={16} color={colors.text.tertiary} />
+              <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                {formatDate(rfq.created_at)}
               </span>
             </div>
           </div>
@@ -265,13 +337,13 @@ export const RFQDetail: React.FC = () => {
         {/* Project Location Map */}
         {rfq.project_latitude && rfq.project_longitude && (
           <div
+            className="rfq-map-container"
             style={{
               backgroundColor: colors.neutral[0],
               borderRadius: borderRadius.lg,
               overflow: 'hidden',
-              marginBottom: spacing[6],
+              marginBottom: spacing[4],
               boxShadow: shadows.sm,
-              height: '300px',
             }}
           >
             <MapContainer
@@ -288,163 +360,111 @@ export const RFQDetail: React.FC = () => {
           </div>
         )}
 
-        {/* Line Items */}
+        {/* Line Items - Mobile-friendly card layout */}
         <div
           style={{
             backgroundColor: colors.neutral[0],
             borderRadius: borderRadius.lg,
-            padding: spacing[6],
-            marginBottom: spacing[6],
+            padding: spacing[4],
+            marginBottom: spacing[4],
             boxShadow: shadows.sm,
           }}
         >
           <h2
             style={{
-              fontSize: typography.fontSize.xl,
+              fontSize: typography.fontSize.lg,
               fontWeight: typography.fontWeight.semibold,
               color: colors.text.primary,
               margin: 0,
-              marginBottom: spacing[4],
+              marginBottom: spacing[3],
             }}
           >
-            Line Items
+            Line Items ({rfq.lines.length})
           </h2>
-          <div
-            style={{
-              border: `1px solid ${colors.border.light}`,
-              borderRadius: borderRadius.md,
-              overflow: 'hidden',
-            }}
-          >
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ backgroundColor: colors.neutral[50] }}>
-                  <th
+          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+            {rfq.lines.map((line, index) => (
+              <div
+                key={index}
+                style={{
+                  padding: spacing[3],
+                  backgroundColor: colors.neutral[50],
+                  borderRadius: borderRadius.md,
+                  border: `1px solid ${colors.border.light}`,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing[2] }}>
+                  <p
                     style={{
-                      padding: spacing[3],
-                      textAlign: 'left',
-                      fontSize: typography.fontSize.xs,
-                      fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.secondary,
-                      textTransform: 'uppercase',
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.primary,
+                      margin: 0,
+                      flex: 1,
                     }}
                   >
-                    Description
-                  </th>
-                  <th
+                    {line.description}
+                  </p>
+                  <div
                     style={{
-                      padding: spacing[3],
-                      textAlign: 'right',
-                      fontSize: typography.fontSize.xs,
-                      fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.secondary,
-                      textTransform: 'uppercase',
+                      display: 'flex',
+                      alignItems: 'baseline',
+                      gap: spacing[1],
+                      marginLeft: spacing[3],
+                      flexShrink: 0,
                     }}
                   >
-                    Quantity
-                  </th>
-                  <th
-                    style={{
-                      padding: spacing[3],
-                      textAlign: 'left',
-                      fontSize: typography.fontSize.xs,
-                      fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.secondary,
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    Unit
-                  </th>
-                  <th
-                    style={{
-                      padding: spacing[3],
-                      textAlign: 'left',
-                      fontSize: typography.fontSize.xs,
-                      fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.secondary,
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    Notes
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {rfq.lines.map((line, index) => (
-                  <tr
-                    key={index}
-                    style={{
-                      borderTop: index > 0 ? `1px solid ${colors.border.light}` : 'none',
-                    }}
-                  >
-                    <td
+                    <span
                       style={{
-                        padding: spacing[3],
-                        fontSize: typography.fontSize.sm,
-                        color: colors.text.primary,
-                      }}
-                    >
-                      {line.description}
-                    </td>
-                    <td
-                      style={{
-                        padding: spacing[3],
-                        textAlign: 'right',
-                        fontSize: typography.fontSize.sm,
-                        color: colors.text.primary,
-                        fontWeight: typography.fontWeight.medium,
+                        fontSize: typography.fontSize.lg,
+                        fontWeight: typography.fontWeight.bold,
+                        color: colors.primary[600],
                       }}
                     >
                       {line.quantity}
-                    </td>
-                    <td
+                    </span>
+                    <span
                       style={{
-                        padding: spacing[3],
                         fontSize: typography.fontSize.sm,
                         color: colors.text.secondary,
                       }}
                     >
                       {line.unit}
-                    </td>
-                    <td
-                      style={{
-                        padding: spacing[3],
-                        fontSize: typography.fontSize.sm,
-                        color: colors.text.tertiary,
-                      }}
-                    >
-                      {line.spec_notes || '-'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </span>
+                  </div>
+                </div>
+                {line.spec_notes && (
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      color: colors.text.tertiary,
+                      margin: 0,
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    {line.spec_notes}
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Delivery Window & Notes */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: spacing[6],
-            marginBottom: spacing[6],
-          }}
-        >
+        {/* Delivery Window & Notes - Responsive grid */}
+        <div className="rfq-two-col-grid" style={{ marginBottom: spacing[4] }}>
           {/* Delivery Window */}
           <div
             style={{
               backgroundColor: colors.neutral[0],
               borderRadius: borderRadius.lg,
-              padding: spacing[6],
+              padding: spacing[4],
               boxShadow: shadows.sm,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[4] }}>
-              <Icons.Calendar size={20} color={colors.primary[600]} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[3] }}>
+              <Icons.Calendar size={18} color={colors.primary[600]} />
               <h3
                 style={{
-                  fontSize: typography.fontSize.lg,
+                  fontSize: typography.fontSize.base,
                   fontWeight: typography.fontWeight.semibold,
                   color: colors.text.primary,
                   margin: 0,
@@ -454,18 +474,15 @@ export const RFQDetail: React.FC = () => {
               </h3>
             </div>
             {rfq.preferred_window_start && rfq.preferred_window_end ? (
-              <div>
-                <p
-                  style={{
-                    fontSize: typography.fontSize.sm,
-                    color: colors.text.secondary,
-                    margin: 0,
-                    marginBottom: spacing[2],
-                  }}
-                >
-                  {formatDateTime(rfq.preferred_window_start)} - {formatDateTime(rfq.preferred_window_end)}
-                </p>
-              </div>
+              <p
+                style={{
+                  fontSize: typography.fontSize.sm,
+                  color: colors.text.secondary,
+                  margin: 0,
+                }}
+              >
+                {formatDateTime(rfq.preferred_window_start)} - {formatDateTime(rfq.preferred_window_end)}
+              </p>
             ) : (
               <p
                 style={{
@@ -484,21 +501,21 @@ export const RFQDetail: React.FC = () => {
             style={{
               backgroundColor: colors.neutral[0],
               borderRadius: borderRadius.lg,
-              padding: spacing[6],
+              padding: spacing[4],
               boxShadow: shadows.sm,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[4] }}>
-              <Icons.FileText size={20} color={colors.primary[600]} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[3] }}>
+              <Icons.FileText size={18} color={colors.primary[600]} />
               <h3
                 style={{
-                  fontSize: typography.fontSize.lg,
+                  fontSize: typography.fontSize.base,
                   fontWeight: typography.fontWeight.semibold,
                   color: colors.text.primary,
                   margin: 0,
                 }}
               >
-                Additional Notes
+                Notes
               </h3>
             </div>
             <p
@@ -508,7 +525,7 @@ export const RFQDetail: React.FC = () => {
                 margin: 0,
               }}
             >
-              {rfq.additional_notes || 'No additional notes provided'}
+              {rfq.additional_notes || 'No notes'}
             </p>
           </div>
         </div>
@@ -518,63 +535,63 @@ export const RFQDetail: React.FC = () => {
           style={{
             backgroundColor: colors.neutral[0],
             borderRadius: borderRadius.lg,
-            padding: spacing[6],
-            marginBottom: spacing[6],
+            padding: spacing[4],
+            marginBottom: spacing[4],
             boxShadow: shadows.sm,
           }}
         >
           <h2
             style={{
-              fontSize: typography.fontSize.xl,
+              fontSize: typography.fontSize.lg,
               fontWeight: typography.fontWeight.semibold,
               color: colors.text.primary,
               margin: 0,
-              marginBottom: spacing[4],
+              marginBottom: spacing[3],
             }}
           >
             Suppliers ({rfq.recipients.length})
           </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[2] }}>
             {rfq.recipients.map((recipient) => (
               <div
                 key={recipient.id}
                 style={{
-                  padding: spacing[4],
+                  padding: spacing[3],
                   backgroundColor: colors.neutral[50],
                   borderRadius: borderRadius.md,
                   border: `1px solid ${colors.border.light}`,
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <h4
+                <h4
+                  style={{
+                    fontSize: typography.fontSize.sm,
+                    fontWeight: typography.fontWeight.semibold,
+                    color: colors.text.primary,
+                    margin: 0,
+                    marginBottom: spacing[1],
+                  }}
+                >
+                  {recipient.business_name_en || recipient.business_name_ka || recipient.business_name}
+                </h4>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: spacing[2] }}>
+                  <span style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary }}>
+                    Sent {formatDate(recipient.notified_at)}
+                  </span>
+                  {recipient.viewed_at && (
+                    <span
                       style={{
-                        fontSize: typography.fontSize.base,
-                        fontWeight: typography.fontWeight.semibold,
-                        color: colors.text.primary,
-                        margin: 0,
-                        marginBottom: spacing[1],
+                        fontSize: typography.fontSize.xs,
+                        color: colors.success[600],
+                        fontWeight: typography.fontWeight.medium,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: spacing[1],
                       }}
                     >
-                      {recipient.business_name_en || recipient.business_name_ka || recipient.business_name}
-                    </h4>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: spacing[4] }}>
-                      <span style={{ fontSize: typography.fontSize.sm, color: colors.text.tertiary }}>
-                        Sent {formatDate(recipient.notified_at)}
-                      </span>
-                      {recipient.viewed_at && (
-                        <span
-                          style={{
-                            fontSize: typography.fontSize.sm,
-                            color: colors.success[600],
-                            fontWeight: typography.fontWeight.medium,
-                          }}
-                        >
-                          ✓ Viewed {formatDate(recipient.viewed_at)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                      <Icons.Check size={12} />
+                      Viewed
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
@@ -586,20 +603,20 @@ export const RFQDetail: React.FC = () => {
           style={{
             backgroundColor: colors.neutral[0],
             borderRadius: borderRadius.lg,
-            padding: spacing[6],
+            padding: spacing[4],
             boxShadow: shadows.sm,
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing[4] }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3], marginBottom: spacing[4] }}>
             <h2
               style={{
-                fontSize: typography.fontSize.xl,
+                fontSize: typography.fontSize.lg,
                 fontWeight: typography.fontWeight.semibold,
                 color: colors.text.primary,
                 margin: 0,
               }}
             >
-              Offers Received ({rfq.offers.length})
+              Offers ({rfq.offers.length})
             </h2>
             {rfq.offers.length > 0 && (
               <button
@@ -607,49 +624,50 @@ export const RFQDetail: React.FC = () => {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   gap: spacing[2],
                   padding: `${spacing[3]} ${spacing[4]}`,
                   backgroundColor: colors.primary[600],
                   color: colors.text.inverse,
                   border: 'none',
                   borderRadius: borderRadius.lg,
-                  fontSize: typography.fontSize.base,
+                  fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.medium,
                   cursor: 'pointer',
-                  transition: 'background-color 200ms ease',
+                  width: '100%',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.primary[700])}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = colors.primary[600])}
               >
                 <Icons.GitCompare size={18} />
                 Compare Offers
               </button>
             )}
           </div>
+
           {rfq.offers.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: spacing[8] }}>
-              <Icons.Mail size={48} color={colors.text.tertiary} style={{ margin: '0 auto', marginBottom: spacing[3] }} />
-              <p style={{ fontSize: typography.fontSize.base, color: colors.text.tertiary }}>
+            <div style={{ textAlign: 'center', padding: spacing[6] }}>
+              <Icons.Mail size={40} color={colors.text.tertiary} style={{ margin: '0 auto', marginBottom: spacing[3] }} />
+              <p style={{ fontSize: typography.fontSize.sm, color: colors.text.tertiary, margin: 0 }}>
                 No offers received yet
               </p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4] }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
               {rfq.offers.map((offer) => (
                 <div
                   key={offer.id}
                   style={{
-                    padding: spacing[6],
+                    padding: spacing[4],
                     backgroundColor: colors.primary[50],
                     borderRadius: borderRadius.lg,
                     border: `1px solid ${colors.primary[200]}`,
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: spacing[4] }}>
-                    <div>
+                  {/* Supplier name and price */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing[3] }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <h4
                         style={{
-                          fontSize: typography.fontSize.lg,
+                          fontSize: typography.fontSize.base,
                           fontWeight: typography.fontWeight.semibold,
                           color: colors.text.primary,
                           margin: 0,
@@ -658,14 +676,14 @@ export const RFQDetail: React.FC = () => {
                       >
                         {offer.business_name_en || offer.business_name_ka || offer.business_name}
                       </h4>
-                      <span style={{ fontSize: typography.fontSize.sm, color: colors.text.tertiary }}>
-                        Received {formatDate(offer.created_at)}
+                      <span style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary }}>
+                        {formatDate(offer.created_at)}
                       </span>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
+                    <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: spacing[2] }}>
                       <p
                         style={{
-                          fontSize: typography.fontSize['2xl'],
+                          fontSize: typography.fontSize.xl,
                           fontWeight: typography.fontWeight.bold,
                           color: colors.primary[700],
                           margin: 0,
@@ -676,7 +694,7 @@ export const RFQDetail: React.FC = () => {
                       {offer.delivery_fee > 0 && (
                         <p
                           style={{
-                            fontSize: typography.fontSize.sm,
+                            fontSize: typography.fontSize.xs,
                             color: colors.text.secondary,
                             margin: 0,
                           }}
@@ -687,61 +705,65 @@ export const RFQDetail: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Delivery/Pickup Information */}
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: spacing[4],
-                    marginBottom: spacing[3],
-                    padding: spacing[3],
-                    backgroundColor: colors.neutral[0],
-                    borderRadius: borderRadius.md,
-                  }}>
+                  {/* Delivery/Payment Info */}
+                  <div
+                    className="rfq-offer-info-grid"
+                    style={{
+                      padding: spacing[3],
+                      backgroundColor: colors.neutral[0],
+                      borderRadius: borderRadius.md,
+                      marginBottom: spacing[3],
+                    }}
+                  >
                     <div>
-                      <div style={{
-                        fontSize: typography.fontSize.xs,
-                        color: colors.text.tertiary,
-                        marginBottom: spacing[1],
-                        textTransform: 'uppercase',
-                        fontWeight: typography.fontWeight.semibold,
-                      }}>
-                        Delivery Window
+                      <div
+                        style={{
+                          fontSize: typography.fontSize.xs,
+                          color: colors.text.tertiary,
+                          marginBottom: spacing[1],
+                          textTransform: 'uppercase',
+                          fontWeight: typography.fontWeight.semibold,
+                        }}
+                      >
+                        Delivery
                       </div>
                       <div style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
-                        {offer.delivery_window_start && offer.delivery_window_end ? (
-                          <>
-                            {formatDateTime(offer.delivery_window_start)} - {formatDateTime(offer.delivery_window_end)}
-                          </>
-                        ) : (
-                          'Not specified'
-                        )}
+                        {offer.delivery_window_start
+                          ? formatDateTime(offer.delivery_window_start)
+                          : 'Not specified'}
                       </div>
                     </div>
                     <div>
-                      <div style={{
-                        fontSize: typography.fontSize.xs,
-                        color: colors.text.tertiary,
-                        marginBottom: spacing[1],
-                        textTransform: 'uppercase',
-                        fontWeight: typography.fontWeight.semibold,
-                      }}>
-                        Payment Terms
+                      <div
+                        style={{
+                          fontSize: typography.fontSize.xs,
+                          color: colors.text.tertiary,
+                          marginBottom: spacing[1],
+                          textTransform: 'uppercase',
+                          fontWeight: typography.fontWeight.semibold,
+                        }}
+                      >
+                        Payment
                       </div>
                       <div style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
-                        {offer.payment_terms === 'cod' ? 'Cash on Delivery' :
-                         offer.payment_terms === 'net_7' ? 'Bank Transfer 50/50' :
-                         offer.payment_terms === 'net_15' ? 'Net 15' :
-                         'Full Prepayment'}
+                        {offer.payment_terms === 'cod'
+                          ? 'Cash on Delivery'
+                          : offer.payment_terms === 'net_7'
+                          ? 'Bank Transfer'
+                          : offer.payment_terms === 'net_15'
+                          ? 'Net 15'
+                          : 'Prepayment'}
                       </div>
                     </div>
                   </div>
+
                   {offer.notes && (
                     <p
                       style={{
                         fontSize: typography.fontSize.sm,
                         color: colors.text.secondary,
                         margin: 0,
-                        marginTop: spacing[3],
+                        marginBottom: spacing[3],
                         padding: spacing[3],
                         backgroundColor: colors.neutral[0],
                         borderRadius: borderRadius.md,
@@ -751,17 +773,9 @@ export const RFQDetail: React.FC = () => {
                     </p>
                   )}
 
-                  {/* Action Buttons - Only show for pending offers */}
+                  {/* Action Buttons */}
                   {offer.status === 'pending' && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: spacing[3],
-                        marginTop: spacing[4],
-                        paddingTop: spacing[4],
-                        borderTop: `1px solid ${colors.border.light}`,
-                      }}
-                    >
+                    <div className="rfq-action-buttons">
                       <button
                         onClick={() => {
                           setSelectedOfferId(offer.id);
@@ -769,12 +783,12 @@ export const RFQDetail: React.FC = () => {
                         }}
                         style={{
                           flex: 1,
-                          padding: `${spacing[3]} ${spacing[5]}`,
+                          padding: spacing[3],
                           backgroundColor: colors.success[600],
                           color: colors.neutral[0],
                           border: 'none',
                           borderRadius: borderRadius.md,
-                          fontSize: typography.fontSize.base,
+                          fontSize: typography.fontSize.sm,
                           fontWeight: typography.fontWeight.semibold,
                           cursor: 'pointer',
                           display: 'flex',
@@ -782,15 +796,9 @@ export const RFQDetail: React.FC = () => {
                           justifyContent: 'center',
                           gap: spacing[2],
                         }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = colors.success[700];
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = colors.success[600];
-                        }}
                       >
-                        <Icons.CheckCircle size={20} />
-                        Accept Offer
+                        <Icons.CheckCircle size={18} />
+                        Accept
                       </button>
                       <button
                         onClick={() => {
@@ -799,12 +807,12 @@ export const RFQDetail: React.FC = () => {
                         }}
                         style={{
                           flex: 1,
-                          padding: `${spacing[3]} ${spacing[5]}`,
+                          padding: spacing[3],
                           backgroundColor: colors.neutral[0],
                           color: colors.error[600],
-                          border: `2px solid ${colors.error[600]}`,
+                          border: `2px solid ${colors.error[300]}`,
                           borderRadius: borderRadius.md,
-                          fontSize: typography.fontSize.base,
+                          fontSize: typography.fontSize.sm,
                           fontWeight: typography.fontWeight.semibold,
                           cursor: 'pointer',
                           display: 'flex',
@@ -812,25 +820,18 @@ export const RFQDetail: React.FC = () => {
                           justifyContent: 'center',
                           gap: spacing[2],
                         }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = colors.error[50];
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = colors.neutral[0];
-                        }}
                       >
-                        <Icons.XCircle size={20} />
+                        <Icons.XCircle size={18} />
                         Decline
                       </button>
                     </div>
                   )}
 
-                  {/* Status Badge - Show for non-pending offers */}
+                  {/* Status Badge */}
                   {offer.status !== 'pending' && (
                     <div
                       style={{
-                        marginTop: spacing[4],
-                        padding: spacing[3],
+                        padding: spacing[2],
                         backgroundColor:
                           offer.status === 'accepted'
                             ? colors.success[100]
@@ -852,10 +853,14 @@ export const RFQDetail: React.FC = () => {
                               ? colors.error[700]
                               : colors.text.secondary,
                           textTransform: 'capitalize',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: spacing[2],
                         }}
                       >
-                        {offer.status === 'accepted' && <Icons.CheckCircle size={16} style={{ display: 'inline', marginRight: spacing[2] }} />}
-                        {offer.status === 'rejected' && <Icons.XCircle size={16} style={{ display: 'inline', marginRight: spacing[2] }} />}
+                        {offer.status === 'accepted' && <Icons.CheckCircle size={16} />}
+                        {offer.status === 'rejected' && <Icons.XCircle size={16} />}
                         {offer.status}
                       </span>
                     </div>
@@ -867,7 +872,7 @@ export const RFQDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* Accept Offer Modal */}
+      {/* Accept Modal */}
       {showAcceptModal && (
         <div
           style={{
@@ -878,28 +883,30 @@ export const RFQDetail: React.FC = () => {
             bottom: 0,
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
             display: 'flex',
-            alignItems: 'center',
+            alignItems: 'flex-end',
             justifyContent: 'center',
             zIndex: 1000,
+            padding: spacing[3],
           }}
           onClick={() => setShowAcceptModal(false)}
         >
           <div
             style={{
               backgroundColor: colors.neutral[0],
-              borderRadius: borderRadius.lg,
-              padding: spacing[6],
+              borderRadius: `${borderRadius.xl} ${borderRadius.xl} 0 0`,
+              padding: spacing[4],
+              width: '100%',
               maxWidth: '500px',
-              width: '90%',
-              boxShadow: shadows.xl,
+              maxHeight: '90vh',
+              overflow: 'auto',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], marginBottom: spacing[4] }}>
-              <Icons.CheckCircle size={32} color={colors.success[600]} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], marginBottom: spacing[3] }}>
+              <Icons.CheckCircle size={28} color={colors.success[600]} />
               <h2
                 style={{
-                  fontSize: typography.fontSize.xl,
+                  fontSize: typography.fontSize.lg,
                   fontWeight: typography.fontWeight.bold,
                   color: colors.text.primary,
                   margin: 0,
@@ -910,25 +917,27 @@ export const RFQDetail: React.FC = () => {
             </div>
             <p
               style={{
-                fontSize: typography.fontSize.base,
+                fontSize: typography.fontSize.sm,
                 color: colors.text.secondary,
-                marginBottom: spacing[6],
+                marginBottom: spacing[4],
+                margin: 0,
+                marginBottom: spacing[4],
               }}
             >
-              Are you sure you want to accept this offer? This will create an order and close the RFQ.
+              This will create an order and close the RFQ.
             </p>
-            <div style={{ display: 'flex', gap: spacing[3] }}>
+            <div className="rfq-modal-buttons">
               <button
                 onClick={() => setShowAcceptModal(false)}
                 disabled={actionLoading}
                 style={{
                   flex: 1,
-                  padding: `${spacing[3]} ${spacing[4]}`,
+                  padding: spacing[3],
                   backgroundColor: colors.neutral[0],
                   color: colors.text.secondary,
                   border: `2px solid ${colors.border.light}`,
                   borderRadius: borderRadius.md,
-                  fontSize: typography.fontSize.base,
+                  fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.semibold,
                   cursor: actionLoading ? 'not-allowed' : 'pointer',
                   opacity: actionLoading ? 0.5 : 1,
@@ -941,12 +950,12 @@ export const RFQDetail: React.FC = () => {
                 disabled={actionLoading}
                 style={{
                   flex: 1,
-                  padding: `${spacing[3]} ${spacing[4]}`,
+                  padding: spacing[3],
                   backgroundColor: colors.success[600],
                   color: colors.neutral[0],
                   border: 'none',
                   borderRadius: borderRadius.md,
-                  fontSize: typography.fontSize.base,
+                  fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.semibold,
                   cursor: actionLoading ? 'not-allowed' : 'pointer',
                   opacity: actionLoading ? 0.7 : 1,
@@ -959,7 +968,7 @@ export const RFQDetail: React.FC = () => {
         </div>
       )}
 
-      {/* Decline Offer Modal */}
+      {/* Decline Modal */}
       {showDeclineModal && (
         <div
           style={{
@@ -970,9 +979,10 @@ export const RFQDetail: React.FC = () => {
             bottom: 0,
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
             display: 'flex',
-            alignItems: 'center',
+            alignItems: 'flex-end',
             justifyContent: 'center',
             zIndex: 1000,
+            padding: spacing[3],
           }}
           onClick={() => {
             setShowDeclineModal(false);
@@ -982,19 +992,20 @@ export const RFQDetail: React.FC = () => {
           <div
             style={{
               backgroundColor: colors.neutral[0],
-              borderRadius: borderRadius.lg,
-              padding: spacing[6],
+              borderRadius: `${borderRadius.xl} ${borderRadius.xl} 0 0`,
+              padding: spacing[4],
+              width: '100%',
               maxWidth: '500px',
-              width: '90%',
-              boxShadow: shadows.xl,
+              maxHeight: '90vh',
+              overflow: 'auto',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], marginBottom: spacing[4] }}>
-              <Icons.XCircle size={32} color={colors.error[600]} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], marginBottom: spacing[3] }}>
+              <Icons.XCircle size={28} color={colors.error[600]} />
               <h2
                 style={{
-                  fontSize: typography.fontSize.xl,
+                  fontSize: typography.fontSize.lg,
                   fontWeight: typography.fontWeight.bold,
                   color: colors.text.primary,
                   margin: 0,
@@ -1005,18 +1016,19 @@ export const RFQDetail: React.FC = () => {
             </div>
             <p
               style={{
-                fontSize: typography.fontSize.base,
+                fontSize: typography.fontSize.sm,
                 color: colors.text.secondary,
-                marginBottom: spacing[4],
+                margin: 0,
+                marginBottom: spacing[3],
               }}
             >
-              Please provide a reason for declining this offer (optional):
+              Reason (optional):
             </p>
             <textarea
               value={declineReason}
               onChange={(e) => setDeclineReason(e.target.value)}
-              placeholder="e.g., Price is too high, delivery window doesn't work..."
-              rows={4}
+              placeholder="e.g., Price is too high..."
+              rows={3}
               style={{
                 width: '100%',
                 padding: spacing[3],
@@ -1025,10 +1037,11 @@ export const RFQDetail: React.FC = () => {
                 fontSize: typography.fontSize.base,
                 resize: 'vertical',
                 fontFamily: 'inherit',
-                marginBottom: spacing[6],
+                marginBottom: spacing[4],
+                boxSizing: 'border-box',
               }}
             />
-            <div style={{ display: 'flex', gap: spacing[3] }}>
+            <div className="rfq-modal-buttons">
               <button
                 onClick={() => {
                   setShowDeclineModal(false);
@@ -1037,12 +1050,12 @@ export const RFQDetail: React.FC = () => {
                 disabled={actionLoading}
                 style={{
                   flex: 1,
-                  padding: `${spacing[3]} ${spacing[4]}`,
+                  padding: spacing[3],
                   backgroundColor: colors.neutral[0],
                   color: colors.text.secondary,
                   border: `2px solid ${colors.border.light}`,
                   borderRadius: borderRadius.md,
-                  fontSize: typography.fontSize.base,
+                  fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.semibold,
                   cursor: actionLoading ? 'not-allowed' : 'pointer',
                   opacity: actionLoading ? 0.5 : 1,
@@ -1055,18 +1068,18 @@ export const RFQDetail: React.FC = () => {
                 disabled={actionLoading}
                 style={{
                   flex: 1,
-                  padding: `${spacing[3]} ${spacing[4]}`,
+                  padding: spacing[3],
                   backgroundColor: colors.error[600],
                   color: colors.neutral[0],
                   border: 'none',
                   borderRadius: borderRadius.md,
-                  fontSize: typography.fontSize.base,
+                  fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.semibold,
                   cursor: actionLoading ? 'not-allowed' : 'pointer',
                   opacity: actionLoading ? 0.7 : 1,
                 }}
               >
-                {actionLoading ? 'Processing...' : 'Decline Offer'}
+                {actionLoading ? 'Processing...' : 'Decline'}
               </button>
             </div>
           </div>
