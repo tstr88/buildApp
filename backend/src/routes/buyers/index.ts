@@ -479,8 +479,8 @@ router.get(
         rb.status,
         rb.created_at,
         rb.supplier_id,
-        rt.name as tool_name,
-        rt.spec_string as tool_spec,
+        COALESCE(rt.name_en, rt.name_ka) as tool_name,
+        COALESCE(rt.spec_string_en, rt.spec_string_ka) as tool_spec,
         rt.images as tool_images,
         COALESCE(s.business_name_en, s.business_name_ka) as supplier_name
       FROM rental_bookings rb
@@ -539,10 +539,10 @@ router.get(
     const query = `
       SELECT
         rb.*,
-        rt.name as tool_name,
-        rt.spec_string as tool_spec,
+        COALESCE(rt.name_en, rt.name_ka) as tool_name,
+        COALESCE(rt.spec_string_en, rt.spec_string_ka) as tool_spec,
         rt.images as tool_images,
-        rt.category as tool_category,
+        COALESCE(rt.category_en, rt.category_ka) as tool_category,
         s.id as supplier_id,
         COALESCE(s.business_name_en, s.business_name_ka) as supplier_name,
         s.depot_address as supplier_address,
