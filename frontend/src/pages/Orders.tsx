@@ -6,8 +6,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Package, MapPin, Truck, Calendar, Zap, Search, Plus } from 'lucide-react';
-import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
+import { Package, MapPin, Truck, Calendar, Search } from 'lucide-react';
+import { colors, spacing, typography, borderRadius } from '../theme/tokens';
 import { TabNavigation, PageHeader, EmptyState, StatusBadge, ListCard } from '../components/shared';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -150,37 +150,7 @@ export const Orders: React.FC = () => {
     { id: 'disputed', label: t('ordersPage.tabs.disputed', 'Disputed'), count: disputedCount, hasAlert: disputedCount > 0 },
   ];
 
-  const DirectOrderButton = () => (
-    <button
-      onClick={() => navigate('/orders/direct')}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: spacing[2],
-        padding: `${spacing[2]} ${spacing[4]}`,
-        backgroundColor: colors.primary[600],
-        color: colors.neutral[0],
-        border: 'none',
-        borderRadius: borderRadius.lg,
-        fontSize: typography.fontSize.base,
-        fontWeight: typography.fontWeight.medium,
-        cursor: 'pointer',
-        boxShadow: shadows.sm,
-        transition: 'background-color 200ms ease',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = colors.primary[700];
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = colors.primary[600];
-      }}
-    >
-      <Zap size={20} />
-      {t('ordersPage.newDirectOrder', 'Direct Order')}
-    </button>
-  );
-
-  return (
+return (
     <div
       style={{
         maxWidth: '1000px',
@@ -188,20 +158,10 @@ export const Orders: React.FC = () => {
         padding: spacing[6],
       }}
     >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          marginBottom: spacing[6],
-        }}
-      >
-        <PageHeader
-          title={t('ordersPage.title', 'My Orders')}
-          subtitle={t('ordersPage.subtitle', 'Track and manage your orders')}
-        />
-        <DirectOrderButton />
-      </div>
+      <PageHeader
+        title={t('ordersPage.title', 'My Orders')}
+        subtitle={t('ordersPage.subtitle', 'Track and manage your orders')}
+      />
 
       <TabNavigation
         tabs={tabs}
@@ -270,34 +230,6 @@ export const Orders: React.FC = () => {
               ? t('ordersPage.empty.tryAdjust', 'Try adjusting your search')
               : t('ordersPage.empty.startFirst', 'Your orders will appear here')
           }
-          action={!searchQuery ? (
-            <button
-              onClick={() => navigate('/orders/direct')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: spacing[2],
-                padding: `${spacing[3]} ${spacing[6]}`,
-                backgroundColor: colors.primary[600],
-                color: colors.neutral[0],
-                border: 'none',
-                borderRadius: borderRadius.md,
-                fontSize: typography.fontSize.base,
-                fontWeight: typography.fontWeight.semibold,
-                cursor: 'pointer',
-                transition: 'background-color 200ms ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = colors.primary[700];
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = colors.primary[600];
-              }}
-            >
-              <Plus size={20} />
-              {t('ordersPage.placeDirectOrder', 'Place Direct Order')}
-            </button>
-          ) : undefined}
         />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
