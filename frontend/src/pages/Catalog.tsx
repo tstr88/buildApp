@@ -155,40 +155,118 @@ export const Catalog: React.FC = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: colors.neutral[50],
-      }}
-    >
+    <>
+      <style>{`
+        .catalog-page {
+          min-height: 100vh;
+          background-color: ${colors.neutral[50]};
+        }
+        .catalog-header {
+          background-color: ${colors.neutral[0]};
+          border-bottom: 1px solid ${colors.border.light};
+          padding: ${spacing[4]} ${spacing[6]};
+        }
+        @media (max-width: 640px) {
+          .catalog-header {
+            padding: ${spacing[3]} ${spacing[3]};
+          }
+        }
+        .catalog-header-inner {
+          max-width: 1400px;
+          margin: 0 auto;
+        }
+        .catalog-title {
+          font-size: ${typography.fontSize['2xl']};
+          font-weight: ${typography.fontWeight.bold};
+          color: ${colors.text.primary};
+          margin: 0;
+          margin-bottom: ${spacing[4]};
+        }
+        @media (max-width: 640px) {
+          .catalog-title {
+            font-size: ${typography.fontSize.xl};
+            margin-bottom: ${spacing[3]};
+          }
+        }
+        .catalog-controls {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: ${spacing[3]};
+          flex-wrap: wrap;
+        }
+        @media (max-width: 640px) {
+          .catalog-controls {
+            gap: ${spacing[2]};
+          }
+        }
+        .catalog-controls-left {
+          display: flex;
+          align-items: center;
+          gap: ${spacing[2]};
+        }
+        .catalog-controls-right {
+          display: flex;
+          align-items: center;
+          gap: ${spacing[2]};
+        }
+        .mobile-filter-btn {
+          display: none;
+          padding: ${spacing[2]} ${spacing[3]};
+          background-color: ${colors.neutral[0]};
+          border: 1px solid ${colors.border.light};
+          border-radius: ${borderRadius.md};
+          font-size: ${typography.fontSize.sm};
+          font-weight: ${typography.fontWeight.medium};
+          color: ${colors.text.primary};
+          cursor: pointer;
+          align-items: center;
+          gap: ${spacing[1]};
+        }
+        @media (max-width: 768px) {
+          .mobile-filter-btn {
+            display: flex !important;
+          }
+        }
+        .view-toggle {
+          display: flex;
+          border: 1px solid ${colors.border.light};
+          border-radius: ${borderRadius.md};
+          overflow: hidden;
+        }
+        @media (max-width: 480px) {
+          .view-toggle {
+            display: none;
+          }
+        }
+        .sort-select {
+          padding: ${spacing[2]} ${spacing[3]};
+          font-size: ${typography.fontSize.sm};
+          border: 1px solid ${colors.border.light};
+          border-radius: ${borderRadius.md};
+          background-color: ${colors.neutral[0]};
+          color: ${colors.text.primary};
+          cursor: pointer;
+          max-width: 180px;
+        }
+        @media (max-width: 480px) {
+          .sort-select {
+            max-width: 140px;
+            font-size: ${typography.fontSize.xs};
+            padding: ${spacing[2]};
+          }
+        }
+      `}</style>
+      <div className="catalog-page">
       {/* Header */}
-      <div
-        style={{
-          backgroundColor: colors.neutral[0],
-          borderBottom: `1px solid ${colors.border.light}`,
-          padding: `${spacing[4]} ${spacing[6]}`,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '1400px',
-            margin: '0 auto',
-          }}
-        >
-          <h1
-            style={{
-              fontSize: typography.fontSize['2xl'],
-              fontWeight: typography.fontWeight.bold,
-              color: colors.text.primary,
-              margin: 0,
-              marginBottom: spacing[4],
-            }}
-          >
+      <div className="catalog-header">
+        <div className="catalog-header-inner">
+          <h1 className="catalog-title">
             {t('catalogPage.title')}
           </h1>
 
           {/* Search Bar */}
-          <div style={{ position: 'relative', marginBottom: spacing[4] }}>
+          <div style={{ position: 'relative', marginBottom: spacing[3] }}>
             <Icons.Search
               size={20}
               color={colors.text.tertiary}
@@ -211,6 +289,7 @@ export const Catalog: React.FC = () => {
                 border: `1px solid ${colors.border.light}`,
                 borderRadius: borderRadius.lg,
                 outline: 'none',
+                boxSizing: 'border-box',
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = colors.primary[600];
@@ -224,32 +303,12 @@ export const Catalog: React.FC = () => {
           </div>
 
           {/* Controls Row */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: spacing[3],
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+          <div className="catalog-controls">
+            <div className="catalog-controls-left">
               {/* Mobile Filter Button */}
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className="mobile-filter-btn"
-                style={{
-                  display: 'none',
-                  padding: `${spacing[2]} ${spacing[3]}`,
-                  backgroundColor: colors.neutral[0],
-                  border: `1px solid ${colors.border.light}`,
-                  borderRadius: borderRadius.md,
-                  fontSize: typography.fontSize.sm,
-                  fontWeight: typography.fontWeight.medium,
-                  color: colors.text.primary,
-                  cursor: 'pointer',
-                  alignItems: 'center',
-                  gap: spacing[1],
-                }}
               >
                 <Icons.Filter size={16} />
                 {t('catalogPage.filters')}
@@ -260,22 +319,16 @@ export const Catalog: React.FC = () => {
                 style={{
                   fontSize: typography.fontSize.sm,
                   color: colors.text.secondary,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {totalResults} {totalResults === 1 ? t('catalogPage.result') : t('catalogPage.results')}
               </span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+            <div className="catalog-controls-right">
               {/* View Mode Toggle */}
-              <div
-                style={{
-                  display: 'flex',
-                  border: `1px solid ${colors.border.light}`,
-                  borderRadius: borderRadius.md,
-                  overflow: 'hidden',
-                }}
-              >
+              <div className="view-toggle">
                 <button
                   onClick={() => setViewMode('grid')}
                   style={{
@@ -311,15 +364,7 @@ export const Catalog: React.FC = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
-                style={{
-                  padding: `${spacing[2]} ${spacing[3]}`,
-                  fontSize: typography.fontSize.sm,
-                  border: `1px solid ${colors.border.light}`,
-                  borderRadius: borderRadius.md,
-                  backgroundColor: colors.neutral[0],
-                  color: colors.text.primary,
-                  cursor: 'pointer',
-                }}
+                className="sort-select"
               >
                 <option value="relevance">{t('catalogPage.sort.relevance')}</option>
                 <option value="price_asc">{t('catalogPage.sort.priceAsc')}</option>
@@ -329,15 +374,81 @@ export const Catalog: React.FC = () => {
             </div>
           </div>
         </div>
-
-        <style>{`
-          @media (max-width: 768px) {
-            .mobile-filter-btn {
-              display: flex !important;
-            }
-          }
-        `}</style>
       </div>
+
+      {/* Mobile Filter Sheet */}
+      {showFilters && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={() => setShowFilters(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              zIndex: 1040,
+            }}
+          />
+          {/* Filter Sheet */}
+          <div
+            style={{
+              position: 'fixed',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: colors.neutral[0],
+              borderTopLeftRadius: borderRadius.xl,
+              borderTopRightRadius: borderRadius.xl,
+              boxShadow: shadows.xl,
+              zIndex: 1050,
+              maxHeight: '80vh',
+              overflow: 'auto',
+              paddingBottom: 'env(safe-area-inset-bottom, 20px)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                padding: spacing[3],
+              }}
+            >
+              <div
+                style={{
+                  width: '36px',
+                  height: '4px',
+                  backgroundColor: colors.neutral[300],
+                  borderRadius: borderRadius.full,
+                }}
+              />
+            </div>
+            <div style={{ padding: `0 ${spacing[4]} ${spacing[4]}` }}>
+              <CatalogFilters
+                filters={filters}
+                onChange={handleFilterChange}
+                onReset={handleResetFilters}
+              />
+              <button
+                onClick={() => setShowFilters(false)}
+                style={{
+                  width: '100%',
+                  padding: spacing[3],
+                  marginTop: spacing[4],
+                  backgroundColor: colors.primary[600],
+                  color: colors.neutral[0],
+                  border: 'none',
+                  borderRadius: borderRadius.lg,
+                  fontSize: typography.fontSize.base,
+                  fontWeight: typography.fontWeight.semibold,
+                  cursor: 'pointer',
+                }}
+              >
+                {t('catalogPage.filters.apply', 'Apply Filters')}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Main Content */}
       <div
@@ -355,9 +466,20 @@ export const Catalog: React.FC = () => {
           @media (max-width: 768px) {
             .catalog-layout {
               grid-template-columns: 1fr !important;
+              padding: ${spacing[3]} !important;
             }
             .desktop-filters {
               display: none !important;
+            }
+          }
+          @media (max-width: 640px) {
+            .results-container {
+              grid-template-columns: 1fr !important;
+            }
+          }
+          @media (min-width: 641px) and (max-width: 900px) {
+            .results-container {
+              grid-template-columns: repeat(2, 1fr) !important;
             }
           }
         `}</style>
@@ -526,6 +648,7 @@ export const Catalog: React.FC = () => {
           to { transform: rotate(360deg); }
         }
       `}</style>
-    </div>
+      </div>
+    </>
   );
 };
