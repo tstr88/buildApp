@@ -34,7 +34,7 @@ export const ListCard: React.FC<ListCardProps> = ({
         display: 'flex',
         alignItems: 'center',
         gap: spacing[3],
-        padding: spacing[4],
+        padding: spacing[3],
         backgroundColor: colors.neutral[0],
         border: `1px solid ${isUnread ? colors.primary[200] : colors.border.light}`,
         borderRadius: borderRadius.lg,
@@ -43,6 +43,9 @@ export const ListCard: React.FC<ListCardProps> = ({
         boxShadow: isHovered && !disabled ? shadows.md : shadows.sm,
         transform: isHovered && !disabled ? 'translateY(-1px)' : 'none',
         opacity: disabled ? 0.6 : 1,
+        width: '100%',
+        boxSizing: 'border-box',
+        overflow: 'hidden',
       }}
     >
       {/* Unread indicator */}
