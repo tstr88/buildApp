@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 import * as Icons from 'lucide-react';
@@ -44,7 +44,6 @@ type ViewMode = 'grid' | 'list';
 type SortOption = 'recommended' | 'price_low' | 'price_high' | 'name';
 
 const Rentals: React.FC = () => {
-  const navigate = useNavigate();
   const { i18n, t } = useTranslation();
   const [searchParams] = useSearchParams();
 
@@ -232,32 +231,6 @@ const Rentals: React.FC = () => {
             padding: ${spacing[2]};
           }
         }
-        .rfq-btn {
-          padding: ${spacing[2]} ${spacing[4]};
-          background-color: ${colors.primary[600]};
-          color: ${colors.neutral[0]};
-          border: none;
-          border-radius: ${borderRadius.md};
-          font-size: ${typography.fontSize.sm};
-          font-weight: ${typography.fontWeight.semibold};
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: ${spacing[2]};
-          transition: background-color 200ms ease;
-        }
-        .rfq-btn:hover {
-          background-color: ${colors.primary[700]};
-        }
-        @media (max-width: 640px) {
-          .rfq-btn {
-            padding: ${spacing[2]} ${spacing[3]};
-            font-size: ${typography.fontSize.xs};
-          }
-          .rfq-btn-text {
-            display: none;
-          }
-        }
       `}</style>
 
       <div className="rentals-page">
@@ -375,15 +348,6 @@ const Rentals: React.FC = () => {
                   <option value="price_high">{t('rentalsPage.sort.priceHigh')}</option>
                   <option value="name">{t('rentalsPage.sort.name')}</option>
                 </select>
-
-                {/* Request Rental Quote Button */}
-                <button
-                  onClick={() => navigate('/rentals/rfq')}
-                  className="rfq-btn"
-                >
-                  <Icons.FileText size={18} />
-                  <span className="rfq-btn-text">{t('rentalsPage.requestQuote')}</span>
-                </button>
               </div>
             </div>
           </div>
