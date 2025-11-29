@@ -251,13 +251,115 @@ export const Profile: React.FC = () => {
   const { profile, stats, notification_preferences } = profileData;
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: colors.background.secondary,
-        paddingBottom: '80px',
-      }}
-    >
+    <>
+      <style>{`
+        .profile-page {
+          min-height: 100vh;
+          background-color: ${colors.background.secondary};
+          padding-bottom: 80px;
+        }
+        .profile-header-content {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: ${spacing[3]} ${spacing[4]};
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .profile-main {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: ${spacing[3]};
+        }
+        @media (min-width: 640px) {
+          .profile-main {
+            padding: ${spacing[4]};
+          }
+        }
+        .profile-section {
+          background-color: ${colors.neutral[0]};
+          border-radius: ${borderRadius.lg};
+          padding: ${spacing[4]};
+          margin-bottom: ${spacing[3]};
+          box-shadow: ${shadows.sm};
+        }
+        @media (min-width: 640px) {
+          .profile-section {
+            padding: ${spacing[6]};
+            margin-bottom: ${spacing[4]};
+          }
+        }
+        .profile-user-header {
+          display: flex;
+          flex-direction: column;
+          gap: ${spacing[4]};
+        }
+        @media (min-width: 480px) {
+          .profile-user-header {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+          }
+        }
+        .profile-user-info {
+          display: flex;
+          align-items: center;
+          gap: ${spacing[3]};
+        }
+        .profile-avatar {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          background-color: ${colors.primary[100]};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: ${typography.fontSize.xl};
+          font-weight: ${typography.fontWeight.bold};
+          color: ${colors.primary[600]};
+          flex-shrink: 0;
+        }
+        @media (min-width: 640px) {
+          .profile-avatar {
+            width: 80px;
+            height: 80px;
+            font-size: ${typography.fontSize['2xl']};
+          }
+        }
+        .profile-name {
+          font-size: ${typography.fontSize.lg};
+          font-weight: ${typography.fontWeight.bold};
+          color: ${colors.text.primary};
+          margin: 0;
+          margin-bottom: ${spacing[1]};
+        }
+        @media (min-width: 640px) {
+          .profile-name {
+            font-size: ${typography.fontSize['2xl']};
+          }
+        }
+        .language-buttons {
+          display: flex;
+          flex-wrap: wrap;
+          gap: ${spacing[2]};
+        }
+        .stats-grid {
+          display: flex;
+          gap: ${spacing[3]};
+        }
+        .stats-grid > div {
+          flex: 1;
+          text-align: center;
+          padding: ${spacing[3]};
+          border-radius: ${borderRadius.md};
+        }
+        @media (min-width: 640px) {
+          .stats-grid > div {
+            padding: ${spacing[4]};
+          }
+        }
+      `}</style>
+      <div className="profile-page">
       {/* Header */}
       <header
         style={{
@@ -309,61 +411,19 @@ export const Profile: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main
-        style={{
-          maxWidth: '800px',
-          margin: '0 auto',
-          padding: spacing[4],
-        }}
-      >
+      <main className="profile-main">
         {/* Profile Header */}
-        <section
-          style={{
-            backgroundColor: colors.neutral[0],
-            borderRadius: borderRadius.lg,
-            padding: spacing[6],
-            marginBottom: spacing[4],
-            boxShadow: shadows.sm,
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: spacing[4],
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[4] }}>
+        <section className="profile-section">
+          <div className="profile-user-header">
+            <div className="profile-user-info">
               {/* Profile Photo */}
-              <div
-                style={{
-                  width: '80px',
-                  height: '80px',
-                  borderRadius: '50%',
-                  backgroundColor: colors.primary[100],
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: typography.fontSize['2xl'],
-                  fontWeight: typography.fontWeight.bold,
-                  color: colors.primary[600],
-                }}
-              >
+              <div className="profile-avatar">
                 {profile.name.charAt(0).toUpperCase()}
               </div>
 
               {/* Name and Details */}
-              <div>
-                <h1
-                  style={{
-                    fontSize: typography.fontSize['2xl'],
-                    fontWeight: typography.fontWeight.bold,
-                    color: colors.text.primary,
-                    margin: 0,
-                    marginBottom: spacing[1],
-                  }}
-                >
+              <div style={{ minWidth: 0 }}>
+                <h1 className="profile-name">
                   {profile.name}
                 </h1>
                 <div
@@ -374,23 +434,23 @@ export const Profile: React.FC = () => {
                     marginBottom: spacing[2],
                   }}
                 >
-                  <Icons.Phone size={16} color={colors.text.tertiary} />
-                  <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                  <Icons.Phone size={14} color={colors.text.tertiary} />
+                  <span style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>
                     {maskPhone(profile.phone)}
                   </span>
                 </div>
                 <div
                   style={{
                     display: 'inline-block',
-                    padding: `${spacing[1]} ${spacing[3]}`,
+                    padding: `${spacing[1]} ${spacing[2]}`,
                     backgroundColor: colors.primary[50],
                     borderRadius: borderRadius.full,
-                    fontSize: typography.fontSize.sm,
+                    fontSize: typography.fontSize.xs,
                     fontWeight: typography.fontWeight.medium,
                     color: colors.primary[700],
                   }}
                 >
-                  {profile.user_type === 'buyer' ? t('profilePage.userType.buyer') : profile.user_type} - {profile.buyer_role === 'homeowner' ? t('profilePage.buyerRole.homeowner') : t('profilePage.buyerRole.contractor')}
+                  {profile.buyer_role === 'homeowner' ? t('profilePage.buyerRole.homeowner') : t('profilePage.buyerRole.contractor')}
                 </div>
               </div>
             </div>
@@ -399,7 +459,7 @@ export const Profile: React.FC = () => {
             <button
               onClick={() => setShowEditModal(true)}
               style={{
-                padding: `${spacing[2]} ${spacing[4]}`,
+                padding: `${spacing[2]} ${spacing[3]}`,
                 backgroundColor: colors.neutral[0],
                 border: `1px solid ${colors.border.light}`,
                 borderRadius: borderRadius.md,
@@ -410,6 +470,8 @@ export const Profile: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: spacing[2],
+                width: '100%',
+                justifyContent: 'center',
               }}
             >
               <Icons.Edit2 size={16} />
@@ -419,15 +481,7 @@ export const Profile: React.FC = () => {
         </section>
 
         {/* Account Details Section */}
-        <section
-          style={{
-            backgroundColor: colors.neutral[0],
-            borderRadius: borderRadius.lg,
-            padding: spacing[6],
-            marginBottom: spacing[4],
-            boxShadow: shadows.sm,
-          }}
-        >
+        <section className="profile-section">
           <h2
             style={{
               fontSize: typography.fontSize.xl,
@@ -472,65 +526,45 @@ export const Profile: React.FC = () => {
               <div style={{ fontSize: typography.fontSize.sm, color: colors.text.tertiary, marginBottom: spacing[2] }}>
                 {t('profilePage.sections.accountDetails.languagePreference')}
               </div>
-              <div style={{ display: 'flex', gap: spacing[2] }}>
+              <div className="language-buttons">
                 <button
                   onClick={() => changeLanguage('ka')}
                   style={{
-                    padding: `${spacing[2]} ${spacing[4]}`,
+                    padding: `${spacing[2]} ${spacing[3]}`,
                     backgroundColor: profile.language === 'ka' ? colors.primary[600] : colors.neutral[100],
                     color: profile.language === 'ka' ? colors.neutral[0] : colors.text.secondary,
                     border: 'none',
                     borderRadius: borderRadius.full,
-                    fontSize: typography.fontSize.sm,
+                    fontSize: typography.fontSize.xs,
                     fontWeight: typography.fontWeight.medium,
                     cursor: 'pointer',
                     transition: 'all 200ms ease',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: spacing[2],
-                  }}
-                  onMouseEnter={(e) => {
-                    if (profile.language !== 'ka') {
-                      e.currentTarget.style.backgroundColor = colors.neutral[200];
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (profile.language !== 'ka') {
-                      e.currentTarget.style.backgroundColor = colors.neutral[100];
-                    }
+                    gap: spacing[1],
                   }}
                 >
-                  <Icons.Globe size={14} />
-                  Georgian (ქართული)
+                  <Icons.Globe size={12} />
+                  ქართული
                 </button>
                 <button
                   onClick={() => changeLanguage('en')}
                   style={{
-                    padding: `${spacing[2]} ${spacing[4]}`,
+                    padding: `${spacing[2]} ${spacing[3]}`,
                     backgroundColor: profile.language === 'en' ? colors.primary[600] : colors.neutral[100],
                     color: profile.language === 'en' ? colors.neutral[0] : colors.text.secondary,
                     border: 'none',
                     borderRadius: borderRadius.full,
-                    fontSize: typography.fontSize.sm,
+                    fontSize: typography.fontSize.xs,
                     fontWeight: typography.fontWeight.medium,
                     cursor: 'pointer',
                     transition: 'all 200ms ease',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: spacing[2],
-                  }}
-                  onMouseEnter={(e) => {
-                    if (profile.language !== 'en') {
-                      e.currentTarget.style.backgroundColor = colors.neutral[200];
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (profile.language !== 'en') {
-                      e.currentTarget.style.backgroundColor = colors.neutral[100];
-                    }
+                    gap: spacing[1],
                   }}
                 >
-                  <Icons.Globe size={14} />
+                  <Icons.Globe size={12} />
                   English
                 </button>
               </div>
@@ -552,15 +586,7 @@ export const Profile: React.FC = () => {
         </section>
 
         {/* Active Projects Section */}
-        <section
-          style={{
-            backgroundColor: colors.neutral[0],
-            borderRadius: borderRadius.lg,
-            padding: spacing[6],
-            marginBottom: spacing[4],
-            boxShadow: shadows.sm,
-          }}
-        >
+        <section className="profile-section">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[4] }}>
             <h2
               style={{
@@ -604,15 +630,7 @@ export const Profile: React.FC = () => {
         </section>
 
         {/* Order History Section */}
-        <section
-          style={{
-            backgroundColor: colors.neutral[0],
-            borderRadius: borderRadius.lg,
-            padding: spacing[6],
-            marginBottom: spacing[4],
-            boxShadow: shadows.sm,
-          }}
-        >
+        <section className="profile-section">
           <h2
             style={{
               fontSize: typography.fontSize.xl,
@@ -625,18 +643,18 @@ export const Profile: React.FC = () => {
             {t('profilePage.sections.orderHistory.title')}
           </h2>
 
-          <div style={{ display: 'flex', gap: spacing[4], marginBottom: spacing[4] }}>
-            <div style={{ flex: 1, textAlign: 'center', padding: spacing[4], backgroundColor: colors.primary[50], borderRadius: borderRadius.md }}>
-              <div style={{ fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, color: colors.primary[600] }}>
+          <div className="stats-grid" style={{ marginBottom: spacing[4] }}>
+            <div style={{ backgroundColor: colors.primary[50] }}>
+              <div style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.bold, color: colors.primary[600] }}>
                 {stats.active_orders}
               </div>
-              <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>{t('profilePage.sections.orderHistory.activeOrders')}</div>
+              <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>{t('profilePage.sections.orderHistory.activeOrders')}</div>
             </div>
-            <div style={{ flex: 1, textAlign: 'center', padding: spacing[4], backgroundColor: colors.neutral[100], borderRadius: borderRadius.md }}>
-              <div style={{ fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, color: colors.text.primary }}>
+            <div style={{ backgroundColor: colors.neutral[100] }}>
+              <div style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.bold, color: colors.text.primary }}>
                 {stats.completed_orders}
               </div>
-              <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>{t('profilePage.sections.orderHistory.completedOrders')}</div>
+              <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>{t('profilePage.sections.orderHistory.completedOrders')}</div>
             </div>
           </div>
 
@@ -662,15 +680,7 @@ export const Profile: React.FC = () => {
         </section>
 
         {/* Notification Preferences Section */}
-        <section
-          style={{
-            backgroundColor: colors.neutral[0],
-            borderRadius: borderRadius.lg,
-            padding: spacing[6],
-            marginBottom: spacing[4],
-            boxShadow: shadows.sm,
-          }}
-        >
+        <section className="profile-section">
           <h2
             style={{
               fontSize: typography.fontSize.xl,
@@ -1089,15 +1099,7 @@ export const Profile: React.FC = () => {
         </section>
 
         {/* Help & Legal Section */}
-        <section
-          style={{
-            backgroundColor: colors.neutral[0],
-            borderRadius: borderRadius.lg,
-            padding: spacing[6],
-            marginBottom: spacing[4],
-            boxShadow: shadows.sm,
-          }}
-        >
+        <section className="profile-section">
           <h2
             style={{
               fontSize: typography.fontSize.xl,
@@ -1210,21 +1212,12 @@ export const Profile: React.FC = () => {
         </section>
 
         {/* Danger Zone Section */}
-        <section
-          style={{
-            backgroundColor: colors.neutral[0],
-            borderRadius: borderRadius.lg,
-            padding: spacing[6],
-            marginBottom: spacing[4],
-            boxShadow: shadows.sm,
-            border: `1px solid ${colors.error}`,
-          }}
-        >
+        <section className="profile-section" style={{ border: `1px solid ${colors.error[500]}` }}>
           <h2
             style={{
               fontSize: typography.fontSize.xl,
               fontWeight: typography.fontWeight.semibold,
-              color: colors.error,
+              color: colors.error[500],
               margin: 0,
               marginBottom: spacing[2],
             }}
@@ -1246,11 +1239,11 @@ export const Profile: React.FC = () => {
             style={{
               padding: `${spacing[3]} ${spacing[4]}`,
               backgroundColor: colors.neutral[0],
-              border: `2px solid ${colors.error}`,
+              border: `2px solid ${colors.error[500]}`,
               borderRadius: borderRadius.md,
               fontSize: typography.fontSize.base,
               fontWeight: typography.fontWeight.medium,
-              color: colors.error,
+              color: colors.error[500],
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -1286,6 +1279,7 @@ export const Profile: React.FC = () => {
           }}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 };
