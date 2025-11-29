@@ -1,9 +1,17 @@
+/**
+ * Rental Booking Detail Page
+ * View complete details of a rental booking with timeline
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
+import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
+import { colors, spacing, typography, borderRadius } from '../theme/tokens';
 import { ConditionCheckForm } from '../components/rentals/ConditionCheckForm';
+import { StatusBadge } from '../components/shared';
 import { API_BASE_URL } from '../services/api/client';
+import { useToast } from '../hooks/useToast';
 
 interface RentalBooking {
   id: string;
@@ -11,6 +19,8 @@ interface RentalBooking {
   supplier_id: string;
   supplier_name: string;
   supplier_address?: string;
+  supplier_phone?: string;
+  supplier_email?: string;
   project_id?: string;
   project_name?: string;
   tool: {
@@ -66,11 +76,14 @@ interface RentalBooking {
 const RentalBookingDetail: React.FC = () => {
   const { bookingId } = useParams<{ bookingId: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const toast = useToast();
   const [booking, setBooking] = useState<RentalBooking | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showHandoverForm, setShowHandoverForm] = useState(false);
   const [showReturnForm, setShowReturnForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchBookingDetails();
@@ -106,44 +119,30 @@ const RentalBookingDetail: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'confirmed':
-        return colors.primary;
-      case 'active':
-        return colors.success;
-      case 'completed':
-        return colors.textSecondary;
-      case 'overdue':
-        return colors.error;
-      case 'cancelled':
-        return colors.textTertiary;
-      case 'disputed':
-        return colors.warning;
-      default:
-        return colors.textSecondary;
-    }
+  const getStatusType = (status: string): string => {
+    const statusMap: Record<string, string> = {
+      pending: 'pending',
+      confirmed: 'confirmed',
+      active: 'active',
+      completed: 'completed',
+      overdue: 'disputed',
+      cancelled: 'cancelled',
+      disputed: 'disputed',
+    };
+    return statusMap[status] || 'pending';
   };
 
   const getStatusLabel = (status: string): string => {
-    switch (status) {
-      case 'pending':
-        return 'Pending';
-      case 'confirmed':
-        return 'Confirmed';
-      case 'active':
-        return 'Active';
-      case 'completed':
-        return 'Completed';
-      case 'overdue':
-        return 'Overdue';
-      case 'cancelled':
-        return 'Cancelled';
-      case 'disputed':
-        return 'Disputed';
-      default:
-        return status;
-    }
+    const labels: Record<string, string> = {
+      pending: t('rentalDetail.status.pending', 'Pending'),
+      confirmed: t('rentalDetail.status.confirmed', 'Confirmed'),
+      active: t('rentalDetail.status.active', 'Active'),
+      completed: t('rentalDetail.status.completed', 'Completed'),
+      overdue: t('rentalDetail.status.overdue', 'Overdue'),
+      cancelled: t('rentalDetail.status.cancelled', 'Cancelled'),
+      disputed: t('rentalDetail.status.disputed', 'Disputed'),
+    };
+    return labels[status] || status;
   };
 
   const getTimelineSteps = () => {
@@ -151,43 +150,43 @@ const RentalBookingDetail: React.FC = () => {
 
     const steps = [
       {
-        label: 'Booked',
+        label: t('rentalDetail.timeline.booked', 'Booked'),
         completed: true,
         date: booking.created_at,
         icon: Icons.CheckCircle,
       },
       {
-        label: 'Confirmed',
+        label: t('rentalDetail.timeline.confirmed', 'Confirmed'),
         completed: !!booking.confirmed_at,
         date: booking.confirmed_at,
         icon: Icons.CheckCircle,
       },
       {
-        label: 'Handover Scheduled',
+        label: t('rentalDetail.timeline.handoverScheduled', 'Handover Scheduled'),
         completed: !!booking.handover?.handover_scheduled_at,
         date: booking.handover?.handover_scheduled_at,
         icon: Icons.Calendar,
       },
       {
-        label: 'Handed Over',
+        label: t('rentalDetail.timeline.handedOver', 'Handed Over'),
         completed: !!booking.handover?.handover_confirmed_at,
         date: booking.handover?.handover_confirmed_at,
         icon: Icons.Package,
       },
       {
-        label: 'Return Scheduled',
+        label: t('rentalDetail.timeline.returnScheduled', 'Return Scheduled'),
         completed: !!booking.return?.return_scheduled_at,
         date: booking.return?.return_scheduled_at,
         icon: Icons.Calendar,
       },
       {
-        label: 'Returned',
+        label: t('rentalDetail.timeline.returned', 'Returned'),
         completed: !!booking.return?.return_confirmed_at,
         date: booking.return?.return_confirmed_at,
         icon: Icons.PackageCheck,
       },
       {
-        label: 'Completed',
+        label: t('rentalDetail.timeline.completed', 'Completed'),
         completed: booking.status === 'completed',
         date: booking.status === 'completed' ? booking.updated_at : undefined,
         icon: Icons.CheckCircle2,
@@ -197,14 +196,16 @@ const RentalBookingDetail: React.FC = () => {
     return steps;
   };
 
-  const formatDate = (dateString?: string) => {
+  const formatDateTime = (dateString?: string) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
-      hour: '2-digit',
+      year: 'numeric',
+      hour: 'numeric',
       minute: '2-digit',
+      hour12: true,
     });
   };
 
@@ -230,6 +231,7 @@ const RentalBookingDetail: React.FC = () => {
   };
 
   const handleHandoverSubmit = async (data: { photos: File[]; notes: string }) => {
+    setIsSubmitting(true);
     try {
       const token = localStorage.getItem('buildapp_auth_token');
       if (!token) {
@@ -237,7 +239,6 @@ const RentalBookingDetail: React.FC = () => {
         return;
       }
 
-      // Convert photos to data URLs (simulate upload)
       const photoUrls = await convertFilesToDataURLs(data.photos);
 
       const response = await fetch(
@@ -260,17 +261,19 @@ const RentalBookingDetail: React.FC = () => {
         throw new Error(error.message || 'Failed to confirm handover');
       }
 
-      alert('Handover confirmed successfully!');
+      toast.success(t('rentalDetail.handoverSuccess', 'Handover confirmed successfully!'));
       setShowHandoverForm(false);
-      fetchBookingDetails(); // Refresh booking data
+      fetchBookingDetails();
     } catch (error: any) {
       console.error('Error confirming handover:', error);
-      alert(error.message || 'Failed to confirm handover');
-      throw error;
+      toast.error(error.message || t('rentalDetail.handoverError', 'Failed to confirm handover'));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleReturnSubmit = async (data: { photos: File[]; notes: string }) => {
+    setIsSubmitting(true);
     try {
       const token = localStorage.getItem('buildapp_auth_token');
       if (!token) {
@@ -278,7 +281,6 @@ const RentalBookingDetail: React.FC = () => {
         return;
       }
 
-      // Convert photos to data URLs (simulate upload)
       const photoUrls = await convertFilesToDataURLs(data.photos);
 
       const response = await fetch(
@@ -301,22 +303,43 @@ const RentalBookingDetail: React.FC = () => {
         throw new Error(error.message || 'Failed to confirm return');
       }
 
-      alert('Return confirmed successfully!');
+      toast.success(t('rentalDetail.returnSuccess', 'Return confirmed successfully!'));
       setShowReturnForm(false);
-      fetchBookingDetails(); // Refresh booking data
+      fetchBookingDetails();
     } catch (error: any) {
       console.error('Error confirming return:', error);
-      alert(error.message || 'Failed to confirm return');
-      throw error;
+      toast.error(error.message || t('rentalDetail.returnError', 'Failed to confirm return'));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   if (loading) {
     return (
-      <div style={styles.container}>
-        <div style={styles.loadingContainer}>
-          <Icons.Loader2 size={48} color={colors.primary} style={{ animation: 'spin 1s linear infinite' }} />
-          <p style={styles.loadingText}>Loading booking details...</p>
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: colors.neutral[50],
+          padding: spacing[6],
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <div style={{ textAlign: 'center' }}>
+          <Icons.Loader2
+            size={48}
+            color={colors.primary[600]}
+            style={{ margin: '0 auto', marginBottom: spacing[3], animation: 'spin 1s linear infinite' }}
+          />
+          <style>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+          <p style={{ fontSize: typography.fontSize.lg, color: colors.text.tertiary, margin: 0 }}>
+            {t('rentalDetail.loading', 'Loading booking details...')}
+          </p>
         </div>
       </div>
     );
@@ -324,13 +347,46 @@ const RentalBookingDetail: React.FC = () => {
 
   if (error || !booking) {
     return (
-      <div style={styles.container}>
-        <div style={styles.errorContainer}>
-          <Icons.AlertCircle size={48} color={colors.error} />
-          <h2 style={styles.errorTitle}>Error</h2>
-          <p style={styles.errorMessage}>{error || 'Booking not found'}</p>
-          <button style={styles.backButton} onClick={() => navigate('/rentals')}>
-            Back to Rentals
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: colors.neutral[50],
+          padding: spacing[6],
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <div style={{ textAlign: 'center' }}>
+          <Icons.AlertCircle size={48} color={colors.error[600]} style={{ margin: '0 auto', marginBottom: spacing[3] }} />
+          <h2
+            style={{
+              fontSize: typography.fontSize['2xl'],
+              fontWeight: typography.fontWeight.bold,
+              color: colors.text.primary,
+              margin: 0,
+              marginBottom: spacing[2],
+            }}
+          >
+            {t('rentalDetail.error', 'Error')}
+          </h2>
+          <p style={{ fontSize: typography.fontSize.base, color: colors.text.secondary, margin: 0, marginBottom: spacing[4] }}>
+            {error || t('rentalDetail.notFound', 'Booking not found')}
+          </p>
+          <button
+            onClick={() => navigate('/my-rentals')}
+            style={{
+              padding: `${spacing[3]} ${spacing[6]}`,
+              backgroundColor: colors.primary[600],
+              color: colors.neutral[0],
+              border: 'none',
+              borderRadius: borderRadius.md,
+              fontSize: typography.fontSize.base,
+              fontWeight: typography.fontWeight.medium,
+              cursor: 'pointer',
+            }}
+          >
+            {t('rentalDetail.backToRentals', 'Back to My Rentals')}
           </button>
         </div>
       </div>
@@ -338,607 +394,1132 @@ const RentalBookingDetail: React.FC = () => {
   }
 
   const timelineSteps = getTimelineSteps();
+  const totalAmount =
+    booking.total_rental_amount +
+    (booking.delivery_fee || 0) +
+    (booking.late_return_fee || 0) +
+    (booking.damage_fee || 0);
 
   return (
-    <div style={styles.container}>
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: colors.neutral[50],
+        padding: spacing[6],
+      }}
+    >
       {/* Header */}
-      <div style={styles.header}>
-        <button style={styles.backBtn} onClick={() => navigate('/rentals')}>
-          <Icons.ArrowLeft size={20} />
+      <div
+        style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          marginBottom: spacing[6],
+        }}
+      >
+        <button
+          onClick={() => navigate('/my-rentals')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: spacing[2],
+            padding: `${spacing[2]} ${spacing[3]}`,
+            backgroundColor: 'transparent',
+            border: 'none',
+            color: colors.text.secondary,
+            fontSize: typography.fontSize.sm,
+            cursor: 'pointer',
+            marginBottom: spacing[4],
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = colors.primary[600];
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = colors.text.secondary;
+          }}
+        >
+          <Icons.ArrowLeft size={16} />
+          {t('rentalDetail.backToRentals', 'Back to My Rentals')}
         </button>
-        <div style={styles.headerContent}>
-          <h1 style={styles.title}>Rental Booking</h1>
-          <p style={styles.bookingNumber}>{booking.booking_number}</p>
-        </div>
-        <div style={{ ...styles.statusBadge, backgroundColor: getStatusColor(booking.status) }}>
-          {getStatusLabel(booking.status)}
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h1
+              style={{
+                fontSize: typography.fontSize['3xl'],
+                fontWeight: typography.fontWeight.bold,
+                color: colors.text.primary,
+                margin: 0,
+                marginBottom: spacing[2],
+              }}
+            >
+              {booking.booking_number}
+            </h1>
+            <p
+              style={{
+                fontSize: typography.fontSize.base,
+                color: colors.text.secondary,
+                margin: 0,
+              }}
+            >
+              {t('rentalDetail.placedOn', 'Booked on')} {formatDateTime(booking.created_at)}
+            </p>
+          </div>
+
+          <StatusBadge status={getStatusType(booking.status)} label={getStatusLabel(booking.status)} />
         </div>
       </div>
 
-      {/* Timeline */}
-      <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>Booking Timeline</h2>
-        <div style={styles.timeline}>
-          {timelineSteps.map((step, index) => {
-            const Icon = step.icon;
-            const isLast = index === timelineSteps.length - 1;
+      {/* Main Content - Two Column Grid */}
+      <div
+        className="rental-detail-grid"
+        style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: '1fr',
+          gap: spacing[6],
+        }}
+      >
+        <style>{`
+          @media (min-width: 768px) {
+            .rental-detail-grid {
+              grid-template-columns: 1fr 380px !important;
+            }
+          }
+        `}</style>
 
-            return (
-              <div key={index} style={styles.timelineItem}>
-                <div style={styles.timelineIconContainer}>
-                  <div
+        {/* Left Column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4] }}>
+          {/* Handover Action Prompt */}
+          {booking.status === 'confirmed' && !booking.handover?.handover_confirmed_at && !showHandoverForm && (
+            <div
+              style={{
+                backgroundColor: colors.warning[50],
+                borderRadius: borderRadius.lg,
+                border: `2px solid ${colors.warning[300]}`,
+                padding: spacing[4],
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[4] }}>
+                <Icons.AlertCircle size={24} color={colors.warning[700]} style={{ flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <h3
                     style={{
-                      ...styles.timelineIcon,
-                      backgroundColor: step.completed ? colors.success : colors.border,
+                      fontSize: typography.fontSize.lg,
+                      fontWeight: typography.fontWeight.semibold,
+                      color: colors.warning[900],
+                      margin: 0,
+                      marginBottom: spacing[1],
                     }}
                   >
-                    <Icon size={16} color={colors.background} />
+                    {t('rentalDetail.handoverPending', 'Handover Pending')}
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      color: colors.text.secondary,
+                      margin: 0,
+                      marginBottom: spacing[3],
+                    }}
+                  >
+                    {t(
+                      'rentalDetail.handoverPrompt',
+                      'Please confirm handover once you receive the tool. Take photos of the tool condition and note any existing damage.'
+                    )}
+                  </p>
+                  <button
+                    onClick={() => setShowHandoverForm(true)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[2],
+                      padding: `${spacing[2]} ${spacing[4]}`,
+                      backgroundColor: colors.primary[600],
+                      color: colors.neutral[0],
+                      border: 'none',
+                      borderRadius: borderRadius.md,
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Icons.CheckCircle size={18} />
+                    {t('rentalDetail.confirmHandover', 'Confirm Handover')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showHandoverForm && (
+            <div
+              style={{
+                backgroundColor: colors.neutral[0],
+                borderRadius: borderRadius.lg,
+                border: `1px solid ${colors.border.light}`,
+                padding: spacing[4],
+              }}
+            >
+              <ConditionCheckForm
+                type="handover"
+                onSubmit={handleHandoverSubmit}
+                onCancel={() => setShowHandoverForm(false)}
+                timeWindow={
+                  booking.start_date
+                    ? {
+                        scheduledTime: new Date(booking.start_date),
+                        windowHours: 2,
+                      }
+                    : undefined
+                }
+              />
+            </div>
+          )}
+
+          {/* Return Action Prompt */}
+          {booking.status === 'active' && !booking.return?.return_confirmed_at && !showReturnForm && (
+            <div
+              style={{
+                backgroundColor: colors.info[50],
+                borderRadius: borderRadius.lg,
+                border: `2px solid ${colors.info[300]}`,
+                padding: spacing[4],
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[4] }}>
+                <Icons.AlertCircle size={24} color={colors.info[700]} style={{ flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <h3
+                    style={{
+                      fontSize: typography.fontSize.lg,
+                      fontWeight: typography.fontWeight.semibold,
+                      color: colors.info[900],
+                      margin: 0,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    {t('rentalDetail.returnPending', 'Return Pending')}
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      color: colors.text.secondary,
+                      margin: 0,
+                      marginBottom: spacing[3],
+                    }}
+                  >
+                    {t(
+                      'rentalDetail.returnPrompt',
+                      "Please confirm return once you've returned the tool to the supplier. Take photos showing the tool condition upon return."
+                    )}
+                  </p>
+                  <button
+                    onClick={() => setShowReturnForm(true)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[2],
+                      padding: `${spacing[2]} ${spacing[4]}`,
+                      backgroundColor: colors.primary[600],
+                      color: colors.neutral[0],
+                      border: 'none',
+                      borderRadius: borderRadius.md,
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Icons.PackageCheck size={18} />
+                    {t('rentalDetail.confirmReturn', 'Confirm Return')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showReturnForm && (
+            <div
+              style={{
+                backgroundColor: colors.neutral[0],
+                borderRadius: borderRadius.lg,
+                border: `1px solid ${colors.border.light}`,
+                padding: spacing[4],
+              }}
+            >
+              <ConditionCheckForm
+                type="return"
+                onSubmit={handleReturnSubmit}
+                onCancel={() => setShowReturnForm(false)}
+                timeWindow={
+                  booking.end_date
+                    ? {
+                        scheduledTime: new Date(booking.end_date),
+                        windowHours: 24,
+                      }
+                    : undefined
+                }
+              />
+            </div>
+          )}
+
+          {/* Tool Details Card */}
+          <div
+            style={{
+              backgroundColor: colors.neutral[0],
+              borderRadius: borderRadius.lg,
+              border: `1px solid ${colors.border.light}`,
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                padding: spacing[4],
+                borderBottom: `1px solid ${colors.border.light}`,
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: typography.fontSize.xl,
+                  fontWeight: typography.fontWeight.semibold,
+                  color: colors.text.primary,
+                  margin: 0,
+                }}
+              >
+                {t('rentalDetail.toolDetails', 'Tool Details')}
+              </h2>
+            </div>
+
+            <div style={{ padding: spacing[4] }}>
+              <div style={{ display: 'flex', gap: spacing[4], alignItems: 'flex-start' }}>
+                {booking.tool.images && booking.tool.images.length > 0 ? (
+                  <img
+                    src={booking.tool.images[0]}
+                    alt={booking.tool.name}
+                    style={{
+                      width: '120px',
+                      height: '120px',
+                      objectFit: 'cover',
+                      borderRadius: borderRadius.md,
+                      flexShrink: 0,
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: '120px',
+                      height: '120px',
+                      backgroundColor: colors.neutral[100],
+                      borderRadius: borderRadius.md,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Icons.Wrench size={48} color={colors.text.tertiary} />
                   </div>
-                  {!isLast && (
-                    <div
+                )}
+                <div style={{ flex: 1 }}>
+                  <h3
+                    style={{
+                      fontSize: typography.fontSize.xl,
+                      fontWeight: typography.fontWeight.semibold,
+                      color: colors.text.primary,
+                      margin: 0,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    {booking.tool.name}
+                  </h3>
+                  {booking.tool.spec && (
+                    <p
                       style={{
-                        ...styles.timelineLine,
-                        backgroundColor: step.completed && timelineSteps[index + 1]?.completed
-                          ? colors.success
-                          : colors.border,
+                        fontSize: typography.fontSize.sm,
+                        color: colors.text.secondary,
+                        margin: 0,
+                        marginBottom: spacing[2],
                       }}
-                    />
+                    >
+                      {booking.tool.spec}
+                    </p>
+                  )}
+                  {booking.tool.category && (
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        padding: `${spacing[1]} ${spacing[2]}`,
+                        backgroundColor: colors.neutral[100],
+                        borderRadius: borderRadius.md,
+                        fontSize: typography.fontSize.xs,
+                        color: colors.text.secondary,
+                        textTransform: 'capitalize',
+                      }}
+                    >
+                      {booking.tool.category}
+                    </span>
                   )}
                 </div>
-                <div style={styles.timelineContent}>
-                  <p style={{ ...styles.timelineLabel, color: step.completed ? colors.text : colors.textSecondary }}>
-                    {step.label}
+              </div>
+            </div>
+          </div>
+
+          {/* Rental Period Card */}
+          <div
+            style={{
+              backgroundColor: colors.neutral[0],
+              borderRadius: borderRadius.lg,
+              border: `1px solid ${colors.border.light}`,
+              padding: spacing[4],
+            }}
+          >
+            <h3
+              style={{
+                fontSize: typography.fontSize.lg,
+                fontWeight: typography.fontWeight.semibold,
+                color: colors.text.primary,
+                margin: 0,
+                marginBottom: spacing[4],
+              }}
+            >
+              {t('rentalDetail.rentalPeriod', 'Rental Period')}
+            </h3>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: spacing[4] }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3] }}>
+                <Icons.Calendar size={20} color={colors.primary[600]} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.tertiary,
+                      margin: 0,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    {t('rentalDetail.startDate', 'Start Date')}
                   </p>
-                  {step.date && <p style={styles.timelineDate}>{formatDate(step.date)}</p>}
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.primary,
+                      margin: 0,
+                    }}
+                  >
+                    {formatDateOnly(booking.start_date)}
+                  </p>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </div>
 
-      {/* Handover Confirmation */}
-      {booking.status === 'confirmed' && !booking.handover?.handover_confirmed_at && !showHandoverForm && (
-        <div style={styles.section}>
-          <div style={styles.actionPrompt}>
-            <Icons.AlertCircle size={24} color={colors.primary} />
-            <div style={{ flex: 1 }}>
-              <h3 style={styles.actionTitle}>Handover Pending</h3>
-              <p style={styles.actionText}>
-                Please confirm handover once you receive the tool. Take photos of the tool condition and note any existing damage.
-              </p>
-            </div>
-            <button style={styles.actionButton} onClick={() => setShowHandoverForm(true)}>
-              <Icons.CheckCircle size={20} />
-              <span>Confirm Handover</span>
-            </button>
-          </div>
-        </div>
-      )}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3] }}>
+                <Icons.Calendar size={20} color={colors.primary[600]} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.tertiary,
+                      margin: 0,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    {t('rentalDetail.endDate', 'End Date')}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.primary,
+                      margin: 0,
+                    }}
+                  >
+                    {formatDateOnly(booking.end_date)}
+                  </p>
+                </div>
+              </div>
 
-      {showHandoverForm && (
-        <div style={styles.section}>
-          <ConditionCheckForm
-            type="handover"
-            onSubmit={handleHandoverSubmit}
-            onCancel={() => setShowHandoverForm(false)}
-            timeWindow={
-              booking.start_date
-                ? {
-                    scheduledTime: new Date(booking.start_date),
-                    windowHours: 2,
-                  }
-                : undefined
-            }
-          />
-        </div>
-      )}
-
-      {/* Return Confirmation */}
-      {booking.status === 'active' && !booking.return?.return_confirmed_at && !showReturnForm && (
-        <div style={styles.section}>
-          <div style={styles.actionPrompt}>
-            <Icons.AlertCircle size={24} color={colors.warning} />
-            <div style={{ flex: 1 }}>
-              <h3 style={styles.actionTitle}>Return Pending</h3>
-              <p style={styles.actionText}>
-                Please confirm return once you've returned the tool to the supplier. Take photos showing the tool condition upon return.
-              </p>
-            </div>
-            <button style={styles.actionButton} onClick={() => setShowReturnForm(true)}>
-              <Icons.PackageCheck size={20} />
-              <span>Confirm Return</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {showReturnForm && (
-        <div style={styles.section}>
-          <ConditionCheckForm
-            type="return"
-            onSubmit={handleReturnSubmit}
-            onCancel={() => setShowReturnForm(false)}
-            timeWindow={
-              booking.end_date
-                ? {
-                    scheduledTime: new Date(booking.end_date),
-                    windowHours: 24,
-                  }
-                : undefined
-            }
-          />
-        </div>
-      )}
-
-      {/* Tool Details */}
-      <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>Tool Details</h2>
-        <div style={styles.toolCard}>
-          {booking.tool.images && booking.tool.images.length > 0 ? (
-            <img src={booking.tool.images[0]} alt={booking.tool.name} style={styles.toolImage} />
-          ) : (
-            <div style={styles.toolImagePlaceholder}>
-              <Icons.Wrench size={48} color={colors.textTertiary} />
-            </div>
-          )}
-          <div style={styles.toolInfo}>
-            <h3 style={styles.toolName}>{booking.tool.name}</h3>
-            <p style={styles.toolSpec}>{booking.tool.spec}</p>
-            <div style={styles.toolMeta}>
-              <span style={styles.categoryBadge}>{booking.tool.category}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Rental Period */}
-      <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>Rental Period</h2>
-        <div style={styles.infoGrid}>
-          <div style={styles.infoItem}>
-            <Icons.Calendar size={20} color={colors.textSecondary} />
-            <div>
-              <p style={styles.infoLabel}>Start Date</p>
-              <p style={styles.infoValue}>{formatDateOnly(booking.start_date)}</p>
-            </div>
-          </div>
-          <div style={styles.infoItem}>
-            <Icons.Calendar size={20} color={colors.textSecondary} />
-            <div>
-              <p style={styles.infoLabel}>End Date</p>
-              <p style={styles.infoValue}>{formatDateOnly(booking.end_date)}</p>
-            </div>
-          </div>
-          <div style={styles.infoItem}>
-            <Icons.Clock size={20} color={colors.textSecondary} />
-            <div>
-              <p style={styles.infoLabel}>Duration</p>
-              <p style={styles.infoValue}>{booking.rental_duration_days} days</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Supplier & Delivery */}
-      <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>Supplier & Delivery</h2>
-        <div style={styles.infoGrid}>
-          <div style={styles.infoItem}>
-            <Icons.Building2 size={20} color={colors.textSecondary} />
-            <div>
-              <p style={styles.infoLabel}>Supplier</p>
-              <p style={styles.infoValue}>{booking.supplier_name}</p>
-            </div>
-          </div>
-          <div style={styles.infoItem}>
-            <Icons.Truck size={20} color={colors.textSecondary} />
-            <div>
-              <p style={styles.infoLabel}>Method</p>
-              <p style={styles.infoValue}>
-                {booking.pickup_or_delivery === 'delivery' ? 'Delivery' : 'Pickup'}
-              </p>
-            </div>
-          </div>
-          {booking.delivery_address && (
-            <div style={styles.infoItem}>
-              <Icons.MapPin size={20} color={colors.textSecondary} />
-              <div>
-                <p style={styles.infoLabel}>Delivery Address</p>
-                <p style={styles.infoValue}>{booking.delivery_address}</p>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3] }}>
+                <Icons.Clock size={20} color={colors.primary[600]} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.tertiary,
+                      margin: 0,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    {t('rentalDetail.duration', 'Duration')}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.primary,
+                      margin: 0,
+                    }}
+                  >
+                    {booking.rental_duration_days} {booking.rental_duration_days === 1 ? 'day' : 'days'}
+                  </p>
+                </div>
               </div>
             </div>
-          )}
-          {booking.project_name && (
-            <div style={styles.infoItem}>
-              <Icons.FolderOpen size={20} color={colors.textSecondary} />
-              <div>
-                <p style={styles.infoLabel}>Project</p>
-                <p style={styles.infoValue}>{booking.project_name}</p>
+          </div>
+
+          {/* Delivery/Pickup Info Card */}
+          <div
+            style={{
+              backgroundColor: colors.neutral[0],
+              borderRadius: borderRadius.lg,
+              border: `1px solid ${colors.border.light}`,
+              padding: spacing[4],
+            }}
+          >
+            <h3
+              style={{
+                fontSize: typography.fontSize.lg,
+                fontWeight: typography.fontWeight.semibold,
+                color: colors.text.primary,
+                margin: 0,
+                marginBottom: spacing[4],
+              }}
+            >
+              {booking.pickup_or_delivery === 'pickup'
+                ? t('rentalDetail.pickupInfo', 'Pickup Information')
+                : t('rentalDetail.deliveryInfo', 'Delivery Information')}
+            </h3>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3] }}>
+                {booking.pickup_or_delivery === 'pickup' ? (
+                  <Icons.MapPin size={20} color={colors.primary[600]} style={{ flexShrink: 0, marginTop: '2px' }} />
+                ) : (
+                  <Icons.Truck size={20} color={colors.primary[600]} style={{ flexShrink: 0, marginTop: '2px' }} />
+                )}
+                <div>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.tertiary,
+                      margin: 0,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    {booking.pickup_or_delivery === 'pickup'
+                      ? t('rentalDetail.pickupLocation', 'Pickup Location')
+                      : t('rentalDetail.deliveryAddress', 'Delivery Address')}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      color: colors.text.primary,
+                      margin: 0,
+                    }}
+                  >
+                    {booking.pickup_or_delivery === 'pickup'
+                      ? booking.supplier_address || booking.supplier_name
+                      : booking.delivery_address}
+                  </p>
+                </div>
               </div>
+
+              {booking.project_name && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3] }}>
+                  <Icons.FolderOpen size={20} color={colors.primary[600]} style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <p
+                      style={{
+                        fontSize: typography.fontSize.sm,
+                        fontWeight: typography.fontWeight.medium,
+                        color: colors.text.tertiary,
+                        margin: 0,
+                        marginBottom: spacing[1],
+                      }}
+                    >
+                      {t('rentalDetail.project', 'Project')}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: typography.fontSize.base,
+                        color: colors.text.primary,
+                        margin: 0,
+                      }}
+                    >
+                      {booking.project_name}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Notes */}
+          {(booking.buyer_notes || booking.supplier_notes || booking.notes) && (
+            <div
+              style={{
+                backgroundColor: colors.neutral[0],
+                borderRadius: borderRadius.lg,
+                border: `1px solid ${colors.border.light}`,
+                padding: spacing[4],
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: typography.fontSize.lg,
+                  fontWeight: typography.fontWeight.semibold,
+                  color: colors.text.primary,
+                  margin: 0,
+                  marginBottom: spacing[3],
+                }}
+              >
+                {t('rentalDetail.notes', 'Notes')}
+              </h3>
+
+              {booking.buyer_notes && (
+                <div style={{ marginBottom: spacing[3] }}>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.tertiary,
+                      margin: 0,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    {t('rentalDetail.yourNotes', 'Your Notes')}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      color: colors.text.primary,
+                      margin: 0,
+                    }}
+                  >
+                    {booking.buyer_notes}
+                  </p>
+                </div>
+              )}
+
+              {booking.supplier_notes && (
+                <div style={{ marginBottom: booking.notes ? spacing[3] : 0 }}>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.tertiary,
+                      margin: 0,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    {t('rentalDetail.supplierNotes', 'Supplier Notes')}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      color: colors.text.primary,
+                      margin: 0,
+                    }}
+                  >
+                    {booking.supplier_notes}
+                  </p>
+                </div>
+              )}
+
+              {booking.notes && (
+                <div>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.tertiary,
+                      margin: 0,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    {t('rentalDetail.bookingNotes', 'Booking Notes')}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      color: colors.text.primary,
+                      margin: 0,
+                    }}
+                  >
+                    {booking.notes}
+                  </p>
+                </div>
+              )}
             </div>
           )}
+        </div>
+
+        {/* Right Column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4] }}>
+          {/* Booking Timeline */}
+          <div
+            style={{
+              backgroundColor: colors.neutral[0],
+              borderRadius: borderRadius.lg,
+              border: `1px solid ${colors.border.light}`,
+              padding: spacing[4],
+            }}
+          >
+            <h3
+              style={{
+                fontSize: typography.fontSize.lg,
+                fontWeight: typography.fontWeight.semibold,
+                color: colors.text.primary,
+                margin: 0,
+                marginBottom: spacing[4],
+              }}
+            >
+              {t('rentalDetail.bookingTimeline', 'Booking Timeline')}
+            </h3>
+
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {timelineSteps.map((step, index) => {
+                const Icon = step.icon;
+                const isLast = index === timelineSteps.length - 1;
+
+                return (
+                  <div key={index} style={{ display: 'flex', gap: spacing[3] }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          backgroundColor: step.completed ? colors.success[600] : colors.neutral[200],
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Icon size={16} color={colors.neutral[0]} />
+                      </div>
+                      {!isLast && (
+                        <div
+                          style={{
+                            width: '2px',
+                            flex: 1,
+                            minHeight: '24px',
+                            backgroundColor:
+                              step.completed && timelineSteps[index + 1]?.completed
+                                ? colors.success[600]
+                                : colors.neutral[200],
+                          }}
+                        />
+                      )}
+                    </div>
+                    <div style={{ flex: 1, paddingBottom: spacing[3] }}>
+                      <p
+                        style={{
+                          fontSize: typography.fontSize.sm,
+                          fontWeight: typography.fontWeight.semibold,
+                          color: step.completed ? colors.text.primary : colors.text.tertiary,
+                          margin: 0,
+                          marginBottom: spacing[1],
+                        }}
+                      >
+                        {step.label}
+                      </p>
+                      {step.date && (
+                        <p
+                          style={{
+                            fontSize: typography.fontSize.xs,
+                            color: colors.text.tertiary,
+                            margin: 0,
+                          }}
+                        >
+                          {formatDateTime(step.date)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Supplier Contact */}
+          <div
+            style={{
+              backgroundColor: colors.neutral[0],
+              borderRadius: borderRadius.lg,
+              border: `1px solid ${colors.border.light}`,
+              padding: spacing[4],
+            }}
+          >
+            <h3
+              style={{
+                fontSize: typography.fontSize.lg,
+                fontWeight: typography.fontWeight.semibold,
+                color: colors.text.primary,
+                margin: 0,
+                marginBottom: spacing[3],
+              }}
+            >
+              {t('rentalDetail.supplierContact', 'Supplier Contact')}
+            </h3>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+              <div>
+                <p
+                  style={{
+                    fontSize: typography.fontSize.sm,
+                    fontWeight: typography.fontWeight.medium,
+                    color: colors.text.tertiary,
+                    margin: 0,
+                    marginBottom: spacing[1],
+                  }}
+                >
+                  {t('rentalDetail.businessName', 'Business Name')}
+                </p>
+                <p
+                  style={{
+                    fontSize: typography.fontSize.base,
+                    fontWeight: typography.fontWeight.semibold,
+                    color: colors.text.primary,
+                    margin: 0,
+                  }}
+                >
+                  {booking.supplier_name}
+                </p>
+              </div>
+
+              {booking.supplier_phone && (
+                <div>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.tertiary,
+                      margin: 0,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    {t('rentalDetail.phone', 'Phone')}
+                  </p>
+                  <a
+                    href={`tel:${booking.supplier_phone}`}
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      color: colors.primary[600],
+                      textDecoration: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[1],
+                    }}
+                  >
+                    <Icons.Phone size={16} />
+                    {booking.supplier_phone}
+                  </a>
+                </div>
+              )}
+
+              {booking.supplier_email && (
+                <div>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.tertiary,
+                      margin: 0,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    {t('rentalDetail.email', 'Email')}
+                  </p>
+                  <a
+                    href={`mailto:${booking.supplier_email}`}
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      color: colors.primary[600],
+                      textDecoration: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[1],
+                    }}
+                  >
+                    <Icons.Mail size={16} />
+                    {booking.supplier_email}
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Pricing Card */}
+          <div
+            style={{
+              backgroundColor: colors.neutral[0],
+              borderRadius: borderRadius.lg,
+              border: `1px solid ${colors.border.light}`,
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                padding: spacing[4],
+                borderBottom: `1px solid ${colors.border.light}`,
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: typography.fontSize.lg,
+                  fontWeight: typography.fontWeight.semibold,
+                  color: colors.text.primary,
+                  margin: 0,
+                }}
+              >
+                {t('rentalDetail.pricing', 'Pricing')}
+              </h3>
+            </div>
+
+            <div style={{ padding: spacing[4] }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginBottom: spacing[2],
+                }}
+              >
+                <span style={{ fontSize: typography.fontSize.base, color: colors.text.secondary }}>
+                  {t('rentalDetail.dailyRate', 'Daily Rate')}
+                </span>
+                <span
+                  style={{
+                    fontSize: typography.fontSize.base,
+                    fontWeight: typography.fontWeight.medium,
+                    color: colors.text.primary,
+                  }}
+                >
+                  {booking.day_rate?.toLocaleString()} ₾
+                </span>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginBottom: spacing[2],
+                }}
+              >
+                <span style={{ fontSize: typography.fontSize.base, color: colors.text.secondary }}>
+                  {t('rentalDetail.rentalDuration', 'Rental Duration')}
+                </span>
+                <span
+                  style={{
+                    fontSize: typography.fontSize.base,
+                    fontWeight: typography.fontWeight.medium,
+                    color: colors.text.primary,
+                  }}
+                >
+                  {booking.rental_duration_days} {t('rentalDetail.days', 'days')}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginBottom: spacing[2],
+                }}
+              >
+                <span style={{ fontSize: typography.fontSize.base, color: colors.text.secondary }}>
+                  {t('rentalDetail.rentalAmount', 'Rental Amount')}
+                </span>
+                <span
+                  style={{
+                    fontSize: typography.fontSize.base,
+                    fontWeight: typography.fontWeight.medium,
+                    color: colors.text.primary,
+                  }}
+                >
+                  {booking.total_rental_amount?.toLocaleString()} ₾
+                </span>
+              </div>
+
+              {booking.delivery_fee > 0 && (
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginBottom: spacing[2],
+                  }}
+                >
+                  <span style={{ fontSize: typography.fontSize.base, color: colors.text.secondary }}>
+                    {t('rentalDetail.deliveryFee', 'Delivery Fee')}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.primary,
+                    }}
+                  >
+                    {booking.delivery_fee?.toLocaleString()} ₾
+                  </span>
+                </div>
+              )}
+
+              {booking.late_return_fee > 0 && (
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginBottom: spacing[2],
+                  }}
+                >
+                  <span style={{ fontSize: typography.fontSize.base, color: colors.text.secondary }}>
+                    {t('rentalDetail.lateReturnFee', 'Late Return Fee')}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.error[600],
+                    }}
+                  >
+                    {booking.late_return_fee?.toLocaleString()} ₾
+                  </span>
+                </div>
+              )}
+
+              {booking.damage_fee > 0 && (
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginBottom: spacing[2],
+                  }}
+                >
+                  <span style={{ fontSize: typography.fontSize.base, color: colors.text.secondary }}>
+                    {t('rentalDetail.damageFee', 'Damage Fee')}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.error[600],
+                    }}
+                  >
+                    {booking.damage_fee?.toLocaleString()} ₾
+                  </span>
+                </div>
+              )}
+
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  paddingTop: spacing[3],
+                  marginTop: spacing[2],
+                  borderTop: `1px solid ${colors.border.light}`,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: typography.fontSize.lg,
+                    fontWeight: typography.fontWeight.semibold,
+                    color: colors.text.primary,
+                  }}
+                >
+                  {t('rentalDetail.total', 'Total')}
+                </span>
+                <span
+                  style={{
+                    fontSize: typography.fontSize['2xl'],
+                    fontWeight: typography.fontWeight.bold,
+                    color: colors.primary[600],
+                  }}
+                >
+                  {totalAmount?.toLocaleString()} ₾
+                </span>
+              </div>
+
+              {booking.deposit_amount > 0 && (
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    paddingTop: spacing[3],
+                    marginTop: spacing[3],
+                    borderTop: `1px solid ${colors.border.light}`,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      color: colors.text.tertiary,
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    {t('rentalDetail.depositPaid', 'Deposit (paid to supplier)')}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.secondary,
+                    }}
+                  >
+                    {booking.deposit_amount?.toLocaleString()} ₾
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Payment Method */}
+          <div
+            style={{
+              backgroundColor: colors.neutral[0],
+              borderRadius: borderRadius.lg,
+              border: `1px solid ${colors.border.light}`,
+              padding: spacing[4],
+            }}
+          >
+            <h3
+              style={{
+                fontSize: typography.fontSize.lg,
+                fontWeight: typography.fontWeight.semibold,
+                color: colors.text.primary,
+                margin: 0,
+                marginBottom: spacing[3],
+              }}
+            >
+              {t('rentalDetail.payment', 'Payment')}
+            </h3>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+              <Icons.CreditCard size={20} color={colors.primary[600]} />
+              <p
+                style={{
+                  fontSize: typography.fontSize.base,
+                  color: colors.text.primary,
+                  margin: 0,
+                }}
+              >
+                {booking.payment_terms === 'cod'
+                  ? t('rentalDetail.cashOnDelivery', 'Cash on Delivery')
+                  : t('rentalDetail.paymentOnDelivery', 'Payment on delivery')}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* Pricing */}
-      <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>Pricing</h2>
-        <div style={styles.pricingCard}>
-          <div style={styles.pricingRow}>
-            <span style={styles.pricingLabel}>Daily Rate</span>
-            <span style={styles.pricingValue}>{booking.day_rate.toLocaleString()} ₾</span>
-          </div>
-          <div style={styles.pricingRow}>
-            <span style={styles.pricingLabel}>Rental Duration</span>
-            <span style={styles.pricingValue}>{booking.rental_duration_days} days</span>
-          </div>
-          <div style={styles.pricingRow}>
-            <span style={styles.pricingLabel}>Rental Amount</span>
-            <span style={styles.pricingValue}>{booking.total_rental_amount.toLocaleString()} ₾</span>
-          </div>
-          {booking.delivery_fee > 0 && (
-            <div style={styles.pricingRow}>
-              <span style={styles.pricingLabel}>Delivery Fee</span>
-              <span style={styles.pricingValue}>{booking.delivery_fee.toLocaleString()} ₾</span>
-            </div>
-          )}
-          {booking.late_return_fee > 0 && (
-            <div style={styles.pricingRow}>
-              <span style={styles.pricingLabel}>Late Return Fee</span>
-              <span style={{ ...styles.pricingValue, color: colors.error }}>
-                {booking.late_return_fee.toLocaleString()} ₾
-              </span>
-            </div>
-          )}
-          {booking.damage_fee > 0 && (
-            <div style={styles.pricingRow}>
-              <span style={styles.pricingLabel}>Damage Fee</span>
-              <span style={{ ...styles.pricingValue, color: colors.error }}>
-                {booking.damage_fee.toLocaleString()} ₾
-              </span>
-            </div>
-          )}
-          <div style={{ ...styles.pricingRow, ...styles.pricingTotal }}>
-            <span style={styles.pricingLabel}>Total</span>
-            <span style={styles.pricingValue}>
-              {(
-                booking.total_rental_amount +
-                booking.delivery_fee +
-                booking.late_return_fee +
-                booking.damage_fee
-              ).toLocaleString()}{' '}
-              ₾
-            </span>
-          </div>
-          <div style={{ ...styles.pricingRow, marginTop: spacing.md, paddingTop: spacing.md, borderTop: `1px solid ${colors.border}` }}>
-            <span style={styles.depositLabel}>Deposit (paid to supplier)</span>
-            <span style={styles.depositValue}>{booking.deposit_amount.toLocaleString()} ₾</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Notes */}
-      {(booking.buyer_notes || booking.supplier_notes || booking.notes) && (
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>Notes</h2>
-          {booking.buyer_notes && (
-            <div style={styles.noteCard}>
-              <p style={styles.noteLabel}>Your Notes</p>
-              <p style={styles.noteText}>{booking.buyer_notes}</p>
-            </div>
-          )}
-          {booking.supplier_notes && (
-            <div style={styles.noteCard}>
-              <p style={styles.noteLabel}>Supplier Notes</p>
-              <p style={styles.noteText}>{booking.supplier_notes}</p>
-            </div>
-          )}
-          {booking.notes && (
-            <div style={styles.noteCard}>
-              <p style={styles.noteLabel}>Booking Notes</p>
-              <p style={styles.noteText}>{booking.notes}</p>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
-};
-
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    padding: spacing.xl,
-    maxWidth: '1200px',
-    margin: '0 auto',
-  },
-  loadingContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '400px',
-    gap: spacing.md,
-  },
-  loadingText: {
-    ...typography.body,
-    color: colors.textSecondary,
-  },
-  errorContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '400px',
-    gap: spacing.md,
-  },
-  errorTitle: {
-    ...typography.h2,
-    color: colors.text,
-    margin: 0,
-  },
-  errorMessage: {
-    ...typography.body,
-    color: colors.textSecondary,
-  },
-  backButton: {
-    padding: `${spacing.sm} ${spacing.lg}`,
-    backgroundColor: colors.primary,
-    color: colors.background,
-    border: 'none',
-    borderRadius: borderRadius.md,
-    ...typography.body,
-    fontWeight: 600,
-    cursor: 'pointer',
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: spacing.lg,
-    marginBottom: spacing.xl,
-    padding: spacing.lg,
-    backgroundColor: colors.background,
-    borderRadius: borderRadius.lg,
-    boxShadow: shadows.sm,
-  },
-  backBtn: {
-    padding: spacing.sm,
-    backgroundColor: 'transparent',
-    border: `1px solid ${colors.border}`,
-    borderRadius: borderRadius.md,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: colors.text,
-  },
-  headerContent: {
-    flex: 1,
-  },
-  title: {
-    ...typography.h2,
-    margin: 0,
-    marginBottom: spacing.xs,
-  },
-  bookingNumber: {
-    ...typography.body,
-    color: colors.textSecondary,
-    margin: 0,
-  },
-  statusBadge: {
-    padding: `${spacing.xs} ${spacing.md}`,
-    borderRadius: borderRadius.md,
-    ...typography.caption,
-    fontWeight: 600,
-    color: colors.background,
-  },
-  section: {
-    marginBottom: spacing.xl,
-    padding: spacing.lg,
-    backgroundColor: colors.background,
-    borderRadius: borderRadius.lg,
-    boxShadow: shadows.sm,
-  },
-  sectionTitle: {
-    ...typography.h3,
-    marginBottom: spacing.lg,
-  },
-  timeline: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.md,
-  },
-  timelineItem: {
-    display: 'flex',
-    gap: spacing.md,
-  },
-  timelineIconContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  timelineIcon: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  timelineLine: {
-    width: '2px',
-    flex: 1,
-    minHeight: '20px',
-  },
-  timelineContent: {
-    flex: 1,
-    paddingBottom: spacing.sm,
-  },
-  timelineLabel: {
-    ...typography.body,
-    fontWeight: 600,
-    margin: 0,
-    marginBottom: spacing.xs,
-  },
-  timelineDate: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    margin: 0,
-  },
-  toolCard: {
-    display: 'flex',
-    gap: spacing.lg,
-    alignItems: 'start',
-  },
-  toolImage: {
-    width: '120px',
-    height: '120px',
-    objectFit: 'cover',
-    borderRadius: borderRadius.md,
-  },
-  toolImagePlaceholder: {
-    width: '120px',
-    height: '120px',
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: borderRadius.md,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  toolInfo: {
-    flex: 1,
-  },
-  toolName: {
-    ...typography.h3,
-    margin: 0,
-    marginBottom: spacing.xs,
-  },
-  toolSpec: {
-    ...typography.body,
-    color: colors.textSecondary,
-    marginBottom: spacing.sm,
-  },
-  toolMeta: {
-    display: 'flex',
-    gap: spacing.sm,
-  },
-  categoryBadge: {
-    padding: `${spacing.xs} ${spacing.sm}`,
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: borderRadius.sm,
-    ...typography.caption,
-    color: colors.textSecondary,
-    textTransform: 'capitalize',
-  },
-  infoGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: spacing.lg,
-  },
-  infoItem: {
-    display: 'flex',
-    gap: spacing.sm,
-    alignItems: 'start',
-  },
-  infoLabel: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    margin: 0,
-    marginBottom: spacing.xs,
-  },
-  infoValue: {
-    ...typography.body,
-    color: colors.text,
-    margin: 0,
-    fontWeight: 500,
-  },
-  pricingCard: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.sm,
-  },
-  pricingRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: `${spacing.sm} 0`,
-  },
-  pricingLabel: {
-    ...typography.body,
-    color: colors.textSecondary,
-  },
-  pricingValue: {
-    ...typography.body,
-    color: colors.text,
-    fontWeight: 600,
-  },
-  pricingTotal: {
-    borderTop: `2px solid ${colors.border}`,
-    paddingTop: spacing.md,
-    marginTop: spacing.sm,
-  },
-  depositLabel: {
-    ...typography.body,
-    color: colors.textSecondary,
-    fontStyle: 'italic',
-  },
-  depositValue: {
-    ...typography.body,
-    color: colors.textSecondary,
-    fontWeight: 600,
-  },
-  noteCard: {
-    padding: spacing.md,
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: borderRadius.md,
-    marginBottom: spacing.md,
-  },
-  noteLabel: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    margin: 0,
-    marginBottom: spacing.xs,
-    fontWeight: 600,
-  },
-  noteText: {
-    ...typography.body,
-    color: colors.text,
-    margin: 0,
-  },
-  actionPrompt: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: spacing.lg,
-    padding: spacing.lg,
-    backgroundColor: '#FFF9C4',
-    borderRadius: borderRadius.md,
-    border: `1px solid ${colors.warning}`,
-  },
-  actionTitle: {
-    ...typography.h3,
-    margin: 0,
-    marginBottom: spacing.xs,
-    color: colors.text,
-  },
-  actionText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    margin: 0,
-  },
-  actionButton: {
-    padding: `${spacing.sm} ${spacing.lg}`,
-    backgroundColor: colors.primary,
-    color: colors.background,
-    border: 'none',
-    borderRadius: borderRadius.md,
-    ...typography.body,
-    fontWeight: 600,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: spacing.sm,
-    whiteSpace: 'nowrap',
-  },
 };
 
 export default RentalBookingDetail;
