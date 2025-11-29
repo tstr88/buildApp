@@ -712,6 +712,14 @@ router.post(
     const startDateOnly = new Date(startDate);
     startDateOnly.setHours(0, 0, 0, 0);
 
+    console.log('Date validation:', {
+      start_date,
+      startDate: startDate.toISOString(),
+      startDateOnly: startDateOnly.toISOString(),
+      today: today.toISOString(),
+      comparison: startDateOnly < today,
+    });
+
     if (startDateOnly < today) {
       return res.status(400).json({
         success: false,
