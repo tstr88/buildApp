@@ -3,12 +3,13 @@
  * View and manage RFQs from buyers with tabs for different statuses
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import * as Icons from 'lucide-react';
-import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
+import { Inbox, MapPin, Package, Calendar } from 'lucide-react';
+import { colors, spacing, typography, borderRadius } from '../theme/tokens';
 import { useWebSocket } from '../context/WebSocketContext';
+import { TabNavigation, PageHeader, EmptyState, StatusBadge, ListCard } from '../components/shared';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -62,10 +63,8 @@ export function SupplierRFQInbox() {
   useEffect(() => {
     if (!socket) return;
 
-    // Subscribe to orders list updates (RFQs are part of orders system)
     subscribeToOrders();
 
-    // Listen for RFQ list update event
     const handleRFQsListUpdate = () => {
       console.log('[SupplierRFQInbox] RFQs list updated, refreshing...');
       fetchRFQs();
@@ -74,7 +73,6 @@ export function SupplierRFQInbox() {
     socket.on('rfqs:list-updated', handleRFQsListUpdate);
     socket.on('orders:list-updated', handleRFQsListUpdate);
 
-    // Cleanup on unmount
     return () => {
       socket.off('rfqs:list-updated', handleRFQsListUpdate);
       socket.off('orders:list-updated', handleRFQsListUpdate);
@@ -83,14 +81,10 @@ export function SupplierRFQInbox() {
   }, [socket, subscribeToOrders, unsubscribeFromOrders]);
 
   const fetchRFQs = async () => {
-    console.log('[SupplierRFQInbox] fetchRFQs called, activeTab:', activeTab);
     setLoading(true);
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      console.log('[SupplierRFQInbox] Token exists:', !!token);
-
       const url = `${API_URL}/api/suppliers/rfqs?status=${activeTab}`;
-      console.log('[SupplierRFQInbox] Fetching from:', url);
 
       const response = await fetch(url, {
         headers: {
@@ -98,42 +92,21 @@ export function SupplierRFQInbox() {
         },
       });
 
-      console.log('[SupplierRFQInbox] Response status:', response.status, response.statusText);
-
       if (response.ok) {
         const data = await response.json();
-        console.log('[SupplierRFQInbox] Raw response data:', data);
-        console.log('[SupplierRFQInbox] RFQ array:', data.data);
-        console.log('[SupplierRFQInbox] RFQ count:', data.data?.length);
-        console.log('[SupplierRFQInbox] Counts:', data.counts);
-        console.log('[SupplierRFQInbox] Setting rfqs state with:', data.data || []);
         setRfqs(data.data || []);
         setCounts(data.counts || counts);
-        console.log('[SupplierRFQInbox] State updated');
-      } else {
-        const errorText = await response.text();
-        console.error('[SupplierRFQInbox] Response not OK:', response.status, response.statusText);
-        console.error('[SupplierRFQInbox] Error body:', errorText);
       }
     } catch (error) {
       console.error('[SupplierRFQInbox] Failed to fetch RFQs:', error);
     } finally {
       setLoading(false);
-      console.log('[SupplierRFQInbox] Loading set to false');
     }
   };
 
-  const handleTabChange = (tab: TabType) => {
-    setActiveTab(tab);
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab as TabType);
     setSearchParams({ tab });
-  };
-
-  const getBuyerBadgeColor = (buyerType: 'homeowner' | 'contractor') => {
-    return buyerType === 'homeowner' ? colors.info[100] : colors.primary[100];
-  };
-
-  const getBuyerBadgeTextColor = (buyerType: 'homeowner' | 'contractor') => {
-    return buyerType === 'homeowner' ? colors.info[700] : colors.primary[700];
   };
 
   const formatDeliveryWindow = (start: string | null, end: string | null) => {
@@ -151,6 +124,13 @@ export function SupplierRFQInbox() {
     return `${startDate.toLocaleDateString(locale, options)} - ${endDate.toLocaleDateString(locale, options)}`;
   };
 
+  const tabs = [
+    { id: 'new', label: t('supplierRFQInbox.tabs.new', 'New'), count: counts.new, hasAlert: counts.new > 0 },
+    { id: 'sent', label: t('supplierRFQInbox.tabs.sent', 'Sent Offers'), count: counts.sent },
+    { id: 'accepted', label: t('supplierRFQInbox.tabs.accepted', 'Accepted'), count: counts.accepted },
+    { id: 'expired', label: t('supplierRFQInbox.tabs.expired', 'Expired'), count: counts.expired },
+  ];
+
   return (
     <div
       style={{
@@ -159,143 +139,16 @@ export function SupplierRFQInbox() {
         padding: spacing[6],
       }}
     >
-      {/* Header */}
-      <div style={{ marginBottom: spacing[6] }}>
-        <h1
-          style={{
-            fontSize: typography.fontSize['2xl'],
-            fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
-            margin: 0,
-            marginBottom: spacing[2],
-          }}
-        >
-          {t('supplierRFQInbox.title', 'RFQ Inbox')}
-        </h1>
-        <p
-          style={{
-            fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
-            margin: 0,
-          }}
-        >
-          {t('supplierRFQInbox.subtitle', 'Manage quote requests from buyers')}
-        </p>
-      </div>
+      <PageHeader
+        title={t('supplierRFQInbox.title', 'RFQ Inbox')}
+        subtitle={t('supplierRFQInbox.subtitle', 'Manage quote requests from buyers')}
+      />
 
-      {/* Tabs */}
-      <div
-        style={{
-          display: 'flex',
-          gap: spacing[2],
-          marginBottom: spacing[5],
-          borderBottom: `1px solid ${colors.border.light}`,
-          overflowX: 'auto',
-        }}
-      >
-        <button
-          onClick={() => handleTabChange('new')}
-          style={{
-            padding: `${spacing[3]} ${spacing[4]}`,
-            backgroundColor: 'transparent',
-            border: 'none',
-            borderBottom: `2px solid ${activeTab === 'new' ? colors.primary[600] : 'transparent'}`,
-            color: activeTab === 'new' ? colors.primary[600] : colors.text.secondary,
-            fontSize: typography.fontSize.base,
-            fontWeight: activeTab === 'new' ? typography.fontWeight.semibold : typography.fontWeight.medium,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: spacing[2],
-            transition: 'color 0.2s',
-          }}
-        >
-          {t('supplierRFQInbox.tabs.new', 'New')}
-          {counts.new > 0 && (
-            <span
-              style={{
-                backgroundColor: colors.error[500],
-                color: colors.neutral[0],
-                fontSize: typography.fontSize.xs,
-                fontWeight: typography.fontWeight.bold,
-                padding: `${spacing[1]} ${spacing[2]}`,
-                borderRadius: borderRadius.full,
-                minWidth: '20px',
-                textAlign: 'center',
-              }}
-            >
-              {counts.new}
-            </span>
-          )}
-        </button>
-
-        <button
-          onClick={() => handleTabChange('sent')}
-          style={{
-            padding: `${spacing[3]} ${spacing[4]}`,
-            backgroundColor: 'transparent',
-            border: 'none',
-            borderBottom: `2px solid ${activeTab === 'sent' ? colors.primary[600] : 'transparent'}`,
-            color: activeTab === 'sent' ? colors.primary[600] : colors.text.secondary,
-            fontSize: typography.fontSize.base,
-            fontWeight: activeTab === 'sent' ? typography.fontWeight.semibold : typography.fontWeight.medium,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: spacing[2],
-          }}
-        >
-          {t('supplierRFQInbox.tabs.sent', 'Sent Offers')}
-          {counts.sent > 0 && (
-            <span
-              style={{
-                backgroundColor: colors.neutral[400],
-                color: colors.neutral[0],
-                fontSize: typography.fontSize.xs,
-                fontWeight: typography.fontWeight.bold,
-                padding: `${spacing[1]} ${spacing[2]}`,
-                borderRadius: borderRadius.full,
-                minWidth: '20px',
-                textAlign: 'center',
-              }}
-            >
-              {counts.sent}
-            </span>
-          )}
-        </button>
-
-        <button
-          onClick={() => handleTabChange('accepted')}
-          style={{
-            padding: `${spacing[3]} ${spacing[4]}`,
-            backgroundColor: 'transparent',
-            border: 'none',
-            borderBottom: `2px solid ${activeTab === 'accepted' ? colors.primary[600] : 'transparent'}`,
-            color: activeTab === 'accepted' ? colors.primary[600] : colors.text.secondary,
-            fontSize: typography.fontSize.base,
-            fontWeight: activeTab === 'accepted' ? typography.fontWeight.semibold : typography.fontWeight.medium,
-            cursor: 'pointer',
-          }}
-        >
-          {t('supplierRFQInbox.tabs.accepted', 'Accepted')}
-        </button>
-
-        <button
-          onClick={() => handleTabChange('expired')}
-          style={{
-            padding: `${spacing[3]} ${spacing[4]}`,
-            backgroundColor: 'transparent',
-            border: 'none',
-            borderBottom: `2px solid ${activeTab === 'expired' ? colors.primary[600] : 'transparent'}`,
-            color: activeTab === 'expired' ? colors.primary[600] : colors.text.secondary,
-            fontSize: typography.fontSize.base,
-            fontWeight: activeTab === 'expired' ? typography.fontWeight.semibold : typography.fontWeight.medium,
-            cursor: 'pointer',
-          }}
-        >
-          {t('supplierRFQInbox.tabs.expired', 'Expired')}
-        </button>
-      </div>
+      <TabNavigation
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+      />
 
       {/* RFQ List */}
       {loading ? (
@@ -310,78 +163,40 @@ export function SupplierRFQInbox() {
           <div style={{ color: colors.text.tertiary }}>{t('common.loading')}</div>
         </div>
       ) : rfqs.length === 0 ? (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: spacing[8],
-            backgroundColor: colors.neutral[0],
-            borderRadius: borderRadius.lg,
-            border: `1px solid ${colors.border.light}`,
-          }}
-        >
-          <Icons.Inbox size={48} color={colors.neutral[400]} style={{ marginBottom: spacing[3] }} />
-          <div
-            style={{
-              fontSize: typography.fontSize.lg,
-              fontWeight: typography.fontWeight.medium,
-              color: colors.text.primary,
-              marginBottom: spacing[2],
-            }}
-          >
-            {t('supplierRFQInbox.noRFQs', 'No RFQs found')}
-          </div>
-          <div style={{ fontSize: typography.fontSize.sm, color: colors.text.tertiary }}>
-            {activeTab === 'new' && t('supplierRFQInbox.noNewRFQs', 'New quote requests will appear here')}
-            {activeTab === 'sent' && t('supplierRFQInbox.noSentOffers', 'Offers you send will appear here')}
-            {activeTab === 'accepted' && t('supplierRFQInbox.noAcceptedOffers', 'Accepted offers will appear here')}
-            {activeTab === 'expired' && t('supplierRFQInbox.noExpiredRFQs', 'Expired RFQs will appear here')}
-          </div>
-        </div>
+        <EmptyState
+          icon={Inbox}
+          title={t('supplierRFQInbox.noRFQs', 'No RFQs found')}
+          description={
+            activeTab === 'new'
+              ? t('supplierRFQInbox.noNewRFQs', 'New quote requests will appear here')
+              : activeTab === 'sent'
+                ? t('supplierRFQInbox.noSentOffers', 'Offers you send will appear here')
+                : activeTab === 'accepted'
+                  ? t('supplierRFQInbox.noAcceptedOffers', 'Accepted offers will appear here')
+                  : t('supplierRFQInbox.noExpiredRFQs', 'Expired RFQs will appear here')
+          }
+        />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
           {rfqs.map((rfq) => (
-            <div
+            <ListCard
               key={rfq.id}
               onClick={() => navigate(`/supplier/rfqs/${rfq.rfq_id}`)}
-              style={{
-                backgroundColor: colors.neutral[0],
-                padding: spacing[4],
-                borderRadius: borderRadius.lg,
-                border: `1px solid ${!rfq.viewed_at && activeTab === 'new' ? colors.primary[300] : colors.border.light}`,
-                boxShadow: shadows.sm,
-                cursor: 'pointer',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                position: 'relative',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = shadows.md;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = shadows.sm;
-              }}
+              isUnread={!rfq.viewed_at && activeTab === 'new'}
             >
-              {/* Unread indicator */}
-              {!rfq.viewed_at && activeTab === 'new' && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: spacing[4],
-                    right: spacing[4],
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    backgroundColor: colors.primary[600],
-                  }}
-                />
-              )}
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: spacing[3] }}>
+              {/* Header Row */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: spacing[3],
+                }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], flexWrap: 'wrap' }}>
                   <span
                     style={{
-                      fontSize: typography.fontSize.sm,
+                      fontSize: typography.fontSize.base,
                       fontWeight: typography.fontWeight.semibold,
                       color: colors.text.primary,
                     }}
@@ -390,18 +205,11 @@ export function SupplierRFQInbox() {
                   </span>
 
                   {/* Buyer Type Badge */}
-                  <span
-                    style={{
-                      fontSize: typography.fontSize.xs,
-                      fontWeight: typography.fontWeight.medium,
-                      padding: `${spacing[1]} ${spacing[2]}`,
-                      borderRadius: borderRadius.sm,
-                      backgroundColor: getBuyerBadgeColor(rfq.buyer_type),
-                      color: getBuyerBadgeTextColor(rfq.buyer_type),
-                    }}
-                  >
-                    {rfq.buyer_type === 'homeowner' ? t('common.homeowner', 'Homeowner') : t('common.contractor', 'Contractor')}
-                  </span>
+                  <StatusBadge
+                    status={rfq.buyer_type}
+                    label={rfq.buyer_type === 'homeowner' ? t('common.homeowner', 'Homeowner') : t('common.contractor', 'Contractor')}
+                    size="sm"
+                  />
 
                   {/* New Buyer Indicator */}
                   {rfq.is_new_buyer && (
@@ -409,10 +217,11 @@ export function SupplierRFQInbox() {
                       style={{
                         fontSize: typography.fontSize.xs,
                         fontWeight: typography.fontWeight.medium,
-                        padding: `${spacing[1]} ${spacing[2]}`,
-                        borderRadius: borderRadius.sm,
-                        backgroundColor: colors.success[100],
+                        padding: `${spacing[0.5]} ${spacing[2]}`,
+                        borderRadius: borderRadius.full,
+                        backgroundColor: colors.success[50],
                         color: colors.success[700],
+                        border: `1px solid ${colors.success[200]}`,
                       }}
                     >
                       {t('supplierRFQInbox.newBuyer', 'New buyer')}
@@ -425,55 +234,108 @@ export function SupplierRFQInbox() {
                 </span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: spacing[3] }}>
-                {/* Location & Distance */}
+              {/* Info Grid */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                  gap: spacing[4],
+                }}
+              >
+                {/* Location */}
                 <div>
-                  <div style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, marginBottom: spacing[1] }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[1],
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.tertiary,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    <MapPin size={12} />
                     {t('supplierRFQInbox.location', 'Location')}
                   </div>
-                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.primary, display: 'flex', alignItems: 'center', gap: spacing[1] }}>
-                    <Icons.MapPin size={14} />
+                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
                     {rfq.project_location}
                   </div>
                   <div style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary }}>
-                    {rfq.distance_km.toFixed(1)} km {t('common.fromYourDepot', 'from your depot')}
+                    {rfq.distance_km.toFixed(1)} km
                   </div>
                 </div>
 
-                {/* Item Count */}
+                {/* Items */}
                 <div>
-                  <div style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, marginBottom: spacing[1] }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[1],
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.tertiary,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    <Package size={12} />
                     {t('supplierRFQInbox.items', 'Items')}
                   </div>
-                  <div style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.text.primary }}>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.primary,
+                    }}
+                  >
                     {rfq.item_count} {t('common.items', 'items')}
                   </div>
                 </div>
 
                 {/* Delivery Window */}
                 <div>
-                  <div style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, marginBottom: spacing[1] }}>
-                    {t('supplierRFQInbox.deliveryWindow', 'Delivery Window')}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[1],
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.tertiary,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    <Calendar size={12} />
+                    {t('supplierRFQInbox.deliveryWindow', 'Delivery')}
                   </div>
-                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.primary, display: 'flex', alignItems: 'center', gap: spacing[1] }}>
-                    <Icons.Calendar size={14} />
+                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
                     {formatDeliveryWindow(rfq.preferred_window_start, rfq.preferred_window_end)}
                   </div>
                 </div>
 
-                {/* Offer Status (for sent/accepted tabs) */}
+                {/* Offer Amount (for sent/accepted tabs) */}
                 {activeTab !== 'new' && rfq.offer_total && (
                   <div>
-                    <div style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, marginBottom: spacing[1] }}>
-                      {t('supplierRFQInbox.offerAmount', 'Offer Amount')}
+                    <div
+                      style={{
+                        fontSize: typography.fontSize.xs,
+                        color: colors.text.tertiary,
+                        marginBottom: spacing[1],
+                      }}
+                    >
+                      {t('supplierRFQInbox.offerAmount', 'Offer')}
                     </div>
-                    <div style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>
+                    <div
+                      style={{
+                        fontSize: typography.fontSize.base,
+                        fontWeight: typography.fontWeight.bold,
+                        color: colors.success[600],
+                      }}
+                    >
                       ₾{Number(rfq.offer_total).toFixed(2)}
                     </div>
                   </div>
                 )}
               </div>
-            </div>
+            </ListCard>
           ))}
         </div>
       )}

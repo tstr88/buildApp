@@ -3,12 +3,13 @@
  * Shows user's RFQs with tabs for different statuses
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import * as Icons from 'lucide-react';
+import { FileText, MapPin, Package, Users, Mail, Plus } from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 import { useWebSocket } from '../context/WebSocketContext';
+import { TabNavigation, PageHeader, EmptyState, StatusBadge, ListCard } from '../components/shared';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -106,37 +107,8 @@ export const RFQs: React.FC = () => {
     }
   };
 
-  const tabs: { id: TabType; label: string; icon: any }[] = [
-    { id: 'active', label: t('rfqsPage.tabs.active'), icon: Icons.Clock },
-    { id: 'offers', label: t('rfqsPage.tabs.offers'), icon: Icons.Mail },
-    { id: 'accepted', label: t('rfqsPage.tabs.accepted'), icon: Icons.CheckCircle },
-    { id: 'expired', label: t('rfqsPage.tabs.expired'), icon: Icons.XCircle },
-  ];
-
-  const getStatusBadge = (status: string) => {
-    const styles: Record<string, { bg: string; text: string; label: string }> = {
-      active: { bg: colors.success[50], text: colors.success[700], label: t('rfqsPage.status.active') },
-      draft: { bg: colors.neutral[100], text: colors.text.secondary, label: t('rfqsPage.status.draft') },
-      expired: { bg: colors.error[50], text: colors.error[700], label: t('rfqsPage.status.expired') },
-      closed: { bg: colors.neutral[100], text: colors.text.secondary, label: t('rfqsPage.status.closed') },
-    };
-
-    const style = styles[status] || styles.draft;
-
-    return (
-      <span
-        style={{
-          padding: `${spacing[1]} ${spacing[3]}`,
-          backgroundColor: style.bg,
-          color: style.text,
-          fontSize: typography.fontSize.xs,
-          fontWeight: typography.fontWeight.semibold,
-          borderRadius: borderRadius.full,
-        }}
-      >
-        {style.label}
-      </span>
-    );
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab as TabType);
   };
 
   const formatDate = (dateString: string) => {
@@ -145,314 +117,253 @@ export const RFQs: React.FC = () => {
     return date.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
+  // Count for tabs
+  const offersCount = rfqs.filter((rfq) => rfq.offer_count > 0).length;
+  const unreadCount = rfqs.reduce((sum, rfq) => sum + rfq.unread_offer_count, 0);
+
+  const tabs = [
+    { id: 'active', label: t('rfqsPage.tabs.active', 'Active'), count: rfqs.length },
+    { id: 'offers', label: t('rfqsPage.tabs.offers', 'With Offers'), count: offersCount, hasAlert: unreadCount > 0 },
+    { id: 'accepted', label: t('rfqsPage.tabs.accepted', 'Accepted') },
+    { id: 'expired', label: t('rfqsPage.tabs.expired', 'Expired') },
+  ];
+
+  const CreateRFQButton = () => (
+    <button
+      onClick={() => navigate('/rfqs/create')}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: spacing[2],
+        padding: `${spacing[2]} ${spacing[4]}`,
+        backgroundColor: colors.primary[600],
+        color: colors.text.inverse,
+        border: 'none',
+        borderRadius: borderRadius.lg,
+        fontSize: typography.fontSize.base,
+        fontWeight: typography.fontWeight.medium,
+        cursor: 'pointer',
+        boxShadow: shadows.sm,
+        transition: 'background-color 200ms ease',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = colors.primary[700];
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = colors.primary[600];
+      }}
+    >
+      <Plus size={20} />
+      {t('rfqsPage.newRfq', 'New RFQ')}
+    </button>
+  );
+
   return (
     <div
       style={{
-        minHeight: '100vh',
-        backgroundColor: colors.neutral[50],
-        paddingBottom: spacing[20],
+        maxWidth: '1000px',
+        margin: '0 auto',
+        padding: spacing[6],
       }}
     >
-      {/* Header */}
       <div
         style={{
-          backgroundColor: colors.neutral[0],
-          borderBottom: `1px solid ${colors.border.light}`,
-          position: 'sticky',
-          top: 0,
-          zIndex: 10,
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          marginBottom: spacing[6],
         }}
       >
-        {/* Title Section */}
-        <div style={{ padding: spacing[4], paddingBottom: 0 }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: spacing[4],
-            }}
-          >
-            <div>
-              <h1
-                style={{
-                  fontSize: typography.fontSize['2xl'],
-                  fontWeight: typography.fontWeight.bold,
-                  color: colors.text.primary,
-                  margin: 0,
-                  marginBottom: spacing[2],
-                }}
-              >
-                {t('rfqsPage.title')}
-              </h1>
-              <p
-                style={{
-                  fontSize: typography.fontSize.base,
-                  color: colors.text.secondary,
-                  margin: 0,
-                }}
-              >
-                {t('rfqsPage.subtitle')}
-              </p>
-            </div>
+        <PageHeader
+          title={t('rfqsPage.title', 'My RFQs')}
+          subtitle={t('rfqsPage.subtitle', 'Manage your quote requests')}
+        />
+        <CreateRFQButton />
+      </div>
 
-            <button
-              onClick={() => navigate('/rfqs/create')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: spacing[2],
-                padding: `${spacing[2]} ${spacing[4]}`,
-                backgroundColor: colors.primary[600],
-                color: colors.text.inverse,
-                border: 'none',
-                borderRadius: borderRadius.lg,
-                fontSize: typography.fontSize.base,
-                fontWeight: typography.fontWeight.medium,
-                cursor: 'pointer',
-                boxShadow: shadows.sm,
-                transition: 'background-color 200ms ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = colors.primary[700];
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = colors.primary[600];
-              }}
-            >
-              <Icons.Plus size={20} />
-              {t('rfqsPage.newRfq')}
-            </button>
-          </div>
-        </div>
+      <TabNavigation
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+      />
 
-        {/* Tabs Section */}
+      {/* RFQ List */}
+      {loading ? (
         <div
           style={{
             display: 'flex',
-            flexWrap: 'wrap',
-            gap: spacing[2],
-            padding: spacing[4],
-            paddingTop: 0,
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '300px',
           }}
         >
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: spacing[2],
-                    padding: `${spacing[2]} ${spacing[4]}`,
-                    backgroundColor: isActive ? colors.primary[100] : colors.neutral[100],
-                    color: isActive ? colors.primary[700] : colors.text.secondary,
-                    border: 'none',
-                    borderRadius: borderRadius.lg,
-                    fontSize: typography.fontSize.sm,
-                    fontWeight: typography.fontWeight.medium,
-                    cursor: 'pointer',
-                    transition: 'all 200ms ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.backgroundColor = colors.neutral[200];
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.backgroundColor = colors.neutral[100];
-                    }
-                  }}
-                >
-                  <Icon size={18} />
-                  {tab.label}
-                </button>
-              );
-            })}
+          <div style={{ color: colors.text.tertiary }}>{t('common.loading')}</div>
         </div>
-      </div>
-
-      {/* Content */}
-      <div style={{ padding: spacing[4] }}>
-        {loading ? (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: spacing[12],
-              backgroundColor: colors.neutral[0],
-              borderRadius: borderRadius.lg,
-              boxShadow: shadows.sm,
-            }}
-          >
-            <Icons.Loader size={48} color={colors.text.tertiary} style={{ margin: '0 auto', marginBottom: spacing[4] }} />
-            <p style={{ fontSize: typography.fontSize.base, color: colors.text.tertiary }}>
-              {t('rfqsPage.loading')}
-            </p>
-          </div>
-        ) : rfqs.length === 0 ? (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: spacing[12],
-              backgroundColor: colors.neutral[0],
-              borderRadius: borderRadius.lg,
-              boxShadow: shadows.sm,
-            }}
-          >
-            <Icons.FileText size={64} color={colors.text.tertiary} style={{ margin: '0 auto', marginBottom: spacing[4] }} />
-            <h3
-              style={{
-                fontSize: typography.fontSize.xl,
-                fontWeight: typography.fontWeight.semibold,
-                color: colors.text.primary,
-                margin: 0,
-                marginBottom: spacing[2],
-              }}
+      ) : rfqs.length === 0 ? (
+        <EmptyState
+          icon={FileText}
+          title={t('rfqsPage.empty.title', 'No RFQs found')}
+          description={
+            activeTab === 'active'
+              ? t('rfqsPage.empty.noRfqs', 'Create your first RFQ to get started')
+              : activeTab === 'offers'
+                ? t('rfqsPage.empty.noOffers', 'RFQs with offers will appear here')
+                : activeTab === 'accepted'
+                  ? t('rfqsPage.empty.noAccepted', 'Accepted RFQs will appear here')
+                  : t('rfqsPage.empty.noExpired', 'Expired RFQs will appear here')
+          }
+          action={activeTab === 'active' ? <CreateRFQButton /> : undefined}
+        />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+          {rfqs.map((rfq) => (
+            <ListCard
+              key={rfq.id}
+              onClick={() => navigate(`/rfqs/${rfq.id}`)}
+              isUnread={rfq.unread_offer_count > 0}
             >
-              {t('rfqsPage.empty.title')}
-            </h3>
-            <p
-              style={{
-                fontSize: typography.fontSize.base,
-                color: colors.text.secondary,
-                margin: 0,
-                marginBottom: spacing[6],
-              }}
-            >
-              {activeTab === 'active' && t('rfqsPage.empty.noRfqs')}
-              {activeTab === 'offers' && t('rfqsPage.empty.noOffers')}
-              {activeTab === 'accepted' && t('rfqsPage.empty.noAccepted')}
-              {activeTab === 'expired' && t('rfqsPage.empty.noExpired')}
-            </p>
-            {activeTab === 'active' && (
-              <button
-                onClick={() => navigate('/rfqs/create')}
+              {/* Header Row */}
+              <div
                 style={{
-                  display: 'inline-flex',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: spacing[3],
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], flexWrap: 'wrap' }}>
+                  <span
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.semibold,
+                      color: colors.text.primary,
+                    }}
+                  >
+                    {rfq.title || `RFQ - ${formatDate(rfq.created_at)}`}
+                  </span>
+
+                  {/* Status Badge */}
+                  <StatusBadge
+                    status={rfq.status}
+                    label={t(`rfqsPage.status.${rfq.status}`, rfq.status)}
+                    size="sm"
+                  />
+
+                  {/* Unread Offers Badge */}
+                  {rfq.unread_offer_count > 0 && (
+                    <span
+                      style={{
+                        fontSize: typography.fontSize.xs,
+                        fontWeight: typography.fontWeight.bold,
+                        padding: `${spacing[0.5]} ${spacing[2]}`,
+                        borderRadius: borderRadius.full,
+                        backgroundColor: colors.error[600],
+                        color: colors.neutral[0],
+                      }}
+                    >
+                      {rfq.unread_offer_count} {t('rfqsPage.new', 'new')}
+                    </span>
+                  )}
+                </div>
+
+                <span style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, whiteSpace: 'nowrap' }}>
+                  {formatDate(rfq.created_at)}
+                </span>
+              </div>
+
+              {/* Project Name */}
+              <div
+                style={{
+                  display: 'flex',
                   alignItems: 'center',
                   gap: spacing[2],
-                  padding: `${spacing[2]} ${spacing[4]}`,
-                  backgroundColor: colors.primary[600],
-                  color: colors.text.inverse,
-                  border: 'none',
-                  borderRadius: borderRadius.lg,
-                  fontSize: typography.fontSize.base,
-                  fontWeight: typography.fontWeight.medium,
-                  cursor: 'pointer',
-                  transition: 'background-color 200ms ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = colors.primary[700];
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = colors.primary[600];
+                  fontSize: typography.fontSize.sm,
+                  color: colors.text.secondary,
+                  marginBottom: spacing[3],
                 }}
               >
-                <Icons.Plus size={20} />
-                {t('rfqsPage.empty.createFirst')}
-              </button>
-            )}
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4] }}>
-            {rfqs.map((rfq) => (
+                <MapPin size={14} color={colors.text.tertiary} />
+                {rfq.project_name}
+              </div>
+
+              {/* Info Grid */}
               <div
-                key={rfq.id}
-                onClick={() => navigate(`/rfqs/${rfq.id}`)}
                 style={{
-                  backgroundColor: colors.neutral[0],
-                  borderRadius: borderRadius.lg,
-                  padding: spacing[6],
-                  boxShadow: shadows.sm,
-                  cursor: 'pointer',
-                  border: `1px solid ${colors.border.light}`,
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = colors.primary[300];
-                  e.currentTarget.style.boxShadow = shadows.md;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = colors.border.light;
-                  e.currentTarget.style.boxShadow = shadows.sm;
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                  gap: spacing[4],
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between' }}>
-                  <div style={{ flex: 1 }}>
-                    {/* Header */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], marginBottom: spacing[3] }}>
-                      <h3
-                        style={{
-                          fontSize: typography.fontSize.lg,
-                          fontWeight: typography.fontWeight.semibold,
-                          color: colors.text.primary,
-                          margin: 0,
-                        }}
-                      >
-                        {rfq.title || `RFQ - ${formatDate(rfq.created_at)}`}
-                      </h3>
-                      {getStatusBadge(rfq.status)}
-                      {rfq.unread_offer_count > 0 && (
-                        <span
-                          style={{
-                            padding: `${spacing[1]} ${spacing[2]}`,
-                            backgroundColor: colors.error[600],
-                            color: colors.neutral[0],
-                            fontSize: typography.fontSize.xs,
-                            fontWeight: typography.fontWeight.bold,
-                            borderRadius: borderRadius.full,
-                          }}
-                        >
-                          {rfq.unread_offer_count} {t('rfqsPage.new')}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Project */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[4] }}>
-                      <Icons.MapPin size={16} color={colors.text.tertiary} />
-                      <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-                        {rfq.project_name}
-                      </span>
-                    </div>
-
-                    {/* Stats */}
-                    <div style={{ display: 'flex', gap: spacing[6] }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-                        <Icons.Package size={16} color={colors.text.tertiary} />
-                        <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-                          {rfq.lines.length} {rfq.lines.length === 1 ? t('rfqsPage.item') : t('rfqsPage.items')}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-                        <Icons.Users size={16} color={colors.text.tertiary} />
-                        <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-                          {rfq.supplier_count} {rfq.supplier_count === 1 ? t('rfqsPage.supplier') : t('rfqsPage.suppliers')}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-                        <Icons.Mail size={16} color={colors.text.tertiary} />
-                        <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-                          {rfq.offer_count} {rfq.offer_count === 1 ? t('rfqsPage.offer') : t('rfqsPage.offers')}
-                        </span>
-                      </div>
-                    </div>
+                {/* Items */}
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[1],
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.tertiary,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    <Package size={12} />
+                    {t('rfqsPage.items', 'Items')}
                   </div>
+                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
+                    {rfq.lines.length} {rfq.lines.length === 1 ? t('rfqsPage.item', 'item') : t('rfqsPage.items', 'items')}
+                  </div>
+                </div>
 
-                  {/* Arrow */}
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <Icons.ChevronRight size={24} color={colors.text.tertiary} />
+                {/* Suppliers */}
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[1],
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.tertiary,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    <Users size={12} />
+                    {t('rfqsPage.suppliers', 'Suppliers')}
+                  </div>
+                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
+                    {rfq.supplier_count} {rfq.supplier_count === 1 ? t('rfqsPage.supplier', 'supplier') : t('rfqsPage.suppliers', 'suppliers')}
+                  </div>
+                </div>
+
+                {/* Offers */}
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[1],
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.tertiary,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    <Mail size={12} />
+                    {t('rfqsPage.offers', 'Offers')}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: rfq.offer_count > 0 ? typography.fontWeight.medium : typography.fontWeight.normal,
+                      color: rfq.offer_count > 0 ? colors.success[600] : colors.text.primary,
+                    }}
+                  >
+                    {rfq.offer_count} {rfq.offer_count === 1 ? t('rfqsPage.offer', 'offer') : t('rfqsPage.offers', 'offers')}
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </ListCard>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

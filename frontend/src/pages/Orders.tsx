@@ -3,11 +3,12 @@
  * List and manage all buyer's orders
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import * as Icons from 'lucide-react';
+import { Package, MapPin, Truck, Calendar, Zap, Search, Plus } from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
+import { TabNavigation, PageHeader, EmptyState, StatusBadge, ListCard } from '../components/shared';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -66,38 +67,36 @@ export const Orders: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return { bg: colors.success[50], text: colors.success[700], border: colors.success[200] };
-      case 'confirmed':
-      case 'scheduled':
-        return { bg: colors.primary[50], text: colors.primary[700], border: colors.primary[200] };
-      case 'in_transit':
-      case 'delivered':
-        return { bg: colors.info[50], text: colors.info[700], border: colors.info[200] };
-      case 'pending':
-      case 'pending_schedule':
-        return { bg: colors.warning[50], text: colors.warning[700], border: colors.warning[200] };
-      case 'cancelled':
-      case 'disputed':
-        return { bg: colors.error[50], text: colors.error[700], border: colors.error[200] };
-      default:
-        return { bg: colors.neutral[50], text: colors.text.secondary, border: colors.border.light };
-    }
+  const handleTabChange = (tab: string) => {
+    setSelectedTab(tab as TabType);
+  };
+
+  const getStatusType = (status: string): string => {
+    const statusMap: Record<string, string> = {
+      pending: 'pending',
+      pending_schedule: 'pending',
+      scheduled: 'scheduled',
+      confirmed: 'confirmed',
+      in_transit: 'in_transit',
+      delivered: 'delivered',
+      completed: 'completed',
+      cancelled: 'cancelled',
+      disputed: 'disputed',
+    };
+    return statusMap[status] || 'pending';
   };
 
   const getStatusLabel = (status: string) => {
     const statusMap: Record<string, string> = {
-      pending: t('ordersPage.status.pending'),
-      pending_schedule: t('ordersPage.status.pendingSchedule'),
-      scheduled: t('ordersPage.status.scheduled'),
-      confirmed: t('ordersPage.status.confirmed'),
-      in_transit: t('ordersPage.status.inTransit'),
-      delivered: t('ordersPage.status.delivered'),
-      completed: t('ordersPage.status.completed'),
-      cancelled: t('ordersPage.status.cancelled'),
-      disputed: t('ordersPage.status.disputed'),
+      pending: t('ordersPage.status.pending', 'Pending'),
+      pending_schedule: t('ordersPage.status.pendingSchedule', 'Needs Scheduling'),
+      scheduled: t('ordersPage.status.scheduled', 'Scheduled'),
+      confirmed: t('ordersPage.status.confirmed', 'Confirmed'),
+      in_transit: t('ordersPage.status.inTransit', 'In Transit'),
+      delivered: t('ordersPage.status.delivered', 'Delivered'),
+      completed: t('ordersPage.status.completed', 'Completed'),
+      cancelled: t('ordersPage.status.cancelled', 'Cancelled'),
+      disputed: t('ordersPage.status.disputed', 'Disputed'),
     };
     return statusMap[status] || status;
   };
@@ -141,517 +140,294 @@ export const Orders: React.FC = () => {
   });
 
   // Count orders by tab for badges
-  const activeCount = orders.filter(o => filterByTab({ ...o } as Order)).length;
+  const activeCount = orders.filter(o => ['pending', 'pending_schedule', 'scheduled', 'confirmed', 'in_transit', 'delivered'].includes(o.status)).length;
   const completedCount = orders.filter(o => o.status === 'completed').length;
   const disputedCount = orders.filter(o => o.status === 'disputed').length;
 
   const tabs = [
-    { key: 'active' as TabType, label: t('ordersPage.tabs.active'), count: activeCount },
-    { key: 'completed' as TabType, label: t('ordersPage.tabs.completed'), count: completedCount },
-    { key: 'disputed' as TabType, label: t('ordersPage.tabs.disputed'), count: disputedCount, hasAlert: disputedCount > 0 },
+    { id: 'active', label: t('ordersPage.tabs.active', 'Active'), count: activeCount },
+    { id: 'completed', label: t('ordersPage.tabs.completed', 'Completed'), count: completedCount },
+    { id: 'disputed', label: t('ordersPage.tabs.disputed', 'Disputed'), count: disputedCount, hasAlert: disputedCount > 0 },
   ];
+
+  const DirectOrderButton = () => (
+    <button
+      onClick={() => navigate('/orders/direct')}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: spacing[2],
+        padding: `${spacing[2]} ${spacing[4]}`,
+        backgroundColor: colors.primary[600],
+        color: colors.neutral[0],
+        border: 'none',
+        borderRadius: borderRadius.lg,
+        fontSize: typography.fontSize.base,
+        fontWeight: typography.fontWeight.medium,
+        cursor: 'pointer',
+        boxShadow: shadows.sm,
+        transition: 'background-color 200ms ease',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = colors.primary[700];
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = colors.primary[600];
+      }}
+    >
+      <Zap size={20} />
+      {t('ordersPage.newDirectOrder', 'Direct Order')}
+    </button>
+  );
 
   return (
     <div
       style={{
-        minHeight: '100vh',
-        backgroundColor: colors.neutral[50],
-        padding: spacing[4],
+        maxWidth: '1000px',
+        margin: '0 auto',
+        padding: spacing[6],
       }}
     >
-      {/* Header */}
       <div
         style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
           marginBottom: spacing[6],
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: spacing[4],
-            marginBottom: spacing[4],
-          }}
-        >
-          <div>
-            <h1
-              style={{
-                fontSize: typography.fontSize['3xl'],
-                fontWeight: typography.fontWeight.bold,
-                color: colors.text.primary,
-                margin: 0,
-                marginBottom: spacing[2],
-              }}
-            >
-              {t('ordersPage.title')}
-            </h1>
-            <p
-              style={{
-                fontSize: typography.fontSize.base,
-                color: colors.text.secondary,
-                margin: 0,
-              }}
-            >
-              {t('ordersPage.subtitle')}
-            </p>
-          </div>
+        <PageHeader
+          title={t('ordersPage.title', 'My Orders')}
+          subtitle={t('ordersPage.subtitle', 'Track and manage your orders')}
+        />
+        <DirectOrderButton />
+      </div>
 
-          <button
-            onClick={() => navigate('/orders/direct')}
+      <TabNavigation
+        tabs={tabs}
+        activeTab={selectedTab}
+        onTabChange={handleTabChange}
+      />
+
+      {/* Search */}
+      <div style={{ marginBottom: spacing[4] }}>
+        <div style={{ position: 'relative', maxWidth: '400px' }}>
+          <Search
+            size={20}
+            color={colors.text.tertiary}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: spacing[2],
-              padding: `${spacing[3]} ${spacing[4]}`,
-              backgroundColor: colors.primary[600],
-              color: colors.neutral[0],
-              border: 'none',
+              position: 'absolute',
+              left: spacing[3],
+              top: '50%',
+              transform: 'translateY(-50%)',
+            }}
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t('ordersPage.searchPlaceholder', 'Search orders...')}
+            style={{
+              width: '100%',
+              padding: `${spacing[3]} ${spacing[3]} ${spacing[3]} ${spacing[10]}`,
+              border: `1px solid ${colors.border.light}`,
               borderRadius: borderRadius.md,
               fontSize: typography.fontSize.base,
-              fontWeight: typography.fontWeight.semibold,
-              cursor: 'pointer',
-              boxShadow: shadows.sm,
-              width: '100%',
+              backgroundColor: colors.neutral[0],
+              outline: 'none',
+              transition: 'border-color 200ms ease, box-shadow 200ms ease',
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = colors.primary[700];
+            onFocus={(e) => {
+              e.target.style.borderColor = colors.primary[600];
+              e.target.style.boxShadow = `0 0 0 3px ${colors.primary[50]}`;
             }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = colors.primary[600];
+            onBlur={(e) => {
+              e.target.style.borderColor = colors.border.light;
+              e.target.style.boxShadow = 'none';
             }}
-          >
-            <Icons.Zap size={20} />
-            {t('ordersPage.newDirectOrder')}
-          </button>
-        </div>
-
-        {/* Tabs Navigation */}
-        <div
-          style={{
-            display: 'flex',
-            gap: spacing[1],
-            marginBottom: spacing[6],
-            borderBottom: `2px solid ${colors.border.light}`,
-            overflowX: 'auto',
-            WebkitOverflowScrolling: 'touch',
-          }}
-        >
-          {tabs.map((tab) => {
-            const isActive = selectedTab === tab.key;
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setSelectedTab(tab.key)}
-                style={{
-                  padding: `${spacing[3]} ${spacing[4]}`,
-                  border: 'none',
-                  backgroundColor: 'transparent',
-                  cursor: 'pointer',
-                  fontSize: typography.fontSize.base,
-                  fontWeight: typography.fontWeight.medium,
-                  color: isActive ? colors.primary[600] : colors.text.secondary,
-                  borderBottom: isActive ? `2px solid ${colors.primary[600]}` : '2px solid transparent',
-                  marginBottom: '-2px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: spacing[2],
-                  transition: 'all 200ms ease',
-                  position: 'relative',
-                  flexShrink: 0,
-                  whiteSpace: 'nowrap',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.color = colors.text.primary;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.color = colors.text.secondary;
-                  }
-                }}
-              >
-                {tab.label}
-                {tab.count > 0 && (
-                  <span
-                    style={{
-                      padding: `${spacing[0.5]} ${spacing[2]}`,
-                      backgroundColor: tab.hasAlert ? colors.error[100] : colors.neutral[100],
-                      color: tab.hasAlert ? colors.error[700] : colors.text.tertiary,
-                      borderRadius: borderRadius.full,
-                      fontSize: typography.fontSize.xs,
-                      fontWeight: typography.fontWeight.semibold,
-                    }}
-                  >
-                    {tab.count}
-                  </span>
-                )}
-                {tab.hasAlert && (
-                  <div
-                    style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      backgroundColor: colors.error[600],
-                      position: 'absolute',
-                      top: spacing[2],
-                      right: spacing[2],
-                    }}
-                  />
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Search */}
-        <div style={{ marginBottom: spacing[4] }}>
-          <div style={{ position: 'relative', maxWidth: '400px' }}>
-            <Icons.Search
-              size={20}
-              color={colors.text.tertiary}
-              style={{
-                position: 'absolute',
-                left: spacing[3],
-                top: '50%',
-                transform: 'translateY(-50%)',
-              }}
-            />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('ordersPage.searchPlaceholder')}
-              style={{
-                width: '100%',
-                padding: `${spacing[3]} ${spacing[3]} ${spacing[3]} ${spacing[10]}`,
-                border: `1px solid ${colors.border.light}`,
-                borderRadius: borderRadius.md,
-                fontSize: typography.fontSize.base,
-                backgroundColor: colors.neutral[0],
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = colors.primary[600];
-                e.target.style.boxShadow = `0 0 0 3px ${colors.primary[50]}`;
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = colors.border.light;
-                e.target.style.boxShadow = 'none';
-              }}
-            />
-          </div>
+          />
         </div>
       </div>
 
       {/* Orders List */}
-      <div
-        style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-        }}
-      >
-        {loading ? (
-          <div
-            style={{
-              padding: spacing[12],
-              textAlign: 'center',
-            }}
-          >
-            <Icons.Loader
-              size={48}
-              color={colors.text.tertiary}
-              style={{ margin: '0 auto', marginBottom: spacing[3] }}
-            />
-            <p
+      {loading ? (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '300px',
+          }}
+        >
+          <div style={{ color: colors.text.tertiary }}>{t('common.loading')}</div>
+        </div>
+      ) : filteredOrders.length === 0 ? (
+        <EmptyState
+          icon={Package}
+          title={t('ordersPage.empty.title', 'No orders found')}
+          description={
+            searchQuery
+              ? t('ordersPage.empty.tryAdjust', 'Try adjusting your search')
+              : t('ordersPage.empty.startFirst', 'Your orders will appear here')
+          }
+          action={!searchQuery ? (
+            <button
+              onClick={() => navigate('/orders/direct')}
               style={{
-                fontSize: typography.fontSize.lg,
-                color: colors.text.tertiary,
-                margin: 0,
-              }}
-            >
-              {t('ordersPage.loading')}
-            </p>
-          </div>
-        ) : filteredOrders.length === 0 ? (
-          <div
-            style={{
-              padding: spacing[12],
-              textAlign: 'center',
-              backgroundColor: colors.neutral[0],
-              borderRadius: borderRadius.lg,
-              border: `1px solid ${colors.border.light}`,
-            }}
-          >
-            <Icons.Package
-              size={64}
-              color={colors.text.tertiary}
-              style={{ margin: '0 auto', marginBottom: spacing[4] }}
-            />
-            <h3
-              style={{
-                fontSize: typography.fontSize.xl,
-                fontWeight: typography.fontWeight.semibold,
-                color: colors.text.primary,
-                margin: 0,
-                marginBottom: spacing[2],
-              }}
-            >
-              {t('ordersPage.empty.title')}
-            </h3>
-            <p
-              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: spacing[2],
+                padding: `${spacing[3]} ${spacing[6]}`,
+                backgroundColor: colors.primary[600],
+                color: colors.neutral[0],
+                border: 'none',
+                borderRadius: borderRadius.md,
                 fontSize: typography.fontSize.base,
-                color: colors.text.secondary,
-                margin: 0,
-                marginBottom: spacing[4],
+                fontWeight: typography.fontWeight.semibold,
+                cursor: 'pointer',
+                transition: 'background-color 200ms ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = colors.primary[700];
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = colors.primary[600];
               }}
             >
-              {searchQuery
-                ? t('ordersPage.empty.tryAdjust')
-                : t('ordersPage.empty.startFirst')}
-            </p>
-            {!searchQuery && (
-              <button
-                onClick={() => navigate('/orders/direct')}
+              <Plus size={20} />
+              {t('ordersPage.placeDirectOrder', 'Place Direct Order')}
+            </button>
+          ) : undefined}
+        />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+          {filteredOrders.map((order) => (
+            <ListCard
+              key={order.id}
+              onClick={() => navigate(`/orders/${order.order_number}`)}
+            >
+              {/* Header Row */}
+              <div
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: spacing[2],
-                  padding: `${spacing[3]} ${spacing[6]}`,
-                  backgroundColor: colors.primary[600],
-                  color: colors.neutral[0],
-                  border: 'none',
-                  borderRadius: borderRadius.md,
-                  fontSize: typography.fontSize.base,
-                  fontWeight: typography.fontWeight.semibold,
-                  cursor: 'pointer',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = colors.primary[700];
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = colors.primary[600];
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: spacing[3],
                 }}
               >
-                <Icons.Plus size={20} />
-                {t('ordersPage.placeDirectOrder')}
-              </button>
-            )}
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
-            {filteredOrders.map((order) => {
-              const statusColors = getStatusColor(order.status);
-              return (
-                <div
-                  key={order.id}
-                  onClick={() => navigate(`/orders/${order.order_number}`)}
-                  style={{
-                    backgroundColor: colors.neutral[0],
-                    borderRadius: borderRadius.lg,
-                    border: `1px solid ${colors.border.light}`,
-                    padding: spacing[3],
-                    cursor: 'pointer',
-                    transition: 'all 200ms ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = shadows.md;
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = 'none';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  {/* Header: Order number and status */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], flexWrap: 'wrap' }}>
+                  <span
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.semibold,
+                      color: colors.text.primary,
+                    }}
+                  >
+                    {order.order_number}
+                  </span>
+
+                  {/* Status Badge */}
+                  <StatusBadge
+                    status={getStatusType(order.status)}
+                    label={getStatusLabel(order.status)}
+                    size="sm"
+                  />
+                </div>
+
+                <span style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, whiteSpace: 'nowrap' }}>
+                  {formatDate(order.created_at)}
+                </span>
+              </div>
+
+              {/* Supplier Name */}
+              <div
+                style={{
+                  fontSize: typography.fontSize.sm,
+                  color: colors.text.secondary,
+                  marginBottom: spacing[3],
+                }}
+              >
+                {order.supplier_name}
+              </div>
+
+              {/* Info Grid */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                  gap: spacing[4],
+                }}
+              >
+                {/* Total Amount */}
+                <div>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.tertiary,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    {t('ordersPage.fields.totalAmount', 'Total')}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.bold,
+                      color: colors.success[600],
+                    }}
+                  >
+                    ₾{Number(order.grand_total || order.total_amount || 0).toFixed(2)}
+                  </div>
+                </div>
+
+                {/* Delivery/Pickup Type */}
+                <div>
                   <div
                     style={{
                       display: 'flex',
-                      justifyContent: 'space-between',
                       alignItems: 'center',
-                      marginBottom: spacing[2],
-                      gap: spacing[2],
+                      gap: spacing[1],
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.tertiary,
+                      marginBottom: spacing[1],
                     }}
                   >
-                    <h3
-                      style={{
-                        fontSize: typography.fontSize.base,
-                        fontWeight: typography.fontWeight.semibold,
-                        color: colors.text.primary,
-                        margin: 0,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        flex: 1,
-                      }}
-                    >
-                      {order.order_number}
-                    </h3>
-                    <div
-                      style={{
-                        padding: `${spacing[0.5]} ${spacing[2]}`,
-                        backgroundColor: statusColors.bg,
-                        border: `1px solid ${statusColors.border}`,
-                        borderRadius: borderRadius.full,
-                        flexShrink: 0,
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: typography.fontSize.xs,
-                          fontWeight: typography.fontWeight.medium,
-                          color: statusColors.text,
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {getStatusLabel(order.status)}
-                      </span>
-                    </div>
+                    {order.pickup_or_delivery === 'pickup' ? <MapPin size={12} /> : <Truck size={12} />}
+                    {order.pickup_or_delivery === 'pickup'
+                      ? t('ordersPage.fields.pickup', 'Pickup')
+                      : t('ordersPage.fields.delivery', 'Delivery')}
                   </div>
-
-                  {/* Supplier name */}
-                  <p
-                    style={{
-                      fontSize: typography.fontSize.sm,
-                      color: colors.text.secondary,
-                      margin: 0,
-                      marginBottom: spacing[3],
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {order.supplier_name}
-                  </p>
-
-                  {/* Compact info grid - 2 columns max on mobile */}
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '1fr 1fr',
-                      gap: spacing[2],
-                      padding: spacing[2],
-                      backgroundColor: colors.neutral[50],
-                      borderRadius: borderRadius.md,
-                    }}
-                  >
-                    {/* Total amount */}
-                    <div>
-                      <p
-                        style={{
-                          fontSize: typography.fontSize.xs,
-                          color: colors.text.tertiary,
-                          margin: 0,
-                          marginBottom: spacing[0.5],
-                        }}
-                      >
-                        {t('ordersPage.fields.totalAmount')}
-                      </p>
-                      <p
-                        style={{
-                          fontSize: typography.fontSize.base,
-                          fontWeight: typography.fontWeight.semibold,
-                          color: colors.text.primary,
-                          margin: 0,
-                        }}
-                      >
-                        ₾{Number(order.grand_total || order.total_amount || 0).toFixed(2)}
-                      </p>
-                    </div>
-
-                    {/* Order date */}
-                    <div>
-                      <p
-                        style={{
-                          fontSize: typography.fontSize.xs,
-                          color: colors.text.tertiary,
-                          margin: 0,
-                          marginBottom: spacing[0.5],
-                        }}
-                      >
-                        {t('ordersPage.fields.orderDate')}
-                      </p>
-                      <p
-                        style={{
-                          fontSize: typography.fontSize.sm,
-                          color: colors.text.primary,
-                          margin: 0,
-                        }}
-                      >
-                        {formatDate(order.created_at)}
-                      </p>
-                    </div>
-
-                    {/* Delivery/Pickup */}
-                    <div style={{ gridColumn: order.promised_window_start ? 'auto' : '1 / -1' }}>
-                      <p
-                        style={{
-                          fontSize: typography.fontSize.xs,
-                          color: colors.text.tertiary,
-                          margin: 0,
-                          marginBottom: spacing[0.5],
-                        }}
-                      >
-                        {order.pickup_or_delivery === 'pickup' ? t('ordersPage.fields.pickup') : t('ordersPage.fields.delivery')}
-                      </p>
-                      <p
-                        style={{
-                          fontSize: typography.fontSize.sm,
-                          color: colors.text.primary,
-                          margin: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: spacing[1],
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {order.pickup_or_delivery === 'pickup' ? (
-                          <Icons.MapPin size={14} style={{ flexShrink: 0 }} />
-                        ) : (
-                          <Icons.Truck size={14} style={{ flexShrink: 0 }} />
-                        )}
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {order.project_name || t('ordersPage.fields.depot')}
-                        </span>
-                      </p>
-                    </div>
-
-                    {/* Scheduled date (if exists) */}
-                    {order.promised_window_start && (
-                      <div>
-                        <p
-                          style={{
-                            fontSize: typography.fontSize.xs,
-                            color: colors.text.tertiary,
-                            margin: 0,
-                            marginBottom: spacing[0.5],
-                          }}
-                        >
-                          {t('ordersPage.fields.scheduled')}
-                        </p>
-                        <p
-                          style={{
-                            fontSize: typography.fontSize.sm,
-                            color: colors.text.primary,
-                            margin: 0,
-                          }}
-                        >
-                          {formatDate(order.promised_window_start)}
-                        </p>
-                      </div>
-                    )}
+                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
+                    {order.project_name || t('ordersPage.fields.depot', 'Depot')}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+
+                {/* Scheduled Date */}
+                {order.promised_window_start && (
+                  <div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: spacing[1],
+                        fontSize: typography.fontSize.xs,
+                        color: colors.text.tertiary,
+                        marginBottom: spacing[1],
+                      }}
+                    >
+                      <Calendar size={12} />
+                      {t('ordersPage.fields.scheduled', 'Scheduled')}
+                    </div>
+                    <div style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
+                      {formatDate(order.promised_window_start)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </ListCard>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

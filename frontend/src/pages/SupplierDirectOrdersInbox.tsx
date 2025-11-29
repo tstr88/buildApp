@@ -3,12 +3,13 @@
  * View and manage direct orders from buyers
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import * as Icons from 'lucide-react';
-import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
+import { Package, Truck, Calendar } from 'lucide-react';
+import { colors, spacing, typography } from '../theme/tokens';
 import { useWebSocket } from '../context/WebSocketContext';
+import { TabNavigation, PageHeader, EmptyState, StatusBadge, ListCard } from '../components/shared';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -31,7 +32,7 @@ interface DirectOrderCard {
 
 export function SupplierDirectOrdersInbox() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabType>((searchParams.get('tab') as TabType) || 'new');
   const [orders, setOrders] = useState<DirectOrderCard[]>([]);
@@ -59,10 +60,8 @@ export function SupplierDirectOrdersInbox() {
   useEffect(() => {
     if (!socket) return;
 
-    // Subscribe to orders list updates
     subscribeToOrders();
 
-    // Listen for orders list update event
     const handleOrdersListUpdate = () => {
       console.log('[SupplierDirectOrdersInbox] Orders list updated, refreshing...');
       fetchOrders();
@@ -70,7 +69,6 @@ export function SupplierDirectOrdersInbox() {
 
     socket.on('orders:list-updated', handleOrdersListUpdate);
 
-    // Cleanup on unmount
     return () => {
       socket.off('orders:list-updated', handleOrdersListUpdate);
       unsubscribeFromOrders();
@@ -100,50 +98,22 @@ export function SupplierDirectOrdersInbox() {
     }
   };
 
-  const handleTabChange = (tab: TabType) => {
-    setActiveTab(tab);
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab as TabType);
     setSearchParams({ tab });
-  };
-
-  const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
-      pending: { label: t('supplierOrders.status.needsScheduling', 'Needs Scheduling'), color: colors.warning[700], bgColor: colors.warning[100] },
-      confirmed: { label: t('supplierOrders.status.scheduled', 'Scheduled'), color: colors.success[700], bgColor: colors.success[100] },
-      in_transit: { label: t('supplierOrders.status.inTransit', 'In Transit'), color: colors.primary[700], bgColor: colors.primary[100] },
-      delivered: { label: t('supplierOrders.status.delivered', 'Delivered'), color: colors.info[700], bgColor: colors.info[100] },
-      completed: { label: t('supplierOrders.status.completed', 'Completed'), color: colors.success[700], bgColor: colors.success[100] },
-      cancelled: { label: t('supplierOrders.status.cancelled', 'Cancelled'), color: colors.neutral[700], bgColor: colors.neutral[100] },
-      disputed: { label: t('supplierOrders.status.disputed', 'Disputed'), color: colors.error[700], bgColor: colors.error[100] },
-    };
-
-    const config = statusConfig[status] || statusConfig.pending;
-
-    return (
-      <span
-        style={{
-          fontSize: typography.fontSize.xs,
-          fontWeight: typography.fontWeight.medium,
-          padding: `${spacing[1]} ${spacing[2]}`,
-          borderRadius: borderRadius.sm,
-          backgroundColor: config.bgColor,
-          color: config.color,
-        }}
-      >
-        {config.label}
-      </span>
-    );
   };
 
   const formatDeliveryWindow = (start?: string, _end?: string) => {
     if (!start) return t('supplierOrders.needsScheduling', 'Needs scheduling');
 
     const startDate = new Date(start);
-    const dateStr = startDate.toLocaleDateString('en-US', {
+    const locale = i18n.language === 'ka' ? 'ka-GE' : 'en-US';
+    const dateStr = startDate.toLocaleDateString(locale, {
       weekday: 'short',
       month: 'short',
       day: 'numeric'
     });
-    const timeStr = startDate.toLocaleTimeString('en-US', {
+    const timeStr = startDate.toLocaleTimeString(locale, {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true
@@ -151,185 +121,59 @@ export function SupplierDirectOrdersInbox() {
     return `${dateStr} at ${timeStr}`;
   };
 
+  const getStatusType = (status: string): string => {
+    const statusMap: Record<string, string> = {
+      pending_schedule: 'pending',
+      window_proposed: 'pending',
+      scheduled: 'scheduled',
+      in_transit: 'in_transit',
+      delivered: 'delivered',
+      completed: 'completed',
+      cancelled: 'cancelled',
+      disputed: 'disputed',
+    };
+    return statusMap[status] || 'pending';
+  };
+
+  const getStatusLabel = (status: string): string => {
+    const labels: Record<string, string> = {
+      pending_schedule: t('supplierOrders.status.needsScheduling', 'Needs Scheduling'),
+      window_proposed: t('supplierOrders.status.windowProposed', 'Window Proposed'),
+      scheduled: t('supplierOrders.status.scheduled', 'Scheduled'),
+      in_transit: t('supplierOrders.status.inTransit', 'In Transit'),
+      delivered: t('supplierOrders.status.delivered', 'Delivered'),
+      completed: t('supplierOrders.status.completed', 'Completed'),
+      cancelled: t('supplierOrders.status.cancelled', 'Cancelled'),
+      disputed: t('supplierOrders.status.disputed', 'Disputed'),
+    };
+    return labels[status] || status;
+  };
+
+  const tabs = [
+    { id: 'new', label: t('supplierOrders.tabs.new', 'New'), count: counts.new, hasAlert: counts.new > 0 },
+    { id: 'scheduled', label: t('supplierOrders.tabs.scheduled', 'Scheduled'), count: counts.scheduled },
+    { id: 'in_progress', label: t('supplierOrders.tabs.inProgress', 'In Progress'), count: counts.in_progress },
+    { id: 'completed', label: t('supplierOrders.tabs.completed', 'Completed'), count: counts.completed },
+  ];
+
   return (
     <div
       style={{
-        minHeight: '100vh',
-        backgroundColor: colors.neutral[50],
+        maxWidth: '1000px',
+        margin: '0 auto',
+        padding: spacing[6],
       }}
     >
-      <div
-        style={{
-          maxWidth: '100%',
-          padding: `${spacing[4]} ${spacing[3]}`,
-          paddingBottom: spacing[10],
-        }}
-      >
-        {/* Header */}
-        <div style={{ marginBottom: spacing[5] }}>
-          <h1
-            style={{
-              fontSize: typography.fontSize.xl,
-              fontWeight: typography.fontWeight.bold,
-              color: colors.text.primary,
-              margin: 0,
-              marginBottom: spacing[1.5],
-              letterSpacing: '-0.02em',
-            }}
-          >
-            {t('supplierOrders.title', 'Direct Orders')}
-          </h1>
-          <p
-            style={{
-              fontSize: typography.fontSize.sm,
-              color: colors.text.secondary,
-              margin: 0,
-              lineHeight: '1.5',
-            }}
-          >
-            {t('supplierOrders.subtitle', 'Manage direct orders and deliveries')}
-          </p>
-        </div>
+      <PageHeader
+        title={t('supplierOrders.title', 'Direct Orders')}
+        subtitle={t('supplierOrders.subtitle', 'Manage direct orders and deliveries')}
+      />
 
-        {/* Tabs */}
-        <div
-          style={{
-            display: 'flex',
-            gap: spacing[2],
-            marginBottom: spacing[4],
-            borderBottom: `2px solid ${colors.border.light}`,
-            overflowX: 'auto',
-            WebkitOverflowScrolling: 'touch',
-            marginLeft: `-${spacing[3]}`,
-            marginRight: `-${spacing[3]}`,
-            paddingLeft: spacing[3],
-            paddingRight: spacing[3],
-          }}
-        >
-        <button
-          onClick={() => handleTabChange('new')}
-          style={{
-            padding: `${spacing[2.5]} ${spacing[3]}`,
-            backgroundColor: 'transparent',
-            border: 'none',
-            borderBottom: `3px solid ${activeTab === 'new' ? colors.primary[600] : 'transparent'}`,
-            color: activeTab === 'new' ? colors.primary[600] : colors.text.secondary,
-            fontSize: typography.fontSize.sm,
-            fontWeight: activeTab === 'new' ? typography.fontWeight.semibold : typography.fontWeight.medium,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: spacing[1.5],
-            transition: 'all 0.2s',
-            flexShrink: 0,
-            whiteSpace: 'nowrap',
-            marginBottom: '-2px',
-          }}
-        >
-          {t('supplierOrders.tabs.new', 'New')}
-          {counts.new > 0 && (
-            <span
-              style={{
-                backgroundColor: colors.error[500],
-                color: colors.neutral[0],
-                fontSize: typography.fontSize.xs,
-                fontWeight: typography.fontWeight.bold,
-                padding: `${spacing[0.5]} ${spacing[1.5]}`,
-                borderRadius: borderRadius.full,
-                minWidth: '20px',
-                height: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {counts.new}
-            </span>
-          )}
-        </button>
-
-        <button
-          onClick={() => handleTabChange('scheduled')}
-          style={{
-            padding: `${spacing[2.5]} ${spacing[3]}`,
-            backgroundColor: 'transparent',
-            border: 'none',
-            borderBottom: `3px solid ${activeTab === 'scheduled' ? colors.primary[600] : 'transparent'}`,
-            color: activeTab === 'scheduled' ? colors.primary[600] : colors.text.secondary,
-            fontSize: typography.fontSize.sm,
-            fontWeight: activeTab === 'scheduled' ? typography.fontWeight.semibold : typography.fontWeight.medium,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: spacing[1.5],
-            transition: 'all 0.2s',
-            flexShrink: 0,
-            whiteSpace: 'nowrap',
-            marginBottom: '-2px',
-          }}
-        >
-          {t('supplierOrders.tabs.scheduled', 'Scheduled')}
-          {counts.scheduled > 0 && (
-            <span
-              style={{
-                backgroundColor: colors.neutral[400],
-                color: colors.neutral[0],
-                fontSize: typography.fontSize.xs,
-                fontWeight: typography.fontWeight.bold,
-                padding: `${spacing[0.5]} ${spacing[1.5]}`,
-                borderRadius: borderRadius.full,
-                minWidth: '20px',
-                height: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {counts.scheduled}
-            </span>
-          )}
-        </button>
-
-        <button
-          onClick={() => handleTabChange('in_progress')}
-          style={{
-            padding: `${spacing[2.5]} ${spacing[3]}`,
-            backgroundColor: 'transparent',
-            border: 'none',
-            borderBottom: `3px solid ${activeTab === 'in_progress' ? colors.primary[600] : 'transparent'}`,
-            color: activeTab === 'in_progress' ? colors.primary[600] : colors.text.secondary,
-            fontSize: typography.fontSize.sm,
-            fontWeight: activeTab === 'in_progress' ? typography.fontWeight.semibold : typography.fontWeight.medium,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            flexShrink: 0,
-            whiteSpace: 'nowrap',
-            marginBottom: '-2px',
-          }}
-        >
-          {t('supplierOrders.tabs.inProgress', 'In Progress')}
-        </button>
-
-        <button
-          onClick={() => handleTabChange('completed')}
-          style={{
-            padding: `${spacing[2.5]} ${spacing[3]}`,
-            backgroundColor: 'transparent',
-            border: 'none',
-            borderBottom: `3px solid ${activeTab === 'completed' ? colors.primary[600] : 'transparent'}`,
-            color: activeTab === 'completed' ? colors.primary[600] : colors.text.secondary,
-            fontSize: typography.fontSize.sm,
-            fontWeight: activeTab === 'completed' ? typography.fontWeight.semibold : typography.fontWeight.medium,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            flexShrink: 0,
-            whiteSpace: 'nowrap',
-            marginBottom: '-2px',
-          }}
-        >
-          {t('supplierOrders.tabs.completed', 'Completed')}
-        </button>
-      </div>
+      <TabNavigation
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+      />
 
       {/* Orders List */}
       {loading ? (
@@ -344,218 +188,180 @@ export function SupplierDirectOrdersInbox() {
           <div style={{ color: colors.text.tertiary }}>{t('common.loading')}</div>
         </div>
       ) : orders.length === 0 ? (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: spacing[8],
-            backgroundColor: colors.neutral[0],
-            borderRadius: borderRadius.lg,
-            border: `1px solid ${colors.border.light}`,
-          }}
-        >
-          <Icons.Package size={48} color={colors.neutral[400]} style={{ marginBottom: spacing[3] }} />
-          <div
-            style={{
-              fontSize: typography.fontSize.lg,
-              fontWeight: typography.fontWeight.medium,
-              color: colors.text.primary,
-              marginBottom: spacing[2],
-            }}
-          >
-            {t('supplierOrders.noOrders', 'No orders found')}
-          </div>
-          <div style={{ fontSize: typography.fontSize.sm, color: colors.text.tertiary }}>
-            {activeTab === 'new' && t('supplierOrders.noNewOrders', 'New orders will appear here')}
-            {activeTab === 'scheduled' && t('supplierOrders.noScheduledOrders', 'Scheduled orders will appear here')}
-            {activeTab === 'in_progress' && t('supplierOrders.noInProgressOrders', 'Orders in progress will appear here')}
-            {activeTab === 'completed' && t('supplierOrders.noCompletedOrders', 'Completed orders will appear here')}
-          </div>
-        </div>
+        <EmptyState
+          icon={Package}
+          title={t('supplierOrders.noOrders', 'No orders found')}
+          description={
+            activeTab === 'new'
+              ? t('supplierOrders.noNewOrders', 'New orders will appear here')
+              : activeTab === 'scheduled'
+                ? t('supplierOrders.noScheduledOrders', 'Scheduled orders will appear here')
+                : activeTab === 'in_progress'
+                  ? t('supplierOrders.noInProgressOrders', 'Orders in progress will appear here')
+                  : t('supplierOrders.noCompletedOrders', 'Completed orders will appear here')
+          }
+        />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
           {orders.map((order) => (
-            <div
+            <ListCard
               key={order.id}
               onClick={() => navigate(`/supplier/orders/${order.order_id}`)}
-              style={{
-                backgroundColor: colors.neutral[0],
-                padding: spacing[4],
-                borderRadius: borderRadius.lg,
-                border: `1px solid ${colors.border.light}`,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = shadows.md;
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
+              isUnread={activeTab === 'new'}
             >
-              {/* Header: Order number and status */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: spacing[2.5],
-                gap: spacing[2],
-              }}>
-                <h3 style={{
-                  fontSize: typography.fontSize.base,
-                  fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
-                  margin: 0,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  flex: 1,
-                  minWidth: 0,
-                  letterSpacing: '-0.01em',
-                }}>
-                  #{order.order_id.slice(0, 8)}
-                </h3>
-                <span
-                  style={{
-                    fontSize: typography.fontSize.xs,
-                    fontWeight: typography.fontWeight.semibold,
-                    padding: `${spacing[1]} ${spacing[2.5]}`,
-                    borderRadius: borderRadius.full,
-                    backgroundColor: order.status === 'pending' ? colors.warning[100] : colors.success[100],
-                    color: order.status === 'pending' ? colors.warning[700] : colors.success[700],
-                    flexShrink: 0,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {order.status === 'pending' ? t('supplierOrders.status.needsScheduling', 'New') : t('supplierOrders.status.scheduled', 'Scheduled')}
+              {/* Header Row */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: spacing[3],
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], flexWrap: 'wrap' }}>
+                  <span
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.semibold,
+                      color: colors.text.primary,
+                    }}
+                  >
+                    Order #{order.order_id.slice(0, 8)}
+                  </span>
+
+                  {/* Buyer Type Badge */}
+                  <StatusBadge
+                    status={order.buyer_type}
+                    label={order.buyer_type === 'homeowner' ? t('common.homeowner', 'Homeowner') : t('common.contractor', 'Contractor')}
+                    size="sm"
+                  />
+
+                  {/* Status Badge */}
+                  <StatusBadge
+                    status={getStatusType(order.status)}
+                    label={getStatusLabel(order.status)}
+                    size="sm"
+                  />
+                </div>
+
+                <span style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, whiteSpace: 'nowrap' }}>
+                  {order.relative_time}
                 </span>
               </div>
 
-              {/* Buyer name */}
-              <p style={{
-                fontSize: typography.fontSize.sm,
-                color: colors.text.secondary,
-                margin: 0,
-                marginBottom: spacing[3],
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                lineHeight: '1.5',
-              }}>
+              {/* Buyer Name */}
+              <div
+                style={{
+                  fontSize: typography.fontSize.sm,
+                  color: colors.text.secondary,
+                  marginBottom: spacing[3],
+                }}
+              >
                 {order.buyer_name}
-              </p>
+              </div>
 
-              {/* Info grid */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: spacing[3],
-                marginBottom: spacing[3],
-                padding: spacing[3],
-                backgroundColor: colors.neutral[50],
-                borderRadius: borderRadius.md,
-              }}>
-                {/* Delivery/Pickup type */}
+              {/* Info Grid */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                  gap: spacing[4],
+                }}
+              >
+                {/* Delivery/Pickup Type */}
                 <div>
-                  <div style={{
-                    fontSize: typography.fontSize.xs,
-                    color: colors.text.tertiary,
-                    marginBottom: spacing[1],
-                    fontWeight: typography.fontWeight.medium,
-                  }}>
-                    Type
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[1],
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.tertiary,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    {order.delivery_type === 'pickup' ? <Package size={12} /> : <Truck size={12} />}
+                    {t('supplierOrders.type', 'Type')}
                   </div>
-                  <div style={{
-                    fontSize: typography.fontSize.sm,
-                    color: colors.text.primary,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: spacing[1],
-                    fontWeight: typography.fontWeight.medium,
-                  }}>
-                    {order.delivery_type === 'pickup' ? <Icons.Package size={14} /> : <Icons.Truck size={14} />}
+                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
                     {order.delivery_type === 'pickup' ? t('common.pickup', 'Pickup') : t('common.delivery', 'Delivery')}
                   </div>
                 </div>
 
                 {/* Items */}
                 <div>
-                  <div style={{
-                    fontSize: typography.fontSize.xs,
-                    color: colors.text.tertiary,
-                    marginBottom: spacing[1],
-                    fontWeight: typography.fontWeight.medium,
-                  }}>
-                    Items
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[1],
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.tertiary,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    <Package size={12} />
+                    {t('supplierOrders.items', 'Items')}
                   </div>
-                  <div style={{
-                    fontSize: typography.fontSize.sm,
-                    color: colors.text.primary,
-                    fontWeight: typography.fontWeight.medium,
-                  }}>
-                    {order.item_count}
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.primary,
+                    }}
+                  >
+                    {order.item_count} {t('common.items', 'items')}
                   </div>
                 </div>
 
-                {/* Total Amount - spans full width */}
-                <div style={{ gridColumn: '1 / -1', paddingTop: spacing[2], borderTop: `1px solid ${colors.border.light}` }}>
-                  <div style={{
-                    fontSize: typography.fontSize.xs,
-                    color: colors.text.tertiary,
-                    marginBottom: spacing[1],
-                    fontWeight: typography.fontWeight.medium,
-                  }}>
-                    Total Amount
+                {/* Delivery/Pickup Window */}
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[1],
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.tertiary,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    <Calendar size={12} />
+                    {order.delivery_type === 'pickup'
+                      ? t('supplierOrders.pickupWindow', 'Pickup')
+                      : t('supplierOrders.deliveryWindow', 'Delivery')}
                   </div>
-                  <div style={{
-                    fontSize: typography.fontSize.lg,
-                    color: colors.text.primary,
-                    fontWeight: typography.fontWeight.bold,
-                  }}>
+                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
+                    {formatDeliveryWindow(order.scheduled_window_start, order.scheduled_window_end)}
+                  </div>
+                </div>
+
+                {/* Total Amount */}
+                <div>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.tertiary,
+                      marginBottom: spacing[1],
+                    }}
+                  >
+                    {t('supplierOrders.totalAmount', 'Total')}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.bold,
+                      color: colors.success[600],
+                    }}
+                  >
                     ₾{Number(order.total_amount || 0).toFixed(2)}
                   </div>
                 </div>
               </div>
-
-              {/* Window info */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: spacing[2],
-                padding: spacing[2.5],
-                backgroundColor: colors.primary[50],
-                borderRadius: borderRadius.md,
-                border: `1px solid ${colors.primary[100]}`,
-              }}>
-                <Icons.Calendar size={16} style={{ flexShrink: 0, color: colors.primary[600] }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontSize: typography.fontSize.xs,
-                    color: colors.primary[700],
-                    marginBottom: spacing[0.5],
-                    fontWeight: typography.fontWeight.medium,
-                  }}>
-                    {order.delivery_type === 'pickup' ? t('supplierOrders.pickupWindow', 'Pickup Window') : t('supplierOrders.deliveryWindow', 'Delivery Window')}
-                  </div>
-                  <div style={{
-                    fontSize: typography.fontSize.sm,
-                    color: colors.primary[900],
-                    fontWeight: typography.fontWeight.semibold,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}>
-                    {formatDeliveryWindow(order.scheduled_window_start, order.scheduled_window_end)}
-                  </div>
-                </div>
-              </div>
-            </div>
+            </ListCard>
           ))}
         </div>
       )}
-      </div>
     </div>
   );
 }
