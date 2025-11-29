@@ -94,7 +94,6 @@ export const MyRentals: React.FC = () => {
     return date.toLocaleDateString(locale, {
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
     });
   };
 
@@ -150,298 +149,318 @@ export const MyRentals: React.FC = () => {
     { id: 'completed', label: t('myRentals.tabs.completed', 'Completed'), count: completedCount },
   ];
 
-  const BrowseRentalsButton = () => (
-    <button
-      onClick={() => navigate('/rentals')}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: spacing[2],
-        padding: `${spacing[2]} ${spacing[4]}`,
-        backgroundColor: colors.primary[600],
-        color: colors.neutral[0],
-        border: 'none',
-        borderRadius: borderRadius.lg,
-        fontSize: typography.fontSize.base,
-        fontWeight: typography.fontWeight.medium,
-        cursor: 'pointer',
-        boxShadow: shadows.sm,
-        transition: 'background-color 200ms ease',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = colors.primary[700];
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = colors.primary[600];
-      }}
-    >
-      <Plus size={20} />
-      {t('myRentals.browseRentals', 'Browse Rentals')}
-    </button>
-  );
-
   return (
-    <div
-      style={{
-        maxWidth: '1000px',
-        margin: '0 auto',
-        padding: spacing[6],
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          marginBottom: spacing[6],
-        }}
-      >
-        <PageHeader
-          title={t('myRentals.title', 'My Rentals')}
-          subtitle={t('myRentals.subtitle', 'View and manage your equipment rentals')}
-        />
-        <BrowseRentalsButton />
-      </div>
+    <>
+      <style>{`
+        .my-rentals-page {
+          max-width: 1000px;
+          margin: 0 auto;
+          padding: ${spacing[6]};
+        }
+        @media (max-width: 640px) {
+          .my-rentals-page {
+            padding: ${spacing[4]};
+          }
+        }
+        .my-rentals-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: ${spacing[4]};
+          margin-bottom: ${spacing[6]};
+        }
+        @media (max-width: 640px) {
+          .my-rentals-header {
+            flex-direction: column;
+            gap: ${spacing[3]};
+            margin-bottom: ${spacing[4]};
+          }
+        }
+        .browse-btn {
+          display: flex;
+          align-items: center;
+          gap: ${spacing[2]};
+          padding: ${spacing[2]} ${spacing[4]};
+          background-color: ${colors.primary[600]};
+          color: ${colors.neutral[0]};
+          border: none;
+          border-radius: ${borderRadius.lg};
+          font-size: ${typography.fontSize.sm};
+          font-weight: ${typography.fontWeight.medium};
+          cursor: pointer;
+          box-shadow: ${shadows.sm};
+          transition: background-color 200ms ease;
+          white-space: nowrap;
+        }
+        .browse-btn:hover {
+          background-color: ${colors.primary[700]};
+        }
+        @media (max-width: 640px) {
+          .browse-btn {
+            width: 100%;
+            justify-content: center;
+            padding: ${spacing[3]} ${spacing[4]};
+          }
+        }
+        .search-container {
+          position: relative;
+          margin-bottom: ${spacing[4]};
+        }
+        .search-icon {
+          position: absolute;
+          left: ${spacing[3]};
+          top: 50%;
+          transform: translateY(-50%);
+          color: ${colors.text.tertiary};
+        }
+        .search-input {
+          width: 100%;
+          padding: ${spacing[3]} ${spacing[3]} ${spacing[3]} ${spacing[10]};
+          border: 1px solid ${colors.border.light};
+          border-radius: ${borderRadius.lg};
+          font-size: ${typography.fontSize.base};
+          background-color: ${colors.neutral[0]};
+          box-sizing: border-box;
+        }
+        @media (max-width: 640px) {
+          .search-input {
+            font-size: ${typography.fontSize.sm};
+            padding: ${spacing[2.5]} ${spacing[3]} ${spacing[2.5]} ${spacing[10]};
+          }
+        }
+        .rental-card-content {
+          display: flex;
+          flex-direction: column;
+          gap: ${spacing[3]};
+        }
+        .rental-card-top {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: ${spacing[3]};
+        }
+        .rental-card-info {
+          flex: 1;
+          min-width: 0;
+        }
+        .rental-booking-number {
+          display: flex;
+          align-items: center;
+          gap: ${spacing[2]};
+          margin-bottom: ${spacing[1]};
+        }
+        .rental-booking-number span {
+          font-size: ${typography.fontSize.sm};
+          color: ${colors.text.tertiary};
+        }
+        .rental-tool-name {
+          font-size: ${typography.fontSize.base};
+          font-weight: ${typography.fontWeight.semibold};
+          color: ${colors.text.primary};
+          margin: 0 0 ${spacing[1]} 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        @media (max-width: 640px) {
+          .rental-tool-name {
+            font-size: ${typography.fontSize.sm};
+            white-space: normal;
+          }
+        }
+        .rental-supplier {
+          font-size: ${typography.fontSize.sm};
+          color: ${colors.text.secondary};
+          margin: 0;
+        }
+        .rental-status-price {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: ${spacing[1]};
+          flex-shrink: 0;
+        }
+        .rental-price {
+          font-size: ${typography.fontSize.lg};
+          font-weight: ${typography.fontWeight.bold};
+          color: ${colors.primary[600]};
+          margin: 0;
+        }
+        @media (max-width: 640px) {
+          .rental-price {
+            font-size: ${typography.fontSize.base};
+          }
+        }
+        .rental-deposit {
+          font-size: ${typography.fontSize.xs};
+          color: ${colors.text.tertiary};
+          margin: 0;
+        }
+        .rental-meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: ${spacing[3]};
+          padding-top: ${spacing[3]};
+          border-top: 1px solid ${colors.border.light};
+        }
+        .rental-meta-item {
+          display: flex;
+          align-items: center;
+          gap: ${spacing[1.5]};
+          font-size: ${typography.fontSize.sm};
+          color: ${colors.text.secondary};
+        }
+        @media (max-width: 640px) {
+          .rental-meta-item {
+            font-size: ${typography.fontSize.xs};
+          }
+        }
+        .loading-spinner {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: ${spacing[12]};
+        }
+        .spinner {
+          width: 40px;
+          height: 40px;
+          border: 3px solid ${colors.neutral[200]};
+          border-top-color: ${colors.primary[600]};
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
 
-      {/* Tabs */}
-      <TabNavigation tabs={tabs} activeTab={selectedTab} onTabChange={handleTabChange} />
-
-      {/* Search */}
-      <div
-        style={{
-          position: 'relative',
-          marginBottom: spacing[4],
-        }}
-      >
-        <Search
-          size={20}
-          style={{
-            position: 'absolute',
-            left: spacing[3],
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: colors.text.tertiary,
-          }}
-        />
-        <input
-          type="text"
-          placeholder={t('myRentals.searchPlaceholder', 'Search by booking number, tool, or supplier...')}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{
-            width: '100%',
-            padding: `${spacing[3]} ${spacing[3]} ${spacing[3]} ${spacing[10]}`,
-            border: `1px solid ${colors.border.light}`,
-            borderRadius: borderRadius.lg,
-            fontSize: typography.fontSize.base,
-            backgroundColor: colors.neutral[0],
-          }}
-        />
-      </div>
-
-      {/* Rentals List */}
-      {loading ? (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: spacing[12],
-          }}
-        >
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              border: `3px solid ${colors.neutral[200]}`,
-              borderTopColor: colors.primary[600],
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite',
-            }}
+      <div className="my-rentals-page">
+        <div className="my-rentals-header">
+          <PageHeader
+            title={t('myRentals.title', 'My Rentals')}
+            subtitle={t('myRentals.subtitle', 'View and manage your equipment rentals')}
           />
-          <style>{`
-            @keyframes spin {
-              to { transform: rotate(360deg); }
+          <button className="browse-btn" onClick={() => navigate('/rentals')}>
+            <Plus size={18} />
+            {t('myRentals.browseRentals', 'Browse Rentals')}
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <TabNavigation tabs={tabs} activeTab={selectedTab} onTabChange={handleTabChange} />
+
+        {/* Search */}
+        <div className="search-container">
+          <Search size={20} className="search-icon" />
+          <input
+            type="text"
+            className="search-input"
+            placeholder={t('myRentals.searchPlaceholder', 'Search by booking number, tool, or supplier...')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        {/* Rentals List */}
+        {loading ? (
+          <div className="loading-spinner">
+            <div className="spinner" />
+          </div>
+        ) : filteredRentals.length === 0 ? (
+          <EmptyState
+            icon={Wrench}
+            title={
+              searchQuery
+                ? t('myRentals.noSearchResults', 'No rentals found')
+                : selectedTab === 'active'
+                ? t('myRentals.noActiveRentals', 'No active rentals')
+                : selectedTab === 'upcoming'
+                ? t('myRentals.noUpcomingRentals', 'No upcoming rentals')
+                : t('myRentals.noCompletedRentals', 'No completed rentals')
             }
-          `}</style>
-        </div>
-      ) : filteredRentals.length === 0 ? (
-        <EmptyState
-          icon={Wrench}
-          title={
-            searchQuery
-              ? t('myRentals.noSearchResults', 'No rentals found')
-              : selectedTab === 'active'
-              ? t('myRentals.noActiveRentals', 'No active rentals')
-              : selectedTab === 'upcoming'
-              ? t('myRentals.noUpcomingRentals', 'No upcoming rentals')
-              : t('myRentals.noCompletedRentals', 'No completed rentals')
-          }
-          description={
-            searchQuery
-              ? t('myRentals.tryDifferentSearch', 'Try a different search term')
-              : t('myRentals.browseToRent', 'Browse available equipment to rent')
-          }
-          action={
-            !searchQuery && (
-              <button
-                onClick={() => navigate('/rentals')}
-                style={{
-                  padding: `${spacing[3]} ${spacing[6]}`,
-                  backgroundColor: colors.primary[600],
-                  color: colors.neutral[0],
-                  border: 'none',
-                  borderRadius: borderRadius.md,
-                  fontSize: typography.fontSize.base,
-                  fontWeight: typography.fontWeight.medium,
-                  cursor: 'pointer',
-                }}
-              >
-                {t('myRentals.browseRentals', 'Browse Rentals')}
-              </button>
-            )
-          }
-        />
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
-          {filteredRentals.map((rental) => (
-            <ListCard
-              key={rental.id}
-              onClick={() => navigate(`/rentals/${rental.id}`)}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  justifyContent: 'space-between',
-                  gap: spacing[4],
-                }}
-              >
-                {/* Left: Tool info */}
-                <div style={{ flex: 1 }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: spacing[2],
-                      marginBottom: spacing[1],
-                    }}
-                  >
-                    <Wrench size={16} color={colors.primary[600]} />
-                    <span
-                      style={{
-                        fontSize: typography.fontSize.sm,
-                        color: colors.text.tertiary,
-                      }}
-                    >
-                      {rental.booking_number}
-                    </span>
-                  </div>
-                  <h3
-                    style={{
-                      fontSize: typography.fontSize.lg,
-                      fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
-                      margin: 0,
-                      marginBottom: spacing[1],
-                    }}
-                  >
-                    {rental.tool_name}
-                  </h3>
-                  {rental.tool_spec && (
-                    <p
-                      style={{
-                        fontSize: typography.fontSize.sm,
-                        color: colors.text.secondary,
-                        margin: 0,
-                        marginBottom: spacing[2],
-                      }}
-                    >
-                      {rental.tool_spec}
-                    </p>
-                  )}
-                  <p
-                    style={{
-                      fontSize: typography.fontSize.sm,
-                      color: colors.text.secondary,
-                      margin: 0,
-                    }}
-                  >
-                    {rental.supplier_name}
-                  </p>
-                </div>
-
-                {/* Middle: Dates */}
-                <div
+            description={
+              searchQuery
+                ? t('myRentals.tryDifferentSearch', 'Try a different search term')
+                : t('myRentals.browseToRent', 'Browse available equipment to rent')
+            }
+            action={
+              !searchQuery && (
+                <button
+                  onClick={() => navigate('/rentals')}
                   style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: spacing[2],
-                    minWidth: 180,
+                    padding: `${spacing[3]} ${spacing[6]}`,
+                    backgroundColor: colors.primary[600],
+                    color: colors.neutral[0],
+                    border: 'none',
+                    borderRadius: borderRadius.md,
+                    fontSize: typography.fontSize.base,
+                    fontWeight: typography.fontWeight.medium,
+                    cursor: 'pointer',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-                    <Calendar size={16} color={colors.text.tertiary} />
-                    <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-                      {formatDate(rental.start_date)} - {formatDate(rental.end_date)}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-                    <Clock size={16} color={colors.text.tertiary} />
-                    <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-                      {rental.rental_duration_days} {rental.rental_duration_days === 1 ? 'day' : 'days'}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-                    {rental.pickup_or_delivery === 'delivery' ? (
-                      <Truck size={16} color={colors.text.tertiary} />
-                    ) : (
-                      <MapPin size={16} color={colors.text.tertiary} />
-                    )}
-                    <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-                      {rental.pickup_or_delivery === 'delivery' ? 'Delivery' : 'Pickup'}
-                    </span>
-                  </div>
-                </div>
+                  {t('myRentals.browseRentals', 'Browse Rentals')}
+                </button>
+              )
+            }
+          />
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+            {filteredRentals.map((rental) => (
+              <ListCard key={rental.id} onClick={() => navigate(`/rentals/${rental.id}`)}>
+                <div className="rental-card-content">
+                  {/* Top row: Info + Status/Price */}
+                  <div className="rental-card-top">
+                    <div className="rental-card-info">
+                      <div className="rental-booking-number">
+                        <Wrench size={14} color={colors.primary[600]} />
+                        <span>{rental.booking_number}</span>
+                      </div>
+                      <h3 className="rental-tool-name">
+                        {rental.tool_spec ? `${rental.tool_spec} ` : ''}
+                        {rental.tool_name}
+                      </h3>
+                      <p className="rental-supplier">{rental.supplier_name}</p>
+                    </div>
 
-                {/* Right: Status and price */}
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-end',
-                    gap: spacing[2],
-                  }}
-                >
-                  <StatusBadge status={getStatusType(rental.status)} label={getStatusLabel(rental.status)} />
-                  <p
-                    style={{
-                      fontSize: typography.fontSize.lg,
-                      fontWeight: typography.fontWeight.bold,
-                      color: colors.primary[600],
-                      margin: 0,
-                    }}
-                  >
-                    {rental.total_rental_amount?.toLocaleString()} GEL
-                  </p>
-                  {rental.deposit_amount > 0 && (
-                    <p
-                      style={{
-                        fontSize: typography.fontSize.xs,
-                        color: colors.text.tertiary,
-                        margin: 0,
-                      }}
-                    >
-                      + {rental.deposit_amount?.toLocaleString()} GEL deposit
-                    </p>
-                  )}
+                    <div className="rental-status-price">
+                      <StatusBadge status={getStatusType(rental.status)} label={getStatusLabel(rental.status)} />
+                      <p className="rental-price">{rental.total_rental_amount?.toLocaleString()} ₾</p>
+                      {rental.deposit_amount > 0 && (
+                        <p className="rental-deposit">+ {rental.deposit_amount?.toLocaleString()} ₾ {t('myRentals.deposit', 'deposit')}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Bottom row: Meta info */}
+                  <div className="rental-meta">
+                    <div className="rental-meta-item">
+                      <Calendar size={14} color={colors.text.tertiary} />
+                      <span>{formatDate(rental.start_date)} - {formatDate(rental.end_date)}</span>
+                    </div>
+                    <div className="rental-meta-item">
+                      <Clock size={14} color={colors.text.tertiary} />
+                      <span>{rental.rental_duration_days} {t('myRentals.days', 'days')}</span>
+                    </div>
+                    <div className="rental-meta-item">
+                      {rental.pickup_or_delivery === 'delivery' ? (
+                        <Truck size={14} color={colors.text.tertiary} />
+                      ) : (
+                        <MapPin size={14} color={colors.text.tertiary} />
+                      )}
+                      <span>
+                        {rental.pickup_or_delivery === 'delivery'
+                          ? t('myRentals.delivery', 'Delivery')
+                          : t('myRentals.pickup', 'Pickup')}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </ListCard>
-          ))}
-        </div>
-      )}
-    </div>
+              </ListCard>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 
