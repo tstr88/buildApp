@@ -21,7 +21,7 @@ interface TabItem {
 }
 
 // Paths that should highlight the "More" tab
-const MORE_PATHS = ['/orders', '/catalog', '/rentals', '/factories', '/profile'];
+const MORE_PATHS = ['/orders', '/catalog', '/rentals', '/my-rentals', '/factories', '/profile'];
 
 const BUYER_TABS: TabItem[] = [
   { id: 'home', icon: 'Home', labelKey: 'nav.home', path: '/home' },
@@ -180,8 +180,9 @@ export const BottomTabBar: React.FC = () => {
         })}
       </nav>
 
-      {/* More Menu Bottom Sheet */}
+      {/* More Menu Bottom Sheet - key forces remount on path change */}
       <MoreMenuSheet
+        key={location.pathname}
         isOpen={isMoreMenuOpen}
         onClose={() => setIsMoreMenuOpen(false)}
       />

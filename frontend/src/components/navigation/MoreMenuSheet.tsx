@@ -5,7 +5,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Icons } from '../icons/Icons';
 import { colors, spacing, typography, borderRadius, shadows, transitions } from '../../theme/tokens';
@@ -22,7 +22,7 @@ const MENU_ITEMS: MenuItem[] = [
   { id: 'orders', icon: 'FileText', labelKey: 'nav.orders', path: '/orders', description: 'nav.ordersDescription' },
   { id: 'catalog', icon: 'Catalog', labelKey: 'nav.catalog', path: '/catalog', description: 'nav.catalogDescription' },
   { id: 'rentals', icon: 'Rentals', labelKey: 'nav.rentals', path: '/rentals', description: 'nav.rentalsDescription' },
-  { id: 'my-rentals', icon: 'Wrench', labelKey: 'nav.myRentals', path: '/rentals/my', description: 'nav.myRentalsDescription' },
+  { id: 'my-rentals', icon: 'Wrench', labelKey: 'nav.myRentals', path: '/my-rentals', description: 'nav.myRentalsDescription' },
   { id: 'factories', icon: 'Factory', labelKey: 'nav.factories', path: '/factories', description: 'nav.factoriesDescription' },
   { id: 'profile', icon: 'Profile', labelKey: 'nav.profile', path: '/profile', description: 'nav.profileDescription' },
 ];
@@ -34,13 +34,16 @@ interface MoreMenuSheetProps {
 
 export const MoreMenuSheet: React.FC<MoreMenuSheetProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  // Store the current path when the sheet opens to ensure fresh value
+  const [currentPath, setCurrentPath] = useState('');
 
   useEffect(() => {
     if (isOpen) {
+      // Capture the current path immediately when opening
+      setCurrentPath(window.location.pathname);
       setIsVisible(true);
       // Small delay to trigger animation
       requestAnimationFrame(() => {
@@ -62,7 +65,12 @@ export const MoreMenuSheet: React.FC<MoreMenuSheetProps> = ({ isOpen, onClose })
   };
 
   const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(path + '/');
+    // Use exact match for all menu items to prevent parent paths from being
+    // highlighted when on child routes (e.g., /rentals shouldn't be active on /rentals/my)
+    // Normalize paths by removing trailing slashes
+    const normalizedCurrentPath = currentPath.replace(/\/$/, '') || '/';
+    const targetPath = path.replace(/\/$/, '') || '/';
+    return normalizedCurrentPath === targetPath;
   };
 
   if (!isVisible) return null;

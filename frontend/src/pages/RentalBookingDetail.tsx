@@ -374,7 +374,7 @@ const RentalBookingDetail: React.FC = () => {
             {error || t('rentalDetail.notFound', 'Booking not found')}
           </p>
           <button
-            onClick={() => navigate('/rentals/my')}
+            onClick={() => navigate('/my-rentals')}
             style={{
               padding: `${spacing[3]} ${spacing[6]}`,
               backgroundColor: colors.primary[600],
@@ -417,7 +417,7 @@ const RentalBookingDetail: React.FC = () => {
         }}
       >
         <button
-          onClick={() => navigate('/rentals/my')}
+          onClick={() => navigate('/my-rentals')}
           style={{
             display: 'flex',
             alignItems: 'center',

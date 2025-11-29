@@ -185,7 +185,7 @@ function App() {
 
             {/* Rentals routes */}
             <Route path="/rentals" element={<Rentals />} />
-            <Route path="/rentals/my" element={<MyRentals />} />
+            <Route path="/my-rentals" element={<MyRentals />} />
             <Route path="/rentals/tools/:id" element={<RentalToolDetail />} />
             <Route path="/rentals/rfq" element={<CreateRentalRFQ />} />
             <Route path="/rentals/book/:toolId" element={<BookRentalTool />} />
