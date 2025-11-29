@@ -38,6 +38,8 @@ import {
   Wrench,
   Zap,
   MoreVertical,
+  MoreHorizontal,
+  Grid3X3,
   Eye,
   Send,
   Users,
@@ -107,6 +109,8 @@ export const Icons = {
 
   // Admin Actions
   MoreVertical,
+  MoreHorizontal,
+  Grid: Grid3X3,
   Eye,
   Send,
   Users,

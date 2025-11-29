@@ -37,7 +37,14 @@
     "orders": "Orders",
     "settings": "Settings",
     "performance": "Performance",
-    "billing": "Billing"
+    "billing": "Billing",
+    "more": "More",
+    "moreOptions": "More Options",
+    "ordersDescription": "View and track your orders",
+    "catalogDescription": "Browse materials and products",
+    "rentalsDescription": "Rent construction tools",
+    "myRentalsDescription": "Manage your tool rentals",
+    "factoriesDescription": "Find local factories"
   },
   "home": {
     "welcome": "Welcome to buildApp",

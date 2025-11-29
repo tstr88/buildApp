@@ -37,7 +37,14 @@
     "orders": "შეკვეთები",
     "settings": "პარამეტრები",
     "performance": "მუშაობა",
-    "billing": "ბილინგი"
+    "billing": "ბილინგი",
+    "more": "სხვა",
+    "moreOptions": "სხვა ოფციები",
+    "ordersDescription": "შეკვეთების ნახვა და თვალყურის დევნება",
+    "catalogDescription": "მასალების და პროდუქტების დათვალიერება",
+    "rentalsDescription": "სამშენებლო ხელსაწყოების გაქირავება",
+    "myRentalsDescription": "ჩემი გაქირავებული ხელსაწყოები",
+    "factoriesDescription": "ადგილობრივი ქარხნების მოძიება"
   },
   "home": {
     "welcome": "მოგესალმებით buildApp-ში",
