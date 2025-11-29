@@ -561,7 +561,8 @@
   },
   "rentalsPage": {
     "title": "Tool Rentals",
-    "filters": "Filters",
+    "searchPlaceholder": "Search tools...",
+    "filtersButton": "Filters",
     "result": "tool",
     "results": "tools",
     "sort": {
@@ -584,16 +585,27 @@
     },
     "buttons": {
       "viewDetails": "View Details",
-      "book": "Book Now"
+      "book": "Book"
     },
     "pricing": {
+      "day": "day",
+      "week": "week",
       "perDay": "per day",
       "perWeek": "per week",
-      "deposit": "Deposit",
+      "deposit": "deposit",
       "or": "or"
+    },
+    "category": {
+      "tool": "Tool"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "{{page}} / {{totalPages}}"
     },
     "filters": {
       "title": "Filters",
+      "apply": "Apply Filters",
       "reset": "Reset",
       "category": "Category",
       "supplier": "Supplier",

@@ -1,7 +1,12 @@
+/**
+ * Rental Tool Card Component
+ * Displays rental tool in grid view format - matches SKUCard styling
+ */
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { colors, spacing, typography, borderRadius } from '../../theme/tokens';
+import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
 import * as Icons from 'lucide-react';
 
 interface RentalTool {
@@ -26,6 +31,18 @@ interface RentalToolCardProps {
   onBookNow?: (toolId: string) => void;
 }
 
+const getCategoryIcon = (category?: string) => {
+  const iconMap: Record<string, any> = {
+    concrete: Icons.Box,
+    excavation: Icons.Shovel,
+    lifting: Icons.ArrowUpFromLine,
+    safety: Icons.HardHat,
+    measuring: Icons.Ruler,
+  };
+  const IconComponent = category ? iconMap[category] || Icons.Wrench : Icons.Wrench;
+  return <IconComponent size={18} color={colors.primary[600]} />;
+};
+
 export const RentalToolCard: React.FC<RentalToolCardProps> = ({
   tool,
   onRequestQuote,
@@ -35,7 +52,6 @@ export const RentalToolCard: React.FC<RentalToolCardProps> = ({
   const { t } = useTranslation();
 
   const handleCardClick = () => {
-    // Navigate to tool detail page
     navigate(`/rentals/tools/${tool.id}`);
   };
 
@@ -44,7 +60,6 @@ export const RentalToolCard: React.FC<RentalToolCardProps> = ({
     if (onRequestQuote) {
       onRequestQuote(tool.id);
     } else {
-      // Default: navigate to rental RFQ with this tool pre-selected
       navigate('/rentals/rfq', { state: { preselectedTools: [tool.id] } });
     }
   };
@@ -54,20 +69,8 @@ export const RentalToolCard: React.FC<RentalToolCardProps> = ({
     if (onBookNow) {
       onBookNow(tool.id);
     } else {
-      // Navigate to direct booking flow
       navigate(`/rentals/book/${tool.id}`);
     }
-  };
-
-  const formatRate = () => {
-    const rates = [];
-    if (tool.daily_rate) {
-      rates.push(`${tool.daily_rate.toLocaleString()} ₾ ${t('rentalsPage.pricing.perDay')}`);
-    }
-    if (tool.weekly_rate) {
-      rates.push(`${tool.weekly_rate.toLocaleString()} ₾ ${t('rentalsPage.pricing.perWeek')}`);
-    }
-    return rates.join(` ${t('rentalsPage.pricing.or')} `);
   };
 
   return (
@@ -75,23 +78,26 @@ export const RentalToolCard: React.FC<RentalToolCardProps> = ({
       onClick={handleCardClick}
       style={{
         backgroundColor: colors.neutral[0],
-        border: `1px solid ${colors.neutral[200]}`,
         borderRadius: borderRadius.lg,
+        border: `1px solid ${colors.border.light}`,
         overflow: 'hidden',
+        transition: 'all 200ms ease',
         cursor: 'pointer',
-        transition: 'all 0.2s',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        ':hover': {
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-          transform: 'translateY(-2px)',
-        },
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = colors.primary[300];
+        e.currentTarget.style.boxShadow = shadows.md;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = colors.border.light;
+        e.currentTarget.style.boxShadow = 'none';
       }}
     >
-      {/* Tool Photo */}
+      {/* Thumbnail */}
       <div
         style={{
           width: '100%',
-          height: '200px',
+          height: '160px',
           backgroundColor: colors.neutral[100],
           display: 'flex',
           alignItems: 'center',
@@ -110,166 +116,218 @@ export const RentalToolCard: React.FC<RentalToolCardProps> = ({
             }}
           />
         ) : (
-          <Icons.Wrench size={48} color={colors.neutral[400]} />
+          getCategoryIcon(tool.category)
         )}
 
-        {/* Direct Booking Badge */}
-        {tool.direct_booking_available && (
-          <div
-            style={{
-              position: 'absolute',
-              top: spacing[2],
-              right: spacing[2],
-              backgroundColor: colors.primary[600],
-              color: colors.neutral[0],
-              padding: `${spacing[1]}px ${spacing[2]}px`,
-              borderRadius: borderRadius.full,
-              fontSize: typography.fontSize.xs,
-              fontWeight: typography.fontWeight.semibold,
-              display: 'flex',
-              alignItems: 'center',
-              gap: spacing[1],
-            }}
-          >
-            <Icons.Zap size={12} />
-            {t('rentalsPage.badges.direct')}
-          </div>
-        )}
-      </div>
-
-      {/* Tool Info */}
-      <div style={{ padding: spacing[4] }}>
-        {/* Tool Name & Spec */}
-        <h3
+        {/* Badges Overlay */}
+        <div
           style={{
-            fontSize: typography.fontSize.lg,
-            fontWeight: typography.fontWeight.semibold,
-            color: colors.text.primary,
-            marginBottom: spacing[1],
+            position: 'absolute',
+            top: spacing[2],
+            left: spacing[2],
+            right: spacing[2],
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
           }}
         >
-          {tool.tool_name}
-        </h3>
-        {tool.spec_string && (
-          <p
-            style={{
-              fontSize: typography.fontSize.sm,
-              color: colors.text.secondary,
-              marginBottom: spacing[3],
-            }}
-          >
-            {tool.spec_string}
-          </p>
-        )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[1] }}>
+            {tool.direct_booking_available && (
+              <div
+                style={{
+                  padding: `${spacing[0.5]} ${spacing[2]}`,
+                  backgroundColor: colors.warning[500],
+                  color: colors.neutral[0],
+                  borderRadius: borderRadius.full,
+                  fontSize: typography.fontSize.xs,
+                  fontWeight: typography.fontWeight.semibold,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: spacing[1],
+                }}
+              >
+                <Icons.Zap size={12} />
+                {t('rentalsPage.badges.direct')}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
-        {/* Supplier Name */}
+      {/* Content */}
+      <div style={{ padding: spacing[3] }}>
+        {/* Category */}
         <div
           style={{
             display: 'flex',
+            justifyContent: 'space-between',
             alignItems: 'center',
-            gap: spacing[1],
-            marginBottom: spacing[3],
+            marginBottom: spacing[2],
           }}
         >
-          <Icons.Building2 size={14} color={colors.neutral[500]} />
           <span
             style={{
-              fontSize: typography.fontSize.sm,
-              color: colors.text.secondary,
+              fontSize: typography.fontSize.xs,
+              color: colors.text.tertiary,
+              textTransform: 'capitalize',
             }}
           >
-            {tool.supplier_name}
+            {tool.category || t('rentalsPage.category.tool')}
           </span>
         </div>
 
+        {/* Name & Spec */}
+        <h4
+          style={{
+            fontSize: typography.fontSize.base,
+            fontWeight: typography.fontWeight.semibold,
+            color: colors.text.primary,
+            margin: 0,
+            marginBottom: spacing[1],
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {tool.spec_string ? (
+            <>
+              <strong>{tool.spec_string}</strong> {tool.tool_name}
+            </>
+          ) : (
+            tool.tool_name
+          )}
+        </h4>
+
+        {/* Supplier */}
+        <p
+          style={{
+            fontSize: typography.fontSize.sm,
+            color: colors.text.secondary,
+            margin: 0,
+            marginBottom: spacing[3],
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {tool.supplier_name}
+        </p>
+
         {/* Rates */}
-        <div style={{ marginBottom: spacing[3] }}>
-          <p
+        {(tool.daily_rate || tool.weekly_rate) && (
+          <div
             style={{
-              fontSize: typography.fontSize.xl,
-              fontWeight: typography.fontWeight.bold,
-              color: colors.primary[600],
-              marginBottom: spacing[1],
+              padding: `${spacing[2]} 0`,
+              borderTop: `1px solid ${colors.border.light}`,
+              borderBottom: `1px solid ${colors.border.light}`,
+              marginBottom: spacing[3],
             }}
           >
-            {formatRate()}
-          </p>
-          {tool.deposit_amount && (
             <p
               style={{
-                fontSize: typography.fontSize.sm,
-                color: colors.text.secondary,
+                fontSize: typography.fontSize.lg,
+                fontWeight: typography.fontWeight.bold,
+                color: colors.primary[600],
+                margin: 0,
+              }}
+            >
+              {tool.daily_rate && (
+                <>
+                  {tool.daily_rate.toLocaleString()} ₾
+                  <span
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.normal,
+                      color: colors.text.secondary,
+                    }}
+                  >
+                    {' '}/ {t('rentalsPage.pricing.day')}
+                  </span>
+                </>
+              )}
+            </p>
+            {tool.weekly_rate && (
+              <p
+                style={{
+                  fontSize: typography.fontSize.sm,
+                  color: colors.text.secondary,
+                  margin: 0,
+                  marginTop: spacing[1],
+                }}
+              >
+                {tool.weekly_rate.toLocaleString()} ₾ / {t('rentalsPage.pricing.week')}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Badges */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: spacing[1], marginBottom: spacing[3] }}>
+          {tool.deposit_amount && (
+            <div
+              style={{
+                padding: `${spacing[0.5]} ${spacing[2]}`,
+                backgroundColor: colors.info[50],
+                color: colors.info[700],
+                borderRadius: borderRadius.sm,
+                fontSize: typography.fontSize.xs,
+                fontWeight: typography.fontWeight.medium,
               }}
             >
               {tool.deposit_amount.toLocaleString()} ₾ {t('rentalsPage.pricing.deposit')}
-            </p>
-          )}
-        </div>
-
-        {/* Delivery Options */}
-        <div
-          style={{
-            display: 'flex',
-            gap: spacing[2],
-            marginBottom: spacing[4],
-          }}
-        >
-          {tool.delivery_available && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: spacing[1],
-                padding: `${spacing[1]}px ${spacing[2]}px`,
-                backgroundColor: colors.success[50],
-                color: colors.success[700],
-                borderRadius: borderRadius.md,
-                fontSize: typography.fontSize.xs,
-              }}
-            >
-              <Icons.Truck size={12} />
-              {t('rentalsPage.badges.delivery')}
             </div>
           )}
           {tool.pickup_available && (
             <div
               style={{
+                padding: `${spacing[0.5]} ${spacing[1.5]}`,
+                backgroundColor: colors.neutral[100],
+                borderRadius: borderRadius.sm,
                 display: 'flex',
                 alignItems: 'center',
-                gap: spacing[1],
-                padding: `${spacing[1]}px ${spacing[2]}px`,
-                backgroundColor: colors.info[50],
-                color: colors.info[700],
-                borderRadius: borderRadius.md,
-                fontSize: typography.fontSize.xs,
               }}
+              title={t('rentalsPage.badges.pickup')}
             >
-              <Icons.MapPin size={12} />
-              {t('rentalsPage.badges.pickup')}
+              <Icons.MapPin size={12} color={colors.text.tertiary} />
+            </div>
+          )}
+          {tool.delivery_available && (
+            <div
+              style={{
+                padding: `${spacing[0.5]} ${spacing[1.5]}`,
+                backgroundColor: colors.neutral[100],
+                borderRadius: borderRadius.sm,
+                display: 'flex',
+                alignItems: 'center',
+              }}
+              title={t('rentalsPage.badges.delivery')}
+            >
+              <Icons.Truck size={12} color={colors.text.tertiary} />
             </div>
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: tool.direct_booking_available ? '1fr 1fr' : '1fr',
-            gap: spacing[2],
-          }}
-        >
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: spacing[2] }}>
           <button
             onClick={handleRequestQuote}
             style={{
-              padding: `${spacing[2]}px ${spacing[3]}px`,
+              flex: 1,
+              padding: `${spacing[2]} ${spacing[3]}`,
               backgroundColor: colors.neutral[0],
-              color: colors.primary[600],
-              border: `1px solid ${colors.primary[600]}`,
+              border: `1px solid ${colors.border.light}`,
               borderRadius: borderRadius.md,
               fontSize: typography.fontSize.sm,
               fontWeight: typography.fontWeight.medium,
+              color: colors.text.primary,
               cursor: 'pointer',
-              transition: 'all 0.2s',
+              transition: 'all 200ms ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = colors.neutral[50];
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = colors.neutral[0];
             }}
           >
             {t('rentalsPage.requestQuote')}
@@ -279,22 +337,29 @@ export const RentalToolCard: React.FC<RentalToolCardProps> = ({
             <button
               onClick={handleBookNow}
               style={{
-                padding: `${spacing[2]}px ${spacing[3]}px`,
+                flex: 1,
+                padding: `${spacing[2]} ${spacing[3]}`,
                 backgroundColor: colors.primary[600],
-                color: colors.neutral[0],
                 border: 'none',
                 borderRadius: borderRadius.md,
                 fontSize: typography.fontSize.sm,
-                fontWeight: typography.fontWeight.medium,
+                fontWeight: typography.fontWeight.semibold,
+                color: colors.neutral[0],
                 cursor: 'pointer',
-                transition: 'all 0.2s',
+                transition: 'all 200ms ease',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: spacing[1],
               }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = colors.primary[700];
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = colors.primary[600];
+              }}
             >
-              <Icons.Calendar size={16} />
+              <Icons.Zap size={14} />
               {t('rentalsPage.buttons.book')}
             </button>
           )}

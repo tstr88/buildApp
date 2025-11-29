@@ -11,6 +11,7 @@ import { API_BASE_URL } from '../../services/api/client';
 
 interface RentalFiltersProps {
   filters: {
+    search?: string;
     categories: string[];
     suppliers: string[];
     directBookingOnly: boolean;

@@ -561,7 +561,8 @@
   },
   "rentalsPage": {
     "title": "ხელსაწყოების გაქირავება",
-    "filters": "ფილტრები",
+    "searchPlaceholder": "ხელსაწყოების ძიება...",
+    "filtersButton": "ფილტრები",
     "result": "ხელსაწყო",
     "results": "ხელსაწყოები",
     "sort": {
@@ -587,13 +588,24 @@
       "book": "დაჯავშნა"
     },
     "pricing": {
+      "day": "დღე",
+      "week": "კვირა",
       "perDay": "დღეში",
       "perWeek": "კვირაში",
       "deposit": "დეპოზიტი",
       "or": "ან"
     },
+    "category": {
+      "tool": "ხელსაწყო"
+    },
+    "pagination": {
+      "previous": "წინა",
+      "next": "შემდეგი",
+      "pageOf": "{{page}} / {{totalPages}}"
+    },
     "filters": {
       "title": "ფილტრები",
+      "apply": "ფილტრების გამოყენება",
       "reset": "გასუფთავება",
       "category": "კატეგორია",
       "supplier": "მიმწოდებელი",

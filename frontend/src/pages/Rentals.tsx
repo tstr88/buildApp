@@ -1,5 +1,10 @@
+/**
+ * Rentals Page
+ * Browse all rental tools with search and filters - matches Catalog page styling
+ */
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 import * as Icons from 'lucide-react';
@@ -24,6 +29,7 @@ interface RentalTool {
 }
 
 interface RentalFiltersState {
+  search: string;
   categories: string[];
   suppliers: string[];
   directBookingOnly: boolean;
@@ -34,28 +40,43 @@ interface RentalFiltersState {
   maxWeeklyRate?: number;
 }
 
+type ViewMode = 'grid' | 'list';
+type SortOption = 'recommended' | 'price_low' | 'price_high' | 'name';
+
 const Rentals: React.FC = () => {
   const navigate = useNavigate();
   const { i18n, t } = useTranslation();
+  const [searchParams] = useSearchParams();
+
   const [tools, setTools] = useState<RentalTool[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<RentalFiltersState>({
-    categories: [],
-    suppliers: [],
-    directBookingOnly: false,
-    deliveryAvailable: false,
-  });
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [sortBy, setSortBy] = useState<SortOption>('recommended');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
-  const [sortBy, setSortBy] = useState<string>('recommended');
+
+  const [filters, setFilters] = useState<RentalFiltersState>({
+    search: searchParams.get('search') || '',
+    categories: searchParams.getAll('category'),
+    suppliers: searchParams.getAll('supplier'),
+    directBookingOnly: searchParams.get('direct') === 'true',
+    deliveryAvailable: searchParams.get('delivery') === 'true',
+    minDailyRate: searchParams.get('min_daily') ? Number(searchParams.get('min_daily')) : undefined,
+    maxDailyRate: searchParams.get('max_daily') ? Number(searchParams.get('max_daily')) : undefined,
+  });
 
   useEffect(() => {
     fetchRentalTools();
-  }, [filters, sortBy, i18n.language]);
+  }, [filters, sortBy, page, i18n.language]);
 
   const fetchRentalTools = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
+
+      if (filters.search) params.set('search', filters.search);
       filters.categories.forEach(cat => params.append('category', cat));
       filters.suppliers.forEach(sup => params.append('supplier_id', sup));
       if (filters.directBookingOnly) params.set('direct_booking', 'true');
@@ -63,6 +84,8 @@ const Rentals: React.FC = () => {
       if (filters.minDailyRate) params.set('min_daily_rate', filters.minDailyRate.toString());
       if (filters.maxDailyRate) params.set('max_daily_rate', filters.maxDailyRate.toString());
       params.set('sort', sortBy);
+      params.set('page', page.toString());
+      params.set('limit', '20');
       params.set('lang', i18n.language);
 
       const response = await fetch(`${API_BASE_URL}/rentals/tools?${params.toString()}`);
@@ -71,6 +94,8 @@ const Rentals: React.FC = () => {
         const result = await response.json();
         const data = result.data || {};
         setTools(data.tools || []);
+        setTotalPages(Math.ceil((data.total || 0) / (data.limit || 20)));
+        setTotalResults(data.total || data.tools?.length || 0);
       } else {
         console.error('Failed to fetch rental tools');
         setTools([]);
@@ -83,17 +108,25 @@ const Rentals: React.FC = () => {
     }
   };
 
+  const handleSearchChange = (value: string) => {
+    setFilters({ ...filters, search: value });
+    setPage(1);
+  };
+
   const handleFilterChange = (newFilters: Partial<RentalFiltersState>) => {
     setFilters({ ...filters, ...newFilters });
+    setPage(1);
   };
 
   const handleResetFilters = () => {
     setFilters({
+      search: '',
       categories: [],
       suppliers: [],
       directBookingOnly: false,
       deliveryAvailable: false,
     });
+    setPage(1);
   };
 
   return (
@@ -171,6 +204,17 @@ const Rentals: React.FC = () => {
             white-space: nowrap;
           }
         }
+        .view-toggle {
+          display: flex;
+          border: 1px solid ${colors.border.light};
+          border-radius: ${borderRadius.md};
+          overflow: hidden;
+        }
+        @media (max-width: 480px) {
+          .view-toggle {
+            display: none;
+          }
+        }
         .sort-select {
           padding: ${spacing[2]} ${spacing[3]};
           font-size: ${typography.fontSize.sm};
@@ -200,6 +244,10 @@ const Rentals: React.FC = () => {
           display: flex;
           align-items: center;
           gap: ${spacing[2]};
+          transition: background-color 200ms ease;
+        }
+        .rfq-btn:hover {
+          background-color: ${colors.primary[700]};
         }
         @media (max-width: 640px) {
           .rfq-btn {
@@ -219,6 +267,44 @@ const Rentals: React.FC = () => {
             <h1 className="rentals-title">
               {t('rentalsPage.title')}
             </h1>
+
+            {/* Search Bar */}
+            <div style={{ position: 'relative', marginBottom: spacing[3] }}>
+              <Icons.Search
+                size={20}
+                color={colors.text.tertiary}
+                style={{
+                  position: 'absolute',
+                  left: spacing[3],
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                }}
+              />
+              <input
+                type="text"
+                placeholder={t('rentalsPage.searchPlaceholder', 'Search tools...')}
+                value={filters.search}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: `${spacing[3]} ${spacing[3]} ${spacing[3]} ${spacing[10]}`,
+                  fontSize: typography.fontSize.base,
+                  border: `1px solid ${colors.border.light}`,
+                  borderRadius: borderRadius.lg,
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  transition: 'all 200ms ease',
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = colors.primary[600];
+                  e.target.style.boxShadow = `0 0 0 3px ${colors.primary[50]}`;
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = colors.border.light;
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+            </div>
 
             {/* Controls Row */}
             <div className="rentals-controls">
@@ -240,15 +326,48 @@ const Rentals: React.FC = () => {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {tools.length} {tools.length === 1 ? t('rentalsPage.result') : t('rentalsPage.results')}
+                  {totalResults} {totalResults === 1 ? t('rentalsPage.result') : t('rentalsPage.results')}
                 </span>
               </div>
 
               <div className="rentals-controls-right">
+                {/* View Mode Toggle */}
+                <div className="view-toggle">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    style={{
+                      padding: spacing[2],
+                      backgroundColor: viewMode === 'grid' ? colors.primary[50] : colors.neutral[0],
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Icons.Grid size={18} color={viewMode === 'grid' ? colors.primary[600] : colors.text.tertiary} />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    style={{
+                      padding: spacing[2],
+                      backgroundColor: viewMode === 'list' ? colors.primary[50] : colors.neutral[0],
+                      border: 'none',
+                      borderLeft: `1px solid ${colors.border.light}`,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Icons.List size={18} color={viewMode === 'list' ? colors.primary[600] : colors.text.tertiary} />
+                  </button>
+                </div>
+
                 {/* Sort Dropdown */}
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
                   className="sort-select"
                 >
                   <option value="recommended">{t('rentalsPage.sort.recommended')}</option>
@@ -514,24 +633,81 @@ const Rentals: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div
-                className="results-container"
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                  gap: spacing[4],
-                }}
-              >
-                {tools.map((tool) => (
-                  <RentalToolCard key={tool.id} tool={tool} />
-                ))}
-              </div>
+              <>
+                {/* Results Grid/List */}
+                <div
+                  className="results-container"
+                  style={{
+                    display: viewMode === 'grid' ? 'grid' : 'flex',
+                    flexDirection: viewMode === 'list' ? 'column' : undefined,
+                    gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(280px, 1fr))' : undefined,
+                    gap: spacing[4],
+                  }}
+                >
+                  {tools.map((tool) => (
+                    <RentalToolCard key={tool.id} tool={tool} />
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: spacing[2],
+                      marginTop: spacing[8],
+                    }}
+                  >
+                    <button
+                      onClick={() => setPage(page - 1)}
+                      disabled={page === 1}
+                      style={{
+                        padding: `${spacing[2]} ${spacing[3]}`,
+                        backgroundColor: page === 1 ? colors.neutral[100] : colors.neutral[0],
+                        border: `1px solid ${colors.border.light}`,
+                        borderRadius: borderRadius.md,
+                        cursor: page === 1 ? 'not-allowed' : 'pointer',
+                        color: page === 1 ? colors.text.tertiary : colors.text.primary,
+                      }}
+                    >
+                      {t('rentalsPage.pagination.previous', 'Previous')}
+                    </button>
+
+                    <span
+                      style={{
+                        fontSize: typography.fontSize.sm,
+                        color: colors.text.secondary,
+                      }}
+                    >
+                      {t('rentalsPage.pagination.pageOf', { page, totalPages, defaultValue: `${page} / ${totalPages}` })}
+                    </span>
+
+                    <button
+                      onClick={() => setPage(page + 1)}
+                      disabled={page === totalPages}
+                      style={{
+                        padding: `${spacing[2]} ${spacing[3]}`,
+                        backgroundColor: page === totalPages ? colors.neutral[100] : colors.neutral[0],
+                        border: `1px solid ${colors.border.light}`,
+                        borderRadius: borderRadius.md,
+                        cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                        color: page === totalPages ? colors.text.tertiary : colors.text.primary,
+                      }}
+                    >
+                      {t('rentalsPage.pagination.next', 'Next')}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
 
         <style>{`
           @keyframes spin {
+            from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
           }
         `}</style>
