@@ -728,26 +728,28 @@ export const Profile: React.FC = () => {
               <button
                 onClick={() => updateGlobalNotificationSetting('push_enabled', !notification_preferences.push_enabled)}
                 style={{
-                  width: '50px',
-                  height: '28px',
-                  borderRadius: '14px',
+                  width: '48px',
+                  height: '26px',
+                  borderRadius: '13px',
                   backgroundColor: notification_preferences.push_enabled ? colors.primary[600] : colors.neutral[300],
                   border: 'none',
                   cursor: 'pointer',
                   position: 'relative',
                   transition: 'background-color 0.2s',
+                  flexShrink: 0,
                 }}
               >
                 <div
                   style={{
-                    width: '22px',
-                    height: '22px',
+                    width: '20px',
+                    height: '20px',
                     borderRadius: '50%',
                     backgroundColor: colors.neutral[0],
                     position: 'absolute',
                     top: '3px',
                     left: notification_preferences.push_enabled ? '25px' : '3px',
                     transition: 'left 0.2s',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                   }}
                 />
               </button>
@@ -774,26 +776,28 @@ export const Profile: React.FC = () => {
               <button
                 onClick={() => updateGlobalNotificationSetting('sms_enabled', !notification_preferences.sms_enabled)}
                 style={{
-                  width: '50px',
-                  height: '28px',
-                  borderRadius: '14px',
+                  width: '48px',
+                  height: '26px',
+                  borderRadius: '13px',
                   backgroundColor: notification_preferences.sms_enabled ? colors.primary[600] : colors.neutral[300],
                   border: 'none',
                   cursor: 'pointer',
                   position: 'relative',
                   transition: 'background-color 0.2s',
+                  flexShrink: 0,
                 }}
               >
                 <div
                   style={{
-                    width: '22px',
-                    height: '22px',
+                    width: '20px',
+                    height: '20px',
                     borderRadius: '50%',
                     backgroundColor: colors.neutral[0],
                     position: 'absolute',
                     top: '3px',
                     left: notification_preferences.sms_enabled ? '25px' : '3px',
                     transition: 'left 0.2s',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                   }}
                 />
               </button>
@@ -831,26 +835,28 @@ export const Profile: React.FC = () => {
                     );
                   }}
                   style={{
-                    width: '50px',
-                    height: '28px',
-                    borderRadius: '14px',
+                    width: '48px',
+                    height: '26px',
+                    borderRadius: '13px',
                     backgroundColor: notification_preferences.quiet_hours_enabled ? colors.primary[600] : colors.neutral[300],
                     border: 'none',
                     cursor: 'pointer',
                     position: 'relative',
                     transition: 'background-color 0.2s',
+                    flexShrink: 0,
                   }}
                 >
                   <div
                     style={{
-                      width: '22px',
-                      height: '22px',
+                      width: '20px',
+                      height: '20px',
                       borderRadius: '50%',
                       backgroundColor: colors.neutral[0],
                       position: 'absolute',
                       top: '3px',
                       left: notification_preferences.quiet_hours_enabled ? '25px' : '3px',
                       transition: 'left 0.2s',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                     }}
                   />
                 </button>
@@ -948,26 +954,28 @@ export const Profile: React.FC = () => {
               <button
                 onClick={() => updateNotificationCategory('rfq_offers', !notification_preferences.categories.rfq_offers.enabled)}
                 style={{
-                  width: '50px',
-                  height: '28px',
-                  borderRadius: '14px',
+                  width: '48px',
+                  height: '26px',
+                  borderRadius: '13px',
                   backgroundColor: notification_preferences.categories.rfq_offers.enabled ? colors.primary[600] : colors.neutral[300],
                   border: 'none',
                   cursor: 'pointer',
                   position: 'relative',
                   transition: 'background-color 0.2s',
+                  flexShrink: 0,
                 }}
               >
                 <div
                   style={{
-                    width: '22px',
-                    height: '22px',
+                    width: '20px',
+                    height: '20px',
                     borderRadius: '50%',
                     backgroundColor: colors.neutral[0],
                     position: 'absolute',
                     top: '3px',
                     left: notification_preferences.categories.rfq_offers.enabled ? '25px' : '3px',
                     transition: 'left 0.2s',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                   }}
                 />
               </button>
@@ -994,26 +1002,28 @@ export const Profile: React.FC = () => {
               <button
                 onClick={() => updateNotificationCategory('delivery_updates', !notification_preferences.categories.delivery_updates.enabled)}
                 style={{
-                  width: '50px',
-                  height: '28px',
-                  borderRadius: '14px',
+                  width: '48px',
+                  height: '26px',
+                  borderRadius: '13px',
                   backgroundColor: notification_preferences.categories.delivery_updates.enabled ? colors.primary[600] : colors.neutral[300],
                   border: 'none',
                   cursor: 'pointer',
                   position: 'relative',
                   transition: 'background-color 0.2s',
+                  flexShrink: 0,
                 }}
               >
                 <div
                   style={{
-                    width: '22px',
-                    height: '22px',
+                    width: '20px',
+                    height: '20px',
                     borderRadius: '50%',
                     backgroundColor: colors.neutral[0],
                     position: 'absolute',
                     top: '3px',
                     left: notification_preferences.categories.delivery_updates.enabled ? '25px' : '3px',
                     transition: 'left 0.2s',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                   }}
                 />
               </button>
@@ -1040,26 +1050,28 @@ export const Profile: React.FC = () => {
               <button
                 onClick={() => updateNotificationCategory('rental_handovers', !notification_preferences.categories.rental_handovers.enabled)}
                 style={{
-                  width: '50px',
-                  height: '28px',
-                  borderRadius: '14px',
+                  width: '48px',
+                  height: '26px',
+                  borderRadius: '13px',
                   backgroundColor: notification_preferences.categories.rental_handovers.enabled ? colors.primary[600] : colors.neutral[300],
                   border: 'none',
                   cursor: 'pointer',
                   position: 'relative',
                   transition: 'background-color 0.2s',
+                  flexShrink: 0,
                 }}
               >
                 <div
                   style={{
-                    width: '22px',
-                    height: '22px',
+                    width: '20px',
+                    height: '20px',
                     borderRadius: '50%',
                     backgroundColor: colors.neutral[0],
                     position: 'absolute',
                     top: '3px',
                     left: notification_preferences.categories.rental_handovers.enabled ? '25px' : '3px',
                     transition: 'left 0.2s',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                   }}
                 />
               </button>
@@ -1084,26 +1096,28 @@ export const Profile: React.FC = () => {
               <button
                 onClick={() => updateNotificationCategory('tips_suggestions', !notification_preferences.categories.tips_suggestions.enabled)}
                 style={{
-                  width: '50px',
-                  height: '28px',
-                  borderRadius: '14px',
+                  width: '48px',
+                  height: '26px',
+                  borderRadius: '13px',
                   backgroundColor: notification_preferences.categories.tips_suggestions.enabled ? colors.primary[600] : colors.neutral[300],
                   border: 'none',
                   cursor: 'pointer',
                   position: 'relative',
                   transition: 'background-color 0.2s',
+                  flexShrink: 0,
                 }}
               >
                 <div
                   style={{
-                    width: '22px',
-                    height: '22px',
+                    width: '20px',
+                    height: '20px',
                     borderRadius: '50%',
                     backgroundColor: colors.neutral[0],
                     position: 'absolute',
                     top: '3px',
                     left: notification_preferences.categories.tips_suggestions.enabled ? '25px' : '3px',
                     transition: 'left 0.2s',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                   }}
                 />
               </button>
