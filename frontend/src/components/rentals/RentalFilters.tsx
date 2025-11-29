@@ -22,12 +22,14 @@ interface RentalFiltersProps {
   };
   onChange: (filters: any) => void;
   onReset: () => void;
+  isMobile?: boolean;
 }
 
 export const RentalFilters: React.FC<RentalFiltersProps> = ({
   filters,
   onChange,
   onReset,
+  isMobile = false,
 }) => {
   const { t } = useTranslation();
   const [suppliers, setSuppliers] = useState<Array<{ id: string; business_name: string }>>([]);
@@ -79,52 +81,91 @@ export const RentalFilters: React.FC<RentalFiltersProps> = ({
   return (
     <div
       style={{
-        position: 'sticky',
-        top: spacing[6],
-        backgroundColor: colors.neutral[0],
-        borderRadius: borderRadius.lg,
-        border: `1px solid ${colors.border.light}`,
-        padding: spacing[4],
-        maxHeight: 'calc(100vh - 120px)',
-        overflowY: 'auto',
+        ...(isMobile
+          ? {
+              // Mobile: no sticky, no border, no maxHeight - parent handles scrolling
+              backgroundColor: colors.neutral[0],
+              overflowX: 'hidden',
+              width: '100%',
+              boxSizing: 'border-box',
+            }
+          : {
+              // Desktop: sticky sidebar with scrolling
+              position: 'sticky',
+              top: spacing[6],
+              backgroundColor: colors.neutral[0],
+              borderRadius: borderRadius.lg,
+              border: `1px solid ${colors.border.light}`,
+              padding: spacing[4],
+              maxHeight: 'calc(100vh - 120px)',
+              overflowY: 'auto',
+            }),
       }}
     >
-      {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: spacing[4],
-          paddingBottom: spacing[3],
-          borderBottom: `1px solid ${colors.border.light}`,
-        }}
-      >
-        <h3
+      {/* Header - only show on desktop, mobile sheet has its own header */}
+      {!isMobile && (
+        <div
           style={{
-            fontSize: typography.fontSize.lg,
-            fontWeight: typography.fontWeight.semibold,
-            color: colors.text.primary,
-            margin: 0,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: spacing[4],
+            paddingBottom: spacing[3],
+            borderBottom: `1px solid ${colors.border.light}`,
           }}
         >
-          {t('rentalsPage.filters.title')}
-        </h3>
-        <button
-          onClick={onReset}
+          <h3
+            style={{
+              fontSize: typography.fontSize.lg,
+              fontWeight: typography.fontWeight.semibold,
+              color: colors.text.primary,
+              margin: 0,
+            }}
+          >
+            {t('rentalsPage.filters.title')}
+          </h3>
+          <button
+            onClick={onReset}
+            style={{
+              padding: `${spacing[1]} ${spacing[2]}`,
+              backgroundColor: 'transparent',
+              border: 'none',
+              color: colors.primary[600],
+              fontSize: typography.fontSize.sm,
+              fontWeight: typography.fontWeight.medium,
+              cursor: 'pointer',
+            }}
+          >
+            {t('rentalsPage.filters.reset')}
+          </button>
+        </div>
+      )}
+
+      {/* Mobile Reset Button - show at top of filters on mobile */}
+      {isMobile && (
+        <div
           style={{
-            padding: `${spacing[1]} ${spacing[2]}`,
-            backgroundColor: 'transparent',
-            border: 'none',
-            color: colors.primary[600],
-            fontSize: typography.fontSize.sm,
-            fontWeight: typography.fontWeight.medium,
-            cursor: 'pointer',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginBottom: spacing[3],
           }}
         >
-          {t('rentalsPage.filters.reset')}
-        </button>
-      </div>
+          <button
+            onClick={onReset}
+            style={{
+              padding: `${spacing[1]} ${spacing[2]}`,
+              backgroundColor: 'transparent',
+              border: 'none',
+              color: colors.primary[600],
+              fontSize: typography.fontSize.sm,
+              fontWeight: typography.fontWeight.medium,
+              cursor: 'pointer',
+            }}
+          >
+            {t('rentalsPage.filters.reset')}
+          </button>
+        </div>
+      )}
 
       {/* Tool Categories */}
       <div style={{ marginBottom: spacing[5] }}>
@@ -194,15 +235,21 @@ export const RentalFilters: React.FC<RentalFiltersProps> = ({
             border: `1px solid ${colors.border.light}`,
             borderRadius: borderRadius.md,
             marginBottom: spacing[2],
+            boxSizing: 'border-box',
           }}
         />
         <div
           style={{
-            maxHeight: '200px',
+            maxHeight: isMobile ? '150px' : '200px',
             overflowY: 'auto',
+            overflowX: 'hidden',
             display: 'flex',
             flexDirection: 'column',
             gap: spacing[2],
+            ...(isMobile && {
+              overscrollBehavior: 'contain',
+              WebkitOverflowScrolling: 'touch',
+            }),
           }}
         >
           {filteredSuppliers.map((supplier) => (
@@ -315,7 +362,7 @@ export const RentalFilters: React.FC<RentalFiltersProps> = ({
         >
           {t('rentalsPage.filters.dailyRate')} (₾)
         </h4>
-        <div style={{ display: 'flex', gap: spacing[2], alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: spacing[2], alignItems: 'center', width: '100%' }}>
           <input
             type="number"
             placeholder={t('rentalsPage.filters.min')}
@@ -325,13 +372,15 @@ export const RentalFilters: React.FC<RentalFiltersProps> = ({
             }
             style={{
               flex: 1,
+              minWidth: 0,
               padding: `${spacing[2]} ${spacing[2]}`,
               fontSize: typography.fontSize.sm,
               border: `1px solid ${colors.border.light}`,
               borderRadius: borderRadius.md,
+              boxSizing: 'border-box',
             }}
           />
-          <span style={{ color: colors.text.tertiary }}>-</span>
+          <span style={{ color: colors.text.tertiary, flexShrink: 0 }}>-</span>
           <input
             type="number"
             placeholder={t('rentalsPage.filters.max')}
@@ -341,10 +390,12 @@ export const RentalFilters: React.FC<RentalFiltersProps> = ({
             }
             style={{
               flex: 1,
+              minWidth: 0,
               padding: `${spacing[2]} ${spacing[2]}`,
               fontSize: typography.fontSize.sm,
               border: `1px solid ${colors.border.light}`,
               borderRadius: borderRadius.md,
+              boxSizing: 'border-box',
             }}
           />
         </div>
@@ -363,7 +414,7 @@ export const RentalFilters: React.FC<RentalFiltersProps> = ({
         >
           {t('rentalsPage.filters.weeklyRate')} (₾)
         </h4>
-        <div style={{ display: 'flex', gap: spacing[2], alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: spacing[2], alignItems: 'center', width: '100%' }}>
           <input
             type="number"
             placeholder={t('rentalsPage.filters.min')}
@@ -373,13 +424,15 @@ export const RentalFilters: React.FC<RentalFiltersProps> = ({
             }
             style={{
               flex: 1,
+              minWidth: 0,
               padding: `${spacing[2]} ${spacing[2]}`,
               fontSize: typography.fontSize.sm,
               border: `1px solid ${colors.border.light}`,
               borderRadius: borderRadius.md,
+              boxSizing: 'border-box',
             }}
           />
-          <span style={{ color: colors.text.tertiary }}>-</span>
+          <span style={{ color: colors.text.tertiary, flexShrink: 0 }}>-</span>
           <input
             type="number"
             placeholder={t('rentalsPage.filters.max')}
@@ -389,10 +442,12 @@ export const RentalFilters: React.FC<RentalFiltersProps> = ({
             }
             style={{
               flex: 1,
+              minWidth: 0,
               padding: `${spacing[2]} ${spacing[2]}`,
               fontSize: typography.fontSize.sm,
               border: `1px solid ${colors.border.light}`,
               borderRadius: borderRadius.md,
+              boxSizing: 'border-box',
             }}
           />
         </div>
