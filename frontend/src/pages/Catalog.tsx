@@ -212,20 +212,21 @@ export const Catalog: React.FC = () => {
         }
         .mobile-filter-btn {
           display: none;
-          padding: ${spacing[2]} ${spacing[3]};
-          background-color: ${colors.neutral[0]};
-          border: 1px solid ${colors.border.light};
-          border-radius: ${borderRadius.md};
-          font-size: ${typography.fontSize.sm};
-          font-weight: ${typography.fontWeight.medium};
-          color: ${colors.text.primary};
-          cursor: pointer;
-          align-items: center;
-          gap: ${spacing[1]};
         }
         @media (max-width: 768px) {
           .mobile-filter-btn {
-            display: flex !important;
+            display: flex;
+            padding: ${spacing[2]} ${spacing[3]};
+            background-color: ${colors.neutral[0]};
+            border: 1px solid ${colors.border.light};
+            border-radius: ${borderRadius.md};
+            font-size: ${typography.fontSize.sm};
+            font-weight: ${typography.fontWeight.medium};
+            color: ${colors.text.primary};
+            cursor: pointer;
+            align-items: center;
+            gap: ${spacing[2]};
+            white-space: nowrap;
           }
         }
         .view-toggle {
@@ -311,7 +312,7 @@ export const Catalog: React.FC = () => {
                 className="mobile-filter-btn"
               >
                 <Icons.Filter size={16} />
-                {t('catalogPage.filters')}
+                {t('catalogPage.filtersButton')}
               </button>
 
               {/* Results Count */}
@@ -443,7 +444,7 @@ export const Catalog: React.FC = () => {
                   cursor: 'pointer',
                 }}
               >
-                {t('catalogPage.filters.apply', 'Apply Filters')}
+                {t('catalogPage.filters.apply')}
               </button>
             </div>
           </div>

@@ -391,7 +391,7 @@
   "catalogPage": {
     "title": "მასალების კატალოგი",
     "searchPlaceholder": "მოძებნეთ მასალები, SKU, მიმწოდებლები...",
-    "filters": "ფილტრები",
+    "filtersButton": "ფილტრები",
     "result": "შედეგი",
     "results": "შედეგები",
     "sort": {
@@ -427,6 +427,7 @@
     },
     "filters": {
       "title": "ფილტრები",
+      "apply": "ფილტრების გამოყენება",
       "reset": "გასუფთავება",
       "category": "კატეგორია",
       "supplier": "მიმწოდებელი",

@@ -391,7 +391,7 @@
   "catalogPage": {
     "title": "Materials Catalog",
     "searchPlaceholder": "Search materials, SKUs, suppliers...",
-    "filters": "Filters",
+    "filtersButton": "Filters",
     "result": "result",
     "results": "results",
     "sort": {
@@ -427,6 +427,7 @@
     },
     "filters": {
       "title": "Filters",
+      "apply": "Apply Filters",
       "reset": "Reset",
       "category": "Category",
       "supplier": "Supplier",
