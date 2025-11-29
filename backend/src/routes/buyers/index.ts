@@ -571,10 +571,10 @@ router.get(
     const handoverQuery = `
       SELECT
         id,
-        handover_scheduled_at,
-        handover_confirmed_at,
-        handover_photos,
-        condition_notes,
+        timestamp as handover_confirmed_at,
+        photos as handover_photos,
+        handover_notes as condition_notes,
+        return_photos,
         created_at
       FROM handovers
       WHERE booking_id = $1
@@ -584,25 +584,10 @@ router.get(
       handoverDetails = handoverResult.rows[0];
     }
 
-    // Fetch return details if exists
-    let returnDetails = null;
-    const returnQuery = `
-      SELECT
-        id,
-        return_scheduled_at,
-        return_confirmed_at,
-        return_photos,
-        condition_notes,
-        late_fee,
-        damage_fee,
-        created_at
-      FROM returns
-      WHERE booking_id = $1
-    `;
-    const returnResult = await pool.query(returnQuery, [bookingId]);
-    if (returnResult.rows.length > 0) {
-      returnDetails = returnResult.rows[0];
-    }
+    // Return details are stored in the same handover record
+    const returnDetails = handoverDetails?.return_photos ? {
+      return_photos: handoverDetails.return_photos,
+    } : null;
 
     const booking = {
       id: row.id,
