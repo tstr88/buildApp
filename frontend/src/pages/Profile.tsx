@@ -261,10 +261,47 @@ export const Profile: React.FC = () => {
         .profile-header-content {
           max-width: 1200px;
           margin: 0 auto;
-          padding: ${spacing[3]} ${spacing[4]};
+          padding: ${spacing[3]} ${spacing[3]};
           display: flex;
           align-items: center;
           justify-content: space-between;
+          gap: ${spacing[3]};
+        }
+        @media (min-width: 640px) {
+          .profile-header-content {
+            padding: ${spacing[3]} ${spacing[4]};
+            gap: ${spacing[4]};
+          }
+        }
+        .profile-header-title {
+          font-size: ${typography.fontSize.base};
+          font-weight: ${typography.fontWeight.semibold};
+          color: ${colors.text.primary};
+          text-align: center;
+          flex: 1;
+        }
+        @media (min-width: 640px) {
+          .profile-header-title {
+            font-size: ${typography.fontSize.xl};
+          }
+        }
+        .profile-back-button {
+          background: none;
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: ${spacing[1]};
+          color: ${colors.text.secondary};
+          font-size: ${typography.fontSize.sm};
+          padding: 0;
+          flex-shrink: 0;
+        }
+        @media (min-width: 640px) {
+          .profile-back-button {
+            gap: ${spacing[2]};
+            font-size: ${typography.fontSize.base};
+          }
         }
         .profile-main {
           max-width: 800px;
@@ -371,42 +408,18 @@ export const Profile: React.FC = () => {
           boxShadow: shadows.sm,
         }}
       >
-        <div
-          style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            padding: `${spacing[4]} ${spacing[4]}`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
+        <div className="profile-header-content">
           <button
+            className="profile-back-button"
             onClick={() => navigate(-1)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: spacing[2],
-              color: colors.text.secondary,
-              fontSize: typography.fontSize.base,
-            }}
           >
-            <Icons.ArrowLeft size={20} />
+            <Icons.ArrowLeft size={18} />
             {t('profilePage.back')}
           </button>
-          <div
-            style={{
-              fontSize: typography.fontSize.xl,
-              fontWeight: typography.fontWeight.semibold,
-              color: colors.text.primary,
-            }}
-          >
+          <div className="profile-header-title">
             {t('profilePage.title')}
           </div>
-          <div style={{ width: '60px' }} /> {/* Spacer for centering */}
+          <div style={{ width: '50px' }} /> {/* Spacer for centering */}
         </div>
       </header>
 
