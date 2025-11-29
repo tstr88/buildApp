@@ -162,16 +162,16 @@ const Rentals: React.FC = () => {
         }
         .rentals-controls {
           display: flex;
+          flex-direction: column;
+          gap: ${spacing[2]};
+        }
+        .rentals-controls-top {
+          display: flex;
           justify-content: space-between;
           align-items: center;
           gap: ${spacing[3]};
         }
-        .rentals-controls-left {
-          display: flex;
-          align-items: center;
-          gap: ${spacing[2]};
-        }
-        .rentals-controls-right {
+        .results-count-row {
           display: flex;
           align-items: center;
         }
@@ -194,13 +194,9 @@ const Rentals: React.FC = () => {
             display: flex;
           }
         }
-        @media (max-width: 480px) {
-          .mobile-filter-btn {
-            padding: ${spacing[2]};
-            gap: ${spacing[1]};
-          }
-          .mobile-filter-btn span {
-            display: none;
+        @media (max-width: 768px) {
+          .rentals-controls-top {
+            width: 100%;
           }
         }
         .results-count {
@@ -284,23 +280,17 @@ const Rentals: React.FC = () => {
 
             {/* Controls Row */}
             <div className="rentals-controls">
-              <div className="rentals-controls-left">
+              {/* Top row: Filters + Sort */}
+              <div className="rentals-controls-top">
                 {/* Mobile Filter Button */}
                 <button
                   onClick={() => setShowFilters(!showFilters)}
                   className="mobile-filter-btn"
                 >
                   <Icons.SlidersHorizontal size={16} />
-                  {t('rentalsPage.filtersButton', 'Filters')}
+                  <span>{t('rentalsPage.filtersButton', 'Filters')}</span>
                 </button>
 
-                {/* Results Count */}
-                <span className="results-count">
-                  {totalResults} {totalResults === 1 ? t('rentalsPage.result') : t('rentalsPage.results')}
-                </span>
-              </div>
-
-              <div className="rentals-controls-right">
                 {/* Sort Dropdown */}
                 <select
                   value={sortBy}
@@ -312,6 +302,13 @@ const Rentals: React.FC = () => {
                   <option value="price_high">{t('rentalsPage.sort.priceHigh')}</option>
                   <option value="name">{t('rentalsPage.sort.name')}</option>
                 </select>
+              </div>
+
+              {/* Bottom row: Results Count */}
+              <div className="results-count-row">
+                <span className="results-count">
+                  {totalResults} {totalResults === 1 ? t('rentalsPage.result') : t('rentalsPage.results')}
+                </span>
               </div>
             </div>
           </div>
