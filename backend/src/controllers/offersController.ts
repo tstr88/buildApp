@@ -56,7 +56,7 @@ export async function getOffersForRFQ(req: Request, res: Response): Promise<void
         o.expires_at,
         o.status,
         o.created_at,
-        s.business_name as supplier_name,
+        COALESCE(s.business_name_en, s.business_name_ka) as supplier_name,
         u.phone as supplier_phone,
         COALESCE(tm.spec_reliability_pct, 0) as spec_reliability_pct,
         COALESCE(tm.on_time_pct, 0) as on_time_pct,

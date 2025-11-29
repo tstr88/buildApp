@@ -337,7 +337,7 @@ router.get('/deliveries', asyncHandler(async (req, res) => {
 
   // Filter by supplier
   if (supplier) {
-    whereConditions.push(`suppliers.business_name ILIKE '%${supplier}%'`);
+    whereConditions.push(`(suppliers.business_name_en ILIKE '%${supplier}%' OR suppliers.business_name_ka ILIKE '%${supplier}%')`);
   }
 
   const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
@@ -347,7 +347,7 @@ router.get('/deliveries', asyncHandler(async (req, res) => {
     SELECT
       orders.id,
       orders.id as order_id,
-      suppliers.business_name as supplier_name,
+      COALESCE(suppliers.business_name_en, suppliers.business_name_ka) as supplier_name,
       suppliers.contact_phone as supplier_phone,
       users.name as buyer_name,
       users.phone as buyer_phone,
@@ -597,7 +597,7 @@ router.get('/suppliers', asyncHandler(async (req, res) => {
   const query = `
     SELECT
       suppliers.id,
-      suppliers.business_name,
+      COALESCE(suppliers.business_name_en, suppliers.business_name_ka) as business_name,
       CASE
         WHEN suppliers.is_verified = false THEN 'unverified'
         WHEN suppliers.status = 'paused' THEN 'paused'
@@ -706,7 +706,7 @@ router.get('/rentals', asyncHandler(async (req, res) => {
       rental_bookings.id,
       rental_bookings.id as booking_id,
       skus.name_en as tool_name,
-      suppliers.business_name as supplier_name,
+      COALESCE(suppliers.business_name_en, suppliers.business_name_ka) as supplier_name,
       suppliers.contact_phone as supplier_phone,
       rental_bookings.start_date as handover_date,
       CASE

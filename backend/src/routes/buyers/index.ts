@@ -480,7 +480,7 @@ router.get(
         rt.name as tool_name,
         rt.spec_string as tool_spec,
         rt.images as tool_images,
-        s.business_name as supplier_name
+        COALESCE(s.business_name_en, s.business_name_ka) as supplier_name
       FROM rental_bookings rb
       LEFT JOIN rental_tools rt ON rb.rental_tool_id = rt.id
       LEFT JOIN suppliers s ON rb.supplier_id = s.id
@@ -539,7 +539,7 @@ router.get(
         rt.images as tool_images,
         rt.category as tool_category,
         s.id as supplier_id,
-        s.business_name as supplier_name,
+        COALESCE(s.business_name_en, s.business_name_ka) as supplier_name,
         s.depot_address as supplier_address,
         p.project_name,
         p.site_address as delivery_address
@@ -718,7 +718,7 @@ router.post(
       const toolQuery = `
         SELECT
           rt.*,
-          s.business_name as supplier_name
+          COALESCE(s.business_name_en, s.business_name_ka) as supplier_name
         FROM rental_tools rt
         LEFT JOIN suppliers s ON rt.supplier_id = s.id
         WHERE rt.id = $1 AND rt.is_active = true AND rt.is_available = true
