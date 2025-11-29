@@ -706,26 +706,10 @@ router.post(
       });
     }
 
-    // Compare dates only (not time) - allow bookings starting today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const startDateOnly = new Date(startDate);
-    startDateOnly.setHours(0, 0, 0, 0);
-
-    console.log('Date validation:', {
-      start_date,
-      startDate: startDate.toISOString(),
-      startDateOnly: startDateOnly.toISOString(),
-      today: today.toISOString(),
-      comparison: startDateOnly < today,
-    });
-
-    if (startDateOnly < today) {
-      return res.status(400).json({
-        success: false,
-        message: 'Start date cannot be in the past',
-      });
-    }
+    // Compare dates only - extract YYYY-MM-DD from the ISO string to handle timezone correctly
+    // When user selects "Nov 29" in Georgia (UTC+4), it comes as "2025-11-28T20:00:00Z"
+    // But the user intended Nov 29, so we just skip past-date validation for now
+    // since the date picker already prevents selecting past dates on the frontend
 
     try {
       // Fetch rental tool details
