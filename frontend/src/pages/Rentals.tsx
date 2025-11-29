@@ -164,23 +164,20 @@ const Rentals: React.FC = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          gap: ${spacing[2]};
+          gap: ${spacing[3]};
         }
         .rentals-controls-left {
           display: flex;
           align-items: center;
           gap: ${spacing[2]};
-          flex-shrink: 0;
         }
         .rentals-controls-right {
           display: flex;
           align-items: center;
-          gap: ${spacing[2]};
-          flex-shrink: 0;
         }
         .mobile-filter-btn {
           display: none;
-          padding: ${spacing[2]} ${spacing[2]};
+          padding: ${spacing[2]} ${spacing[3]};
           background-color: ${colors.neutral[0]};
           border: 1px solid ${colors.border.light};
           border-radius: ${borderRadius.md};
@@ -189,12 +186,21 @@ const Rentals: React.FC = () => {
           color: ${colors.text.primary};
           cursor: pointer;
           align-items: center;
-          gap: ${spacing[1]};
+          gap: ${spacing[2]};
           white-space: nowrap;
         }
         @media (max-width: 768px) {
           .mobile-filter-btn {
             display: flex;
+          }
+        }
+        @media (max-width: 480px) {
+          .mobile-filter-btn {
+            padding: ${spacing[2]};
+            gap: ${spacing[1]};
+          }
+          .mobile-filter-btn span {
+            display: none;
           }
         }
         .results-count {
@@ -208,21 +214,24 @@ const Rentals: React.FC = () => {
           }
         }
         .sort-select {
-          padding: ${spacing[2]} ${spacing[2]};
+          padding: ${spacing[2]} ${spacing[3]};
+          padding-right: ${spacing[8]};
           font-size: ${typography.fontSize.sm};
           border: 1px solid ${colors.border.light};
           border-radius: ${borderRadius.md};
           background-color: ${colors.neutral[0]};
           color: ${colors.text.primary};
           cursor: pointer;
-          min-width: 0;
-          flex-shrink: 1;
+          appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right ${spacing[2]} center;
         }
         @media (max-width: 480px) {
           .sort-select {
             font-size: ${typography.fontSize.xs};
-            padding: ${spacing[1]} ${spacing[2]};
-            max-width: 120px;
+            padding: ${spacing[2]};
+            padding-right: ${spacing[6]};
           }
         }
       `}</style>
