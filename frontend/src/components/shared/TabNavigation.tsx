@@ -34,6 +34,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
           border-bottom: 1px solid ${colors.border.light};
           margin-bottom: ${spacing[4]};
           overflow-x: auto;
+          overflow-y: hidden;
           -webkit-overflow-scrolling: touch;
           -ms-overflow-style: none;
           scrollbar-width: none;
