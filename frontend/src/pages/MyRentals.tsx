@@ -204,7 +204,7 @@ export const MyRentals: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <TabNavigation tabs={tabs} selectedTab={selectedTab} onTabChange={handleTabChange} />
+      <TabNavigation tabs={tabs} activeTab={selectedTab} onTabChange={handleTabChange} />
 
       {/* Search */}
       <div
@@ -267,7 +267,7 @@ export const MyRentals: React.FC = () => {
         </div>
       ) : filteredRentals.length === 0 ? (
         <EmptyState
-          icon={<Wrench size={48} color={colors.text.tertiary} />}
+          icon={Wrench}
           title={
             searchQuery
               ? t('myRentals.noSearchResults', 'No rentals found')
@@ -413,9 +413,7 @@ export const MyRentals: React.FC = () => {
                     gap: spacing[2],
                   }}
                 >
-                  <StatusBadge status={getStatusType(rental.status)}>
-                    {getStatusLabel(rental.status)}
-                  </StatusBadge>
+                  <StatusBadge status={getStatusType(rental.status)} label={getStatusLabel(rental.status)} />
                   <p
                     style={{
                       fontSize: typography.fontSize.lg,

@@ -475,8 +475,10 @@ router.get(
         rb.total_rental_amount,
         rb.deposit_amount,
         rb.delivery_fee,
+        rb.pickup_or_delivery,
         rb.status,
         rb.created_at,
+        rb.supplier_id,
         rt.name as tool_name,
         rt.spec_string as tool_spec,
         rt.images as tool_images,
@@ -506,18 +508,21 @@ router.get(
       start_date: row.start_date,
       end_date: row.end_date,
       rental_duration_days: row.rental_duration_days,
-      total_rental_amount: parseFloat(row.total_rental_amount),
-      deposit_amount: parseFloat(row.deposit_amount),
-      delivery_fee: parseFloat(row.delivery_fee),
+      total_rental_amount: parseFloat(row.total_rental_amount || 0),
+      deposit_amount: parseFloat(row.deposit_amount || 0),
+      delivery_fee: parseFloat(row.delivery_fee || 0),
+      pickup_or_delivery: row.pickup_or_delivery,
       status: row.status,
       created_at: row.created_at,
+      supplier_id: row.supplier_id,
       tool_name: row.tool_name,
       tool_spec: row.tool_spec,
       tool_photo: row.tool_images && row.tool_images.length > 0 ? row.tool_images[0] : null,
       supplier_name: row.supplier_name,
     }));
 
-    return success(res, { bookings }, 'Rental bookings retrieved successfully');
+    // Return as 'data' array to match frontend expectation
+    return success(res, { data: bookings }, 'Rental bookings retrieved successfully');
   })
 );
 
