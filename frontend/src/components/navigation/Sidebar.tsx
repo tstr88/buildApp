@@ -26,6 +26,7 @@ const BUYER_MENU: MenuItem[] = [
   { id: 'requests', icon: 'RFQs', labelKey: 'nav.requests', path: '/rfqs' },
   { id: 'catalog', icon: 'Catalog', labelKey: 'nav.catalog', path: '/catalog' },
   { id: 'rentals', icon: 'Rentals', labelKey: 'nav.rentals', path: '/rentals' },
+  { id: 'my-rentals', icon: 'Wrench', labelKey: 'nav.myRentals', path: '/rentals/my' },
   { id: 'factories', icon: 'Factory', labelKey: 'nav.factories', path: '/factories' },
   { id: 'orders', icon: 'FileText', labelKey: 'nav.orders', path: '/orders', divider: true },
   { id: 'settings', icon: 'Settings', labelKey: 'nav.settings', path: '/settings' },

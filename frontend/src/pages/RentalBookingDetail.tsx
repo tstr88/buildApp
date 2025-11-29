@@ -81,7 +81,7 @@ const RentalBookingDetail: React.FC = () => {
     setError(null);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('buildapp_auth_token');
       if (!token) {
         navigate('/login');
         return;
@@ -231,7 +231,7 @@ const RentalBookingDetail: React.FC = () => {
 
   const handleHandoverSubmit = async (data: { photos: File[]; notes: string }) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('buildapp_auth_token');
       if (!token) {
         navigate('/login');
         return;
@@ -272,7 +272,7 @@ const RentalBookingDetail: React.FC = () => {
 
   const handleReturnSubmit = async (data: { photos: File[]; notes: string }) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('buildapp_auth_token');
       if (!token) {
         navigate('/login');
         return;

@@ -43,6 +43,7 @@ const RentalToolDetail = lazy(() => import('./pages/RentalToolDetail').then(m =>
 const BookRentalTool = lazy(() => import('./pages/BookRentalTool'));
 const RentalBookingDetail = lazy(() => import('./pages/RentalBookingDetail'));
 const CreateRentalRFQ = lazy(() => import('./pages/CreateRentalRFQ'));
+const MyRentals = lazy(() => import('./pages/MyRentals'));
 const Profile = lazy(() => import('./pages/Profile').then(m => ({ default: m.Profile })));
 const Terms = lazy(() => import('./pages/Terms').then(m => ({ default: m.Terms })));
 const Privacy = lazy(() => import('./pages/Privacy').then(m => ({ default: m.Privacy })));
@@ -184,6 +185,7 @@ function App() {
 
             {/* Rentals routes */}
             <Route path="/rentals" element={<Rentals />} />
+            <Route path="/rentals/my" element={<MyRentals />} />
             <Route path="/rentals/tools/:id" element={<RentalToolDetail />} />
             <Route path="/rentals/rfq" element={<CreateRentalRFQ />} />
             <Route path="/rentals/book/:toolId" element={<BookRentalTool />} />
