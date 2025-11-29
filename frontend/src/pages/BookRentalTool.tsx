@@ -186,12 +186,41 @@ const BookRentalTool: React.FC = () => {
       const allSuccessful = responses.every((r) => r.ok);
 
       if (allSuccessful) {
-        // Navigate to rentals list page with success message
-        navigate('/rentals', {
-          state: { message: `Successfully booked ${selectedTools.length} tool(s)!` },
-        });
+        // Parse responses to get booking IDs
+        const bookingData = await Promise.all(responses.map((r) => r.json()));
+        const bookings = bookingData.map((d) => d.data?.booking).filter(Boolean);
+
+        if (bookings.length === 1) {
+          // Single booking - navigate to booking detail page
+          navigate(`/rentals/${bookings[0].id}`, {
+            state: { message: 'Booking confirmed successfully!' },
+          });
+        } else {
+          // Multiple bookings - navigate to orders page with success message
+          navigate('/orders', {
+            state: { message: `Successfully booked ${bookings.length} tool(s)!` },
+          });
+        }
       } else {
-        alert('Some bookings failed. Please try again.');
+        // Some failed - check which ones succeeded
+        const results = await Promise.all(
+          responses.map(async (r, i) => ({
+            tool: selectedTools[i],
+            ok: r.ok,
+            data: r.ok ? await r.json() : null,
+          }))
+        );
+        const succeeded = results.filter((r) => r.ok);
+        const failed = results.filter((r) => !r.ok);
+
+        if (succeeded.length > 0) {
+          alert(
+            `${succeeded.length} booking(s) succeeded, ${failed.length} failed. Check your orders for details.`
+          );
+          navigate('/orders');
+        } else {
+          alert('All bookings failed. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Error creating booking:', error);
