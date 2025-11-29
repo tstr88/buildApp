@@ -706,7 +706,13 @@ router.post(
       });
     }
 
-    if (startDate < new Date()) {
+    // Compare dates only (not time) - allow bookings starting today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDateOnly = new Date(startDate);
+    startDateOnly.setHours(0, 0, 0, 0);
+
+    if (startDateOnly < today) {
       return res.status(400).json({
         success: false,
         message: 'Start date cannot be in the past',
