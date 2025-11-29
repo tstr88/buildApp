@@ -20,7 +20,7 @@ export const LanguageSwitcher: React.FC = () => {
       const token = localStorage.getItem('buildapp_auth_token');
       if (token) {
         try {
-          await fetch('http://localhost:3001/api/buyers/profile', {
+          await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/buyers/profile`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',

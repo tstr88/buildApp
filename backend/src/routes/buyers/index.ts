@@ -546,8 +546,8 @@ router.get(
         s.id as supplier_id,
         COALESCE(s.business_name_en, s.business_name_ka) as supplier_name,
         s.depot_address as supplier_address,
-        p.project_name,
-        p.site_address as delivery_address
+        p.name as project_name,
+        p.address as delivery_address
       FROM rental_bookings rb
       LEFT JOIN rental_tools rt ON rb.rental_tool_id = rt.id
       LEFT JOIN suppliers s ON rb.supplier_id = s.id
