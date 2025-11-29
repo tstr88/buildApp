@@ -44,7 +44,8 @@
     "catalogDescription": "Browse materials and products",
     "rentalsDescription": "Rent construction tools",
     "myRentalsDescription": "Manage your tool rentals",
-    "factoriesDescription": "Find local factories"
+    "factoriesDescription": "Find local factories",
+    "profileDescription": "Manage your account settings"
   },
   "home": {
     "welcome": "Welcome to buildApp",

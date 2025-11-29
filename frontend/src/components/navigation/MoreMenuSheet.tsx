@@ -24,6 +24,7 @@ const MENU_ITEMS: MenuItem[] = [
   { id: 'rentals', icon: 'Rentals', labelKey: 'nav.rentals', path: '/rentals', description: 'nav.rentalsDescription' },
   { id: 'my-rentals', icon: 'Wrench', labelKey: 'nav.myRentals', path: '/rentals/my', description: 'nav.myRentalsDescription' },
   { id: 'factories', icon: 'Factory', labelKey: 'nav.factories', path: '/factories', description: 'nav.factoriesDescription' },
+  { id: 'profile', icon: 'Profile', labelKey: 'nav.profile', path: '/profile', description: 'nav.profileDescription' },
 ];
 
 interface MoreMenuSheetProps {

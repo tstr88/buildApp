@@ -21,7 +21,7 @@ interface TabItem {
 }
 
 // Paths that should highlight the "More" tab
-const MORE_PATHS = ['/orders', '/catalog', '/rentals', '/factories'];
+const MORE_PATHS = ['/orders', '/catalog', '/rentals', '/factories', '/profile'];
 
 const BUYER_TABS: TabItem[] = [
   { id: 'home', icon: 'Home', labelKey: 'nav.home', path: '/home' },

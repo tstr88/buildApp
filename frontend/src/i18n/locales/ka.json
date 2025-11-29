@@ -44,7 +44,8 @@
     "catalogDescription": "მასალების და პროდუქტების დათვალიერება",
     "rentalsDescription": "სამშენებლო ხელსაწყოების გაქირავება",
     "myRentalsDescription": "ჩემი გაქირავებული ხელსაწყოები",
-    "factoriesDescription": "ადგილობრივი ქარხნების მოძიება"
+    "factoriesDescription": "ადგილობრივი ქარხნების მოძიება",
+    "profileDescription": "ანგარიშის პარამეტრების მართვა"
   },
   "home": {
     "welcome": "მოგესალმებით buildApp-ში",
