@@ -870,8 +870,27 @@ router.post(
         'confirmed', // Direct bookings are immediately confirmed
       ];
 
-      const bookingResult = await pool.query(insertQuery, insertValues);
-      const booking = bookingResult.rows[0];
+      // Retry logic for duplicate booking number (race condition)
+      let booking;
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          const bookingResult = await pool.query(insertQuery, insertValues);
+          booking = bookingResult.rows[0];
+          break; // Success, exit loop
+        } catch (insertError: any) {
+          if (insertError.code === '23505' && insertError.constraint === 'rental_bookings_booking_number_key') {
+            retries--;
+            if (retries === 0) {
+              throw insertError; // All retries exhausted
+            }
+            // Wait a small random time before retry to avoid continued collision
+            await new Promise(resolve => setTimeout(resolve, Math.random() * 100));
+          } else {
+            throw insertError; // Different error, don't retry
+          }
+        }
+      }
 
       // Return booking details
       return success(res, {
