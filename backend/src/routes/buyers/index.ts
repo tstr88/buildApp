@@ -521,8 +521,8 @@ router.get(
       supplier_name: row.supplier_name,
     }));
 
-    // Return as 'data' array to match frontend expectation
-    return success(res, { data: bookings }, 'Rental bookings retrieved successfully');
+    // Return bookings array directly - frontend accesses via data.data
+    return success(res, bookings, 'Rental bookings retrieved successfully');
   })
 );
 
