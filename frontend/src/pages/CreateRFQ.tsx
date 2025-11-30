@@ -379,17 +379,26 @@ export const CreateRFQ: React.FC = () => {
 
   // Calculate confidence score
   const hasDetailedSpecs = lines.length > 0 && lines.every((line) => line.spec_notes && line.spec_notes.length > 10);
-  const hasDeliveryWindow = deliveryWindow !== null && deliveryWindow.start_date && deliveryWindow.end_date;
-  const hasAccessNotes = deliveryWindow !== null && deliveryWindow.access_notes && deliveryWindow.access_notes.length > 10;
+  const hasDeliveryWindow = !!(deliveryWindow !== null && deliveryWindow.start_date && deliveryWindow.end_date);
+  const hasAccessNotes = !!(deliveryWindow !== null && deliveryWindow.access_notes && deliveryWindow.access_notes.length > 10);
 
   return (
     <div
+      className="create-rfq-page"
       style={{
         minHeight: '100vh',
         backgroundColor: colors.neutral[50],
         padding: spacing[4],
+        paddingBottom: '120px',
       }}
     >
+      <style>{`
+        @media (min-width: 768px) {
+          .create-rfq-page {
+            padding-bottom: ${spacing[4]} !important;
+          }
+        }
+      `}</style>
       {/* Header */}
       <div
         style={{
@@ -469,9 +478,111 @@ export const CreateRFQ: React.FC = () => {
               display: flex !important;
             }
           }
+
+          /* Mobile responsive styles for Review step */
+          @media (max-width: 767px) {
+            .rfq-summary-grid {
+              grid-template-columns: 1fr !important;
+              gap: ${spacing[3]} !important;
+            }
+            .rfq-summary-item {
+              text-align: center;
+              padding: ${spacing[3]} !important;
+              background: ${colors.neutral[0]};
+              border-radius: ${borderRadius.md};
+            }
+            .rfq-items-table {
+              display: none !important;
+            }
+            .rfq-items-mobile {
+              display: flex !important;
+            }
+            .rfq-delivery-grid {
+              grid-template-columns: 1fr !important;
+            }
+            .rfq-nav-buttons {
+              flex-direction: column !important;
+              gap: ${spacing[3]} !important;
+            }
+            .rfq-nav-buttons button {
+              width: 100% !important;
+            }
+          }
+          @media (min-width: 768px) {
+            .rfq-items-mobile {
+              display: none !important;
+            }
+          }
         `}</style>
         {/* Left Column - Form Steps */}
         <div style={{ minHeight: '600px' }}>
+          {/* Mobile Step Indicator */}
+          <div
+            className="rfq-mobile-steps"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: spacing[2],
+              marginBottom: spacing[4],
+              padding: spacing[3],
+              backgroundColor: colors.neutral[0],
+              borderRadius: borderRadius.lg,
+              boxShadow: shadows.sm,
+            }}
+          >
+            <style>{`
+              @media (min-width: 768px) {
+                .rfq-mobile-steps {
+                  display: none !important;
+                }
+              }
+            `}</style>
+            {steps.map((step, index) => {
+              const isActive = currentStep === step.id;
+              const isCompleted = currentStep > step.id;
+              return (
+                <React.Fragment key={step.id}>
+                  <div
+                    style={{
+                      width: isActive ? '32px' : '12px',
+                      height: '12px',
+                      borderRadius: isActive ? borderRadius.full : borderRadius.full,
+                      backgroundColor: isCompleted
+                        ? colors.success[500]
+                        : isActive
+                        ? colors.primary[600]
+                        : colors.neutral[200],
+                      transition: 'all 0.2s ease',
+                    }}
+                  />
+                  {index < steps.length - 1 && (
+                    <div
+                      style={{
+                        width: '24px',
+                        height: '2px',
+                        backgroundColor: isCompleted ? colors.success[500] : colors.neutral[200],
+                      }}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+          <p
+            className="rfq-mobile-steps"
+            style={{
+              textAlign: 'center',
+              fontSize: typography.fontSize.sm,
+              color: colors.text.secondary,
+              margin: 0,
+              marginBottom: spacing[4],
+              marginTop: `-${spacing[2]}`,
+            }}
+          >
+            Step {currentStep} of {steps.length}: <strong style={{ color: colors.text.primary }}>{steps[currentStep - 1]?.label}</strong>
+          </p>
+
           {/* Step Progress - Hidden on mobile */}
           <div
             className="rfq-step-progress"
@@ -1001,13 +1112,14 @@ export const CreateRFQ: React.FC = () => {
                     }}
                   >
                     <div
+                      className="rfq-summary-grid"
                       style={{
                         display: 'grid',
-                        gridTemplateColumns: '1fr 1fr 1fr',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
                         gap: spacing[4],
                       }}
                     >
-                      <div>
+                      <div className="rfq-summary-item">
                         <p
                           style={{
                             fontSize: typography.fontSize.xs,
@@ -1029,7 +1141,7 @@ export const CreateRFQ: React.FC = () => {
                           {lines.length}
                         </p>
                       </div>
-                      <div>
+                      <div className="rfq-summary-item">
                         <p
                           style={{
                             fontSize: typography.fontSize.xs,
@@ -1051,7 +1163,7 @@ export const CreateRFQ: React.FC = () => {
                           {selectedSupplierIds.length}
                         </p>
                       </div>
-                      <div>
+                      <div className="rfq-summary-item">
                         <p
                           style={{
                             fontSize: typography.fontSize.xs,
@@ -1163,7 +1275,9 @@ export const CreateRFQ: React.FC = () => {
                         Requested Items
                       </h4>
                     </div>
-                    <div style={{ padding: 0 }}>
+
+                    {/* Desktop Table View */}
+                    <div className="rfq-items-table" style={{ padding: 0 }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                           <tr style={{ backgroundColor: colors.neutral[50], borderBottom: `1px solid ${colors.border.light}` }}>
@@ -1296,6 +1410,149 @@ export const CreateRFQ: React.FC = () => {
                           )}
                         </tbody>
                       </table>
+                    </div>
+
+                    {/* Mobile Card View */}
+                    <div
+                      className="rfq-items-mobile"
+                      style={{
+                        display: 'none',
+                        flexDirection: 'column',
+                        gap: spacing[3],
+                        padding: spacing[4],
+                      }}
+                    >
+                      {lines.map((line) => (
+                        <div
+                          key={line.id}
+                          style={{
+                            padding: spacing[4],
+                            backgroundColor: colors.neutral[50],
+                            borderRadius: borderRadius.lg,
+                            border: `1px solid ${colors.border.light}`,
+                          }}
+                        >
+                          <p
+                            style={{
+                              fontSize: typography.fontSize.base,
+                              fontWeight: typography.fontWeight.semibold,
+                              color: colors.text.primary,
+                              margin: 0,
+                              marginBottom: spacing[3],
+                            }}
+                          >
+                            {line.description}
+                          </p>
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              marginBottom: spacing[2],
+                            }}
+                          >
+                            <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                              Quantity
+                            </span>
+                            <span
+                              style={{
+                                fontSize: typography.fontSize.lg,
+                                fontWeight: typography.fontWeight.bold,
+                                color: colors.primary[600],
+                              }}
+                            >
+                              {line.quantity} {line.unit}
+                            </span>
+                          </div>
+                          {line.base_price && (
+                            <>
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  marginBottom: spacing[2],
+                                }}
+                              >
+                                <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                                  Unit Price
+                                </span>
+                                <span style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
+                                  {line.base_price.toLocaleString()} ₾
+                                </span>
+                              </div>
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  paddingTop: spacing[2],
+                                  borderTop: `1px solid ${colors.border.light}`,
+                                }}
+                              >
+                                <span style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.text.primary }}>
+                                  Total
+                                </span>
+                                <span
+                                  style={{
+                                    fontSize: typography.fontSize.lg,
+                                    fontWeight: typography.fontWeight.bold,
+                                    color: colors.primary[700],
+                                  }}
+                                >
+                                  {(line.base_price * line.quantity).toLocaleString()} ₾
+                                </span>
+                              </div>
+                            </>
+                          )}
+                          {line.spec_notes && (
+                            <p
+                              style={{
+                                fontSize: typography.fontSize.xs,
+                                color: colors.text.tertiary,
+                                margin: 0,
+                                marginTop: spacing[3],
+                                fontStyle: 'italic',
+                              }}
+                            >
+                              {line.spec_notes}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                      {/* Mobile Total */}
+                      {lines.some(line => line.base_price) && (
+                        <div
+                          style={{
+                            padding: spacing[4],
+                            backgroundColor: colors.primary[50],
+                            borderRadius: borderRadius.lg,
+                            border: `1px solid ${colors.primary[200]}`,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: typography.fontSize.base,
+                              fontWeight: typography.fontWeight.semibold,
+                              color: colors.text.primary,
+                            }}
+                          >
+                            Estimated Total
+                          </span>
+                          <span
+                            style={{
+                              fontSize: typography.fontSize.xl,
+                              fontWeight: typography.fontWeight.bold,
+                              color: colors.primary[700],
+                            }}
+                          >
+                            {lines.reduce((sum, line) => sum + (line.base_price ? line.base_price * line.quantity : 0), 0).toLocaleString()} ₾
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1537,7 +1794,7 @@ export const CreateRFQ: React.FC = () => {
                         </h4>
                       </div>
                       <div style={{ padding: spacing[4] }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: spacing[4] }}>
+                        <div className="rfq-delivery-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: spacing[4] }}>
                           <div>
                             <p
                               style={{
@@ -1647,6 +1904,7 @@ export const CreateRFQ: React.FC = () => {
 
             {/* Navigation Buttons */}
             <div
+              className="rfq-nav-buttons"
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
