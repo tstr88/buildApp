@@ -478,6 +478,8 @@ export const RFQLineEditor: React.FC<RFQLineEditorProps> = ({ lines, onChange })
                     style={{
                       width: '100%',
                       padding: spacing[3],
+                      height: '48px',
+                      boxSizing: 'border-box',
                       border: `1px solid ${colors.border.light}`,
                       borderRadius: borderRadius.md,
                       fontSize: typography.fontSize.sm,
@@ -510,7 +512,8 @@ export const RFQLineEditor: React.FC<RFQLineEditorProps> = ({ lines, onChange })
                     style={{
                       width: '100%',
                       padding: spacing[3],
-                      height: '46px',
+                      height: '48px',
+                      boxSizing: 'border-box',
                       border: `1px solid ${colors.border.light}`,
                       borderRadius: borderRadius.md,
                       fontSize: typography.fontSize.sm,
