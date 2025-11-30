@@ -88,6 +88,32 @@ export const RFQDetail: React.FC = () => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
+  // Generate a short reference code from UUID (first 8 chars uppercase)
+  const getRfqCode = (rfqId: string): string => {
+    return `#${rfqId.slice(0, 8).toUpperCase()}`;
+  };
+
+  // Generate smart RFQ display name based on items
+  const getRfqDisplayTitle = (rfqData: RFQDetail): string => {
+    const code = getRfqCode(rfqData.id);
+
+    // If RFQ has a custom title, use it with code
+    if (rfqData.title) {
+      return `${code} · ${rfqData.title}`;
+    }
+
+    // Generate title from first item
+    if (rfqData.lines && rfqData.lines.length > 0) {
+      const firstItem = rfqData.lines[0].description;
+      const moreCount = rfqData.lines.length - 1;
+      const itemDesc = moreCount > 0 ? `${firstItem} +${moreCount} more` : firstItem;
+      return `${code} · ${itemDesc}`;
+    }
+
+    // Fallback
+    return code;
+  };
+
   const formatDateTime = (dateString: string | null) => {
     if (!dateString) return 'Not specified';
     const date = new Date(dateString);
@@ -316,7 +342,7 @@ export const RFQDetail: React.FC = () => {
               lineHeight: 1.2,
             }}
           >
-            {rfq.title || `RFQ - ${formatDate(rfq.created_at)}`}
+            {getRfqDisplayTitle(rfq)}
           </h1>
           <div className="rfq-header-meta">
             <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>

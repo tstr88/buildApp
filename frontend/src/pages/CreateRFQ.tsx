@@ -318,7 +318,7 @@ export const CreateRFQ: React.FC = () => {
 
       const payload = {
         project_id: selectedProjectId || undefined,
-        title: title || `RFQ - ${new Date().toLocaleDateString()}`,
+        title: title || undefined,
         lines: lines.map((line) => ({
           description: line.description,
           quantity: line.quantity,
@@ -1151,7 +1151,7 @@ export const CreateRFQ: React.FC = () => {
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder={`RFQ - ${new Date().toLocaleDateString()}`}
+                    placeholder="Optional - leave blank for auto-generated name"
                     style={{
                       width: '100%',
                       padding: spacing[3],
@@ -2093,7 +2093,7 @@ export const CreateRFQ: React.FC = () => {
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder={`RFQ - ${new Date().toLocaleDateString()}`}
+                    placeholder="Optional - leave blank for auto-generated name"
                     style={{
                       width: '100%',
                       padding: spacing[3],
