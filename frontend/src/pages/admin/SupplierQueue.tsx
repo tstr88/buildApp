@@ -13,6 +13,8 @@ import { ActionDropdown, type ActionItem } from '../../components/admin/ActionDr
 import { QueueFilters, type FilterDef } from '../../components/admin/QueueFilters';
 import { AlertBadge } from '../../components/AlertBadge';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface SupplierQueueItem {
   id: string;
   businessName: string;
@@ -54,7 +56,7 @@ export function SupplierQueue() {
         sortDirection,
       });
 
-      const response = await fetch(`http://localhost:3001/api/admin/suppliers?${params}`, {
+      const response = await fetch(`${API_URL}/api/admin/suppliers?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -76,7 +78,7 @@ export function SupplierQueue() {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/suppliers/${supplierId}/status`, {
+      const response = await fetch(`${API_URL}/api/admin/suppliers/${supplierId}/status`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -98,7 +100,7 @@ export function SupplierQueue() {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/suppliers/${supplierId}/nudge`, {
+      const response = await fetch(`${API_URL}/api/admin/suppliers/${supplierId}/nudge`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { colors, spacing, typography } from '../../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface AuditLog {
   id: string;
   timestamp: string;
@@ -46,7 +48,7 @@ export function AuditLogs() {
   const fetchActionTypes = async () => {
     if (!token) return;
     try {
-      const response = await fetch('http://localhost:3001/api/admin/audit/action-types', {
+      const response = await fetch(`${API_URL}/api/admin/audit/action-types`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -75,7 +77,7 @@ export function AuditLogs() {
       if (dateFrom) params.append('dateFrom', dateFrom);
       if (dateTo) params.append('dateTo', dateTo);
 
-      const response = await fetch(`http://localhost:3001/api/admin/audit?${params}`, {
+      const response = await fetch(`${API_URL}/api/admin/audit?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -97,7 +99,7 @@ export function AuditLogs() {
   const handleExport = async () => {
     if (!token) return;
     try {
-      const response = await fetch('http://localhost:3001/api/admin/audit/export', {
+      const response = await fetch(`${API_URL}/api/admin/audit/export`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

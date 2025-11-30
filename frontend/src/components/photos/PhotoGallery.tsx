@@ -7,6 +7,8 @@ import React, { useState } from 'react';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius } from '../../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface PhotoGalleryProps {
   photos: string[];
   alt?: string;
@@ -74,7 +76,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, alt = 'Photo
             }}
           >
             <img
-              src={`http://localhost:3001${photo}`}
+              src={`${API_URL}${photo}`}
               alt={`${alt} ${index + 1}`}
               style={{
                 width: '100%',
@@ -207,7 +209,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, alt = 'Photo
 
           {/* Image */}
           <img
-            src={`http://localhost:3001${photos[currentIndex]}`}
+            src={`${API_URL}${photos[currentIndex]}`}
             alt={`${alt} ${currentIndex + 1}`}
             onClick={(e) => e.stopPropagation()}
             style={{

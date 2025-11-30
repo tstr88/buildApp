@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface WindowProposalModalProps {
   orderId: string;
   deliveryType: 'pickup' | 'delivery';
@@ -68,7 +70,7 @@ export function WindowProposalModal({
       }
 
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch(`http://localhost:3001/api/suppliers/orders/${orderId}/propose-window`, {
+      const response = await fetch(`${API_URL}/api/suppliers/orders/${orderId}/propose-window`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

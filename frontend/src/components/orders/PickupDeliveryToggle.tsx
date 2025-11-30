@@ -8,6 +8,8 @@ import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
 import { AddressInput } from './AddressInput';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface Project {
   id: string;
   name: string;
@@ -64,7 +66,7 @@ export const PickupDeliveryToggle: React.FC<PickupDeliveryToggleProps> = ({
     setLoading(true);
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch('http://localhost:3001/api/buyers/projects', {
+      const response = await fetch(`${API_URL}/api/buyers/projects`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {

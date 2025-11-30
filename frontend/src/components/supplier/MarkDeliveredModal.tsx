@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface OrderItem {
   id: string;
   spec_string: string;
@@ -103,7 +105,7 @@ export function MarkDeliveredModal({
         formData.append('photos', photo);
       });
 
-      const uploadResponse = await fetch(`http://localhost:3001/api/suppliers/orders/${orderId}/upload-photos`, {
+      const uploadResponse = await fetch(`${API_URL}/api/suppliers/orders/${orderId}/upload-photos`, {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -117,7 +119,7 @@ export function MarkDeliveredModal({
       const photoUrls = uploadData.photoUrls;
 
       // Mark as delivered
-      const response = await fetch(`http://localhost:3001/api/suppliers/orders/${orderId}/mark-delivered`, {
+      const response = await fetch(`${API_URL}/api/suppliers/orders/${orderId}/mark-delivered`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

@@ -13,6 +13,8 @@ import { ActionDropdown, type ActionItem } from '../../components/admin/ActionDr
 import { QueueFilters, type FilterDef } from '../../components/admin/QueueFilters';
 import { AdminNoteModal } from '../../components/admin/AdminNoteModal';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface DisputeQueueItem {
   id: string;
   orderId: string;
@@ -55,7 +57,7 @@ export function DisputeQueue() {
         sortDirection,
       });
 
-      const response = await fetch(`http://localhost:3001/api/admin/disputes?${params}`, {
+      const response = await fetch(`${API_URL}/api/admin/disputes?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -77,7 +79,7 @@ export function DisputeQueue() {
     if (!token || !selectedDisputeId) return;
 
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/disputes/${selectedDisputeId}/note`, {
+      const response = await fetch(`${API_URL}/api/admin/disputes/${selectedDisputeId}/note`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -102,7 +104,7 @@ export function DisputeQueue() {
     if (!outcome) return;
 
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/disputes/${disputeId}/resolve`, {
+      const response = await fetch(`${API_URL}/api/admin/disputes/${disputeId}/resolve`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

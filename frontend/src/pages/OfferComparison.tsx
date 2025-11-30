@@ -9,6 +9,8 @@ import { OfferCard } from '../components/offers/OfferCard';
 import { Icons } from '../components/icons/Icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface Offer {
   id: string;
   supplier_id: string;
@@ -50,7 +52,7 @@ export default function OfferComparison() {
       setError(null);
 
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch(`http://localhost:3001/api/buyers/rfqs/${rfqId}/offers`, {
+      const response = await fetch(`${API_URL}/api/buyers/rfqs/${rfqId}/offers`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -83,7 +85,7 @@ export default function OfferComparison() {
 
       const token = localStorage.getItem('buildapp_auth_token');
       const response = await fetch(
-        `http://localhost:3001/api/buyers/offers/${selectedOfferId}/accept`,
+        `${API_URL}/api/buyers/offers/${selectedOfferId}/accept`,
         {
           method: 'POST',
           headers: {

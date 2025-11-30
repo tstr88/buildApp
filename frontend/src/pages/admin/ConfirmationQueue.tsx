@@ -11,6 +11,8 @@ import { AdminQueueTable, type ColumnDef } from '../../components/admin/AdminQue
 import { ActionDropdown, type ActionItem } from '../../components/admin/ActionDropdown';
 import { AlertBadge } from '../../components/AlertBadge';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface ConfirmationItem {
   id: string;
   orderId: string;
@@ -38,7 +40,7 @@ export function ConfirmationQueue() {
 
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/confirmations?tab=${activeTab}`, {
+      const response = await fetch(`${API_URL}/api/admin/confirmations?tab=${activeTab}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -64,7 +66,7 @@ export function ConfirmationQueue() {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/confirmations/${id}/remind`, {
+      const response = await fetch(`${API_URL}/api/admin/confirmations/${id}/remind`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

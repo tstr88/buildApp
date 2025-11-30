@@ -3,7 +3,7 @@
  * Main fence calculator with form inputs, BOM generation, and actions
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { UnitInput } from '../forms/UnitInput';
@@ -30,6 +30,20 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
   const { t } = useTranslation();
   const navigate = useNavigate();
   const resultsRef = useRef<HTMLDivElement>(null);
+  // Initialize with SSR-safe check
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile(); // Re-check on mount
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Form state
   const [inputs, setInputs] = useState<FenceInputs>({
@@ -425,7 +439,7 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
 
       {/* BOM Results (shown after calculation) */}
       {calculationResult && (
-        <div ref={resultsRef} style={{ marginTop: spacing[8], scrollMarginTop: spacing[6] }}>
+        <div ref={resultsRef} style={{ marginTop: spacing[8], scrollMarginTop: spacing[6], width: '100%', maxWidth: '100%', overflow: 'hidden', boxSizing: 'border-box' }}>
           {/* BOM Header */}
           <h2
             style={{
@@ -450,9 +464,9 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
           {/* Action Buttons */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: spacing[4],
+              display: 'flex',
+              flexDirection: isMobile ? 'column' : 'row',
+              gap: spacing[3],
               marginTop: spacing[6],
             }}
           >
@@ -463,6 +477,7 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
                 navigate('/rfq/create', { state: { bom: calculationResult.bom } });
               }}
               style={{
+                flex: isMobile ? 'none' : 1,
                 padding: `${spacing[4]} ${spacing[6]}`,
                 fontSize: typography.fontSize.base,
                 fontWeight: typography.fontWeight.semibold,
@@ -476,6 +491,7 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: spacing[2],
+                minHeight: '52px',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = colors.primary[700];
@@ -495,6 +511,7 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
                 navigate('/orders/direct');
               }}
               style={{
+                flex: isMobile ? 'none' : 1,
                 padding: `${spacing[4]} ${spacing[6]}`,
                 fontSize: typography.fontSize.base,
                 fontWeight: typography.fontWeight.semibold,
@@ -508,6 +525,7 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
                 justifyContent: 'center',
                 gap: spacing[2],
                 transition: 'all 200ms ease',
+                minHeight: '52px',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = colors.success[700];
@@ -526,6 +544,7 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
                 navigate('/tools/rental');
               }}
               style={{
+                flex: isMobile ? 'none' : 1,
                 padding: `${spacing[4]} ${spacing[6]}`,
                 fontSize: typography.fontSize.base,
                 fontWeight: typography.fontWeight.medium,
@@ -539,6 +558,7 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: spacing[2],
+                minHeight: '52px',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = colors.primary[50];
@@ -556,67 +576,87 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
           <div
             style={{
               marginTop: spacing[6],
-              padding: spacing[6],
+              padding: isMobile ? spacing[3] : spacing[6],
               backgroundColor: colors.neutral[50],
               borderRadius: borderRadius.lg,
               border: `1px solid ${colors.border.light}`,
+              width: '100%',
+              boxSizing: 'border-box',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'start', gap: spacing[4] }}>
-              <div
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: colors.primary[100],
-                  borderRadius: borderRadius.md,
-                }}
-              >
-                <ToolsIcon size={24} color={colors.primary[600]} />
+            <div style={{
+              display: 'flex',
+              flexDirection: isMobile ? 'column' : 'row',
+              alignItems: isMobile ? 'stretch' : 'start',
+              gap: spacing[3]
+            }}>
+              {/* Icon and Content */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'start',
+                gap: spacing[3],
+                flex: 1,
+                minWidth: 0,
+              }}>
+                <div
+                  style={{
+                    width: isMobile ? '40px' : '48px',
+                    height: isMobile ? '40px' : '48px',
+                    minWidth: isMobile ? '40px' : '48px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: colors.primary[100],
+                    borderRadius: borderRadius.md,
+                  }}
+                >
+                  <ToolsIcon size={isMobile ? 20 : 24} color={colors.primary[600]} />
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h3
+                    style={{
+                      fontSize: isMobile ? typography.fontSize.base : typography.fontSize.lg,
+                      fontWeight: typography.fontWeight.semibold,
+                      color: colors.text.primary,
+                      margin: 0,
+                      marginBottom: spacing[2],
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {t('fence.toolRental.title')}
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      color: colors.text.secondary,
+                      margin: 0,
+                      marginBottom: spacing[2],
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {t('fence.toolRental.description')}
+                  </p>
+                  <ul
+                    style={{
+                      margin: 0,
+                      paddingLeft: spacing[4],
+                      fontSize: typography.fontSize.sm,
+                      color: colors.text.secondary,
+                    }}
+                  >
+                    <li>{t('fence.toolRental.postDigger')}</li>
+                    <li>{t('fence.toolRental.level')}</li>
+                    <li>{t('fence.toolRental.mixer')}</li>
+                  </ul>
+                </div>
               </div>
 
-              <div style={{ flex: 1 }}>
-                <h3
-                  style={{
-                    fontSize: typography.fontSize.lg,
-                    fontWeight: typography.fontWeight.semibold,
-                    color: colors.text.primary,
-                    margin: 0,
-                    marginBottom: spacing[2],
-                  }}
-                >
-                  {t('fence.toolRental.title')}
-                </h3>
-                <p
-                  style={{
-                    fontSize: typography.fontSize.base,
-                    color: colors.text.secondary,
-                    margin: 0,
-                    marginBottom: spacing[3],
-                  }}
-                >
-                  {t('fence.toolRental.description')}
-                </p>
-                <ul
-                  style={{
-                    margin: 0,
-                    paddingLeft: spacing[5],
-                    fontSize: typography.fontSize.sm,
-                    color: colors.text.secondary,
-                  }}
-                >
-                  <li>{t('fence.toolRental.postDigger')}</li>
-                  <li>{t('fence.toolRental.level')}</li>
-                  <li>{t('fence.toolRental.mixer')}</li>
-                </ul>
-              </div>
-
+              {/* Button */}
               <button
                 onClick={() => navigate('/tools/rental')}
                 style={{
-                  padding: `${spacing[2]} ${spacing[4]}`,
+                  padding: `${spacing[3]} ${spacing[4]}`,
                   fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.medium,
                   color: colors.primary[600],
@@ -624,7 +664,9 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
                   border: `1px solid ${colors.primary[600]}`,
                   borderRadius: borderRadius.md,
                   cursor: 'pointer',
-                  whiteSpace: 'nowrap',
+                  minHeight: '44px',
+                  width: isMobile ? '100%' : 'auto',
+                  flexShrink: 0,
                 }}
               >
                 {t('fence.toolRental.viewOptions')}

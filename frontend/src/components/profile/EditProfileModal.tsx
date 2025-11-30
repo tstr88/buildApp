@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface EditProfileModalProps {
   profile: {
     name: string;
@@ -35,7 +37,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ profile, onC
 
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch('http://localhost:3001/api/buyers/profile', {
+      const response = await fetch(`${API_URL}/api/buyers/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

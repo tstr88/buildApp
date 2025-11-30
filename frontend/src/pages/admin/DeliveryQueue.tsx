@@ -14,6 +14,8 @@ import { QueueFilters, type FilterDef } from '../../components/admin/QueueFilter
 import { AlertBadge } from '../../components/AlertBadge';
 import { AdminNoteModal } from '../../components/admin/AdminNoteModal';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface DeliveryQueueItem {
   id: string;
   orderId: string;
@@ -58,7 +60,7 @@ export function DeliveryQueue() {
         sortDirection,
       });
 
-      const response = await fetch(`http://localhost:3001/api/admin/deliveries?${params}`, {
+      const response = await fetch(`${API_URL}/api/admin/deliveries?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -80,7 +82,7 @@ export function DeliveryQueue() {
     if (!token || !selectedOrderId) return;
 
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/deliveries/${selectedOrderId}/note`, {
+      const response = await fetch(`${API_URL}/api/admin/deliveries/${selectedOrderId}/note`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

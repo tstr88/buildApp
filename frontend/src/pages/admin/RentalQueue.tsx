@@ -13,6 +13,8 @@ import { ActionDropdown, type ActionItem } from '../../components/admin/ActionDr
 import { QueueFilters, type FilterDef } from '../../components/admin/QueueFilters';
 import { AlertBadge } from '../../components/AlertBadge';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface RentalQueueItem {
   id: string;
   bookingId: string;
@@ -54,7 +56,7 @@ export function RentalQueue() {
         sortDirection,
       });
 
-      const response = await fetch(`http://localhost:3001/api/admin/rentals?${params}`, {
+      const response = await fetch(`${API_URL}/api/admin/rentals?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface Template {
   id: string;
   slug: string;
@@ -45,7 +47,7 @@ export function TemplateList() {
         params.append('status', statusFilter);
       }
 
-      const response = await fetch(`http://localhost:3001/api/admin/templates?${params}`, {
+      const response = await fetch(`${API_URL}/api/admin/templates?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

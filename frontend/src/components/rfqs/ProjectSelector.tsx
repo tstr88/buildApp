@@ -10,6 +10,8 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 // Fix Leaflet default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -48,7 +50,7 @@ export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
   const fetchProjects = async () => {
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch('http://localhost:3001/api/buyers/projects', {
+      const response = await fetch(`${API_URL}/api/buyers/projects`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

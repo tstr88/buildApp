@@ -14,6 +14,8 @@ import { InstructionStepEditor } from '../../components/admin/InstructionStepEdi
 import { SafetyNoteEditor } from '../../components/admin/SafetyNoteEditor';
 import { TemplatePreview } from '../../components/admin/TemplatePreview';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 type Tab = 'basic' | 'fields' | 'bom' | 'instructions' | 'safety' | 'preview';
 
 interface TemplateData {
@@ -69,7 +71,7 @@ export function TemplateEditor() {
 
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/templates/${slug}`, {
+      const response = await fetch(`${API_URL}/api/admin/templates/${slug}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -93,8 +95,8 @@ export function TemplateEditor() {
     setSaving(true);
     try {
       const url = isNew
-        ? 'http://localhost:3001/api/admin/templates'
-        : `http://localhost:3001/api/admin/templates/${slug}`;
+        ? `${API_URL}/api/admin/templates`
+        : `${API_URL}/api/admin/templates/${slug}`;
 
       const method = 'POST';
 
@@ -110,7 +112,7 @@ export function TemplateEditor() {
       if (response.ok) {
         if (publish && !isNew) {
           // Publish after save
-          await fetch(`http://localhost:3001/api/admin/templates/${slug}/publish`, {
+          await fetch(`${API_URL}/api/admin/templates/${slug}/publish`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,

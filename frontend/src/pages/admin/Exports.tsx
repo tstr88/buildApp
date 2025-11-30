@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { colors, spacing, typography } from '../../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 type ExportCategory = 'orders' | 'rfqs' | 'deliveries' | 'rentals' | 'disputes' | 'suppliers' | 'billing';
 
 export function Exports() {
@@ -23,7 +25,7 @@ export function Exports() {
 
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/exports/${activeCategory}`, {
+      const response = await fetch(`${API_URL}/api/admin/exports/${activeCategory}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

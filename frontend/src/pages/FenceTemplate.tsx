@@ -105,7 +105,8 @@ export const FenceTemplate: React.FC = () => {
         style={{
           maxWidth: '1200px',
           margin: '0 auto',
-          padding: spacing[6],
+          padding: `${spacing[4]} ${spacing[4]}`,
+          overflow: 'hidden', // Prevent horizontal scroll
         }}
       >
         <FenceCalculator onCalculate={handleCalculationComplete} />

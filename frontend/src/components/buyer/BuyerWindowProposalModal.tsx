@@ -7,6 +7,8 @@ import React, { useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface BuyerWindowProposalModalProps {
   orderId: string;
   deliveryType: 'pickup' | 'delivery';
@@ -70,7 +72,7 @@ export function BuyerWindowProposalModal({
 
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch(`http://localhost:3001/api/buyers/orders/${orderId}/counter-propose-window`, {
+      const response = await fetch(`${API_URL}/api/buyers/orders/${orderId}/counter-propose-window`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

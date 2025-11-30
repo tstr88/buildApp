@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface DeleteAccountModalProps {
   phone: string;
   onClose: () => void;
@@ -34,7 +36,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({ phone, o
 
     try {
       const token = localStorage.getItem('buildapp_auth_token');
-      const response = await fetch('http://localhost:3001/api/buyers/profile', {
+      const response = await fetch(`${API_URL}/api/buyers/profile`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

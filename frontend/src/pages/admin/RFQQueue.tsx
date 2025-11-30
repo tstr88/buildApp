@@ -13,6 +13,8 @@ import { ActionDropdown, type ActionItem } from '../../components/admin/ActionDr
 import { QueueFilters, type FilterDef } from '../../components/admin/QueueFilters';
 import { AlertBadge } from '../../components/AlertBadge';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface RFQQueueItem {
   id: string;
   buyerName: string;
@@ -54,7 +56,7 @@ export function RFQQueue() {
         sortDirection,
       });
 
-      const response = await fetch(`http://localhost:3001/api/admin/rfqs?${params}`, {
+      const response = await fetch(`${API_URL}/api/admin/rfqs?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -76,7 +78,7 @@ export function RFQQueue() {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/rfqs/${rfqId}/nudge-suppliers`, {
+      const response = await fetch(`${API_URL}/api/admin/rfqs/${rfqId}/nudge-suppliers`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
