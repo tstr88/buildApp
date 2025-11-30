@@ -15,6 +15,25 @@ import { PickupDeliveryToggle } from '../components/orders/PickupDeliveryToggle'
 import { WindowSlotPicker } from '../components/orders/WindowSlotPicker';
 import { OrderReviewCard } from '../components/orders/OrderReviewCard';
 
+// Hook for mobile detection with proper SSR support
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+};
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 interface Supplier {
@@ -425,7 +444,7 @@ export const DirectOrder: React.FC = () => {
         { id: 5, label: 'Review', icon: Icons.CheckCircle },
       ];
 
-  const isMobile = window.innerWidth < 768;
+  const isMobile = useIsMobile();
   const total = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
 
   return (
