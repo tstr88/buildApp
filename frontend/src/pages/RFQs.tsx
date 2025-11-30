@@ -878,9 +878,9 @@ export const RFQs: React.FC = () => {
         ) : (
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
-              gap: spacing[4],
+              display: 'flex',
+              flexDirection: 'column',
+              gap: spacing[3],
             }}
           >
             {rfqs.map((rfq) => {
@@ -901,40 +901,58 @@ export const RFQs: React.FC = () => {
                     transition: 'all 200ms ease',
                     position: 'relative',
                     overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: spacing[5],
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.boxShadow = shadows.md;
-                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.backgroundColor = colors.neutral[50];
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.boxShadow = shadows.sm;
-                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.backgroundColor = colors.neutral[0];
                   }}
                 >
-                  {/* Unread indicator */}
+                  {/* Unread indicator - left border */}
                   {hasUnread && (
                     <div
                       style={{
                         position: 'absolute',
                         top: 0,
                         left: 0,
-                        right: 0,
-                        height: '4px',
+                        bottom: 0,
+                        width: '4px',
                         backgroundColor: colors.primary[600],
                       }}
                     />
                   )}
 
-                  {/* Header */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing[3] }}>
-                    <div style={{ flex: 1, minWidth: 0, paddingRight: spacing[3] }}>
+                  {/* Icon */}
+                  <div
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: borderRadius.lg,
+                      backgroundColor: hasUnread ? colors.primary[100] : colors.neutral[100],
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Icons.FileText size={24} color={hasUnread ? colors.primary[600] : colors.text.tertiary} />
+                  </div>
+
+                  {/* Main Content */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], marginBottom: spacing[1] }}>
                       <h3
                         style={{
-                          fontSize: typography.fontSize.lg,
-                          fontWeight: typography.fontWeight.semibold,
+                          fontSize: typography.fontSize.base,
+                          fontWeight: hasUnread ? typography.fontWeight.bold : typography.fontWeight.semibold,
                           color: colors.text.primary,
                           margin: 0,
-                          marginBottom: spacing[2],
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
@@ -942,163 +960,109 @@ export const RFQs: React.FC = () => {
                       >
                         {rfq.title || `RFQ - ${formatDate(rfq.created_at)}`}
                       </h3>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                      <span
+                        style={{
+                          fontSize: typography.fontSize.xs,
+                          fontWeight: typography.fontWeight.medium,
+                          padding: `${spacing[1]} ${spacing[2]}`,
+                          borderRadius: borderRadius.full,
+                          backgroundColor: statusColor.bg,
+                          color: statusColor.text,
+                          textTransform: 'capitalize',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {rfq.status}
+                      </span>
+                      {hasUnread && (
                         <span
                           style={{
                             fontSize: typography.fontSize.xs,
-                            fontWeight: typography.fontWeight.medium,
+                            fontWeight: typography.fontWeight.bold,
                             padding: `${spacing[1]} ${spacing[2]}`,
                             borderRadius: borderRadius.full,
-                            backgroundColor: statusColor.bg,
-                            color: statusColor.text,
-                            textTransform: 'capitalize',
+                            backgroundColor: colors.error[600],
+                            color: colors.neutral[0],
+                            flexShrink: 0,
                           }}
                         >
-                          {rfq.status}
+                          {rfq.unread_offer_count} new
                         </span>
-                        {hasUnread && (
-                          <span
-                            style={{
-                              fontSize: typography.fontSize.xs,
-                              fontWeight: typography.fontWeight.bold,
-                              padding: `${spacing[1]} ${spacing[2]}`,
-                              borderRadius: borderRadius.full,
-                              backgroundColor: colors.error[600],
-                              color: colors.neutral[0],
-                            }}
-                          >
-                            {rfq.unread_offer_count} new offer{rfq.unread_offer_count > 1 ? 's' : ''}
-                          </span>
-                        )}
+                      )}
+                    </div>
+
+                    {/* Project name */}
+                    {rfq.project_name && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: spacing[1],
+                          marginBottom: spacing[2],
+                        }}
+                      >
+                        <Icons.MapPin size={14} color={colors.text.tertiary} />
+                        <span
+                          style={{
+                            fontSize: typography.fontSize.sm,
+                            color: colors.text.secondary,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {rfq.project_name}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Stats inline */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: spacing[4] }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                        <Icons.Package size={14} color={colors.info[600]} />
+                        <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                          {rfq.lines.length} item{rfq.lines.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                        <Icons.Users size={14} color={colors.secondary[700]} />
+                        <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                          {rfq.supplier_count} supplier{rfq.supplier_count !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                        <Icons.Mail size={14} color={rfq.offer_count > 0 ? colors.success[600] : colors.text.tertiary} />
+                        <span
+                          style={{
+                            fontSize: typography.fontSize.sm,
+                            color: rfq.offer_count > 0 ? colors.success[600] : colors.text.secondary,
+                            fontWeight: rfq.offer_count > 0 ? typography.fontWeight.medium : typography.fontWeight.normal,
+                          }}
+                        >
+                          {rfq.offer_count} offer{rfq.offer_count !== 1 ? 's' : ''}
+                        </span>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Right side - timestamp and arrow */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[4],
+                      flexShrink: 0,
+                    }}
+                  >
                     <span
                       style={{
                         fontSize: typography.fontSize.sm,
                         color: colors.text.tertiary,
-                        flexShrink: 0,
                       }}
                     >
                       {formatRelativeTime(rfq.created_at)}
                     </span>
-                  </div>
-
-                  {/* Project */}
-                  {rfq.project_name && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: spacing[2],
-                        marginBottom: spacing[4],
-                        padding: spacing[3],
-                        backgroundColor: colors.neutral[50],
-                        borderRadius: borderRadius.md,
-                      }}
-                    >
-                      <Icons.MapPin size={16} color={colors.text.tertiary} />
-                      <span
-                        style={{
-                          fontSize: typography.fontSize.sm,
-                          color: colors.text.secondary,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {rfq.project_name}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Stats Grid */}
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(3, 1fr)',
-                      gap: spacing[3],
-                      paddingTop: spacing[4],
-                      borderTop: `1px solid ${colors.border.light}`,
-                    }}
-                  >
-                    <div style={{ textAlign: 'center' }}>
-                      <div
-                        style={{
-                          width: '36px',
-                          height: '36px',
-                          borderRadius: borderRadius.md,
-                          backgroundColor: colors.info[100],
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          margin: '0 auto',
-                          marginBottom: spacing[2],
-                        }}
-                      >
-                        <Icons.Package size={18} color={colors.info[600]} />
-                      </div>
-                      <p style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, color: colors.text.primary, margin: 0 }}>
-                        {rfq.lines.length}
-                      </p>
-                      <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0 }}>
-                        Items
-                      </p>
-                    </div>
-
-                    <div style={{ textAlign: 'center' }}>
-                      <div
-                        style={{
-                          width: '36px',
-                          height: '36px',
-                          borderRadius: borderRadius.md,
-                          backgroundColor: colors.secondary[100],
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          margin: '0 auto',
-                          marginBottom: spacing[2],
-                        }}
-                      >
-                        <Icons.Users size={18} color={colors.secondary[700]} />
-                      </div>
-                      <p style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, color: colors.text.primary, margin: 0 }}>
-                        {rfq.supplier_count}
-                      </p>
-                      <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0 }}>
-                        Suppliers
-                      </p>
-                    </div>
-
-                    <div style={{ textAlign: 'center' }}>
-                      <div
-                        style={{
-                          width: '36px',
-                          height: '36px',
-                          borderRadius: borderRadius.md,
-                          backgroundColor: rfq.offer_count > 0 ? colors.success[100] : colors.neutral[100],
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          margin: '0 auto',
-                          marginBottom: spacing[2],
-                        }}
-                      >
-                        <Icons.Mail size={18} color={rfq.offer_count > 0 ? colors.success[600] : colors.text.tertiary} />
-                      </div>
-                      <p
-                        style={{
-                          fontSize: typography.fontSize.lg,
-                          fontWeight: typography.fontWeight.bold,
-                          color: rfq.offer_count > 0 ? colors.success[600] : colors.text.primary,
-                          margin: 0,
-                        }}
-                      >
-                        {rfq.offer_count}
-                      </p>
-                      <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0 }}>
-                        Offers
-                      </p>
-                    </div>
+                    <Icons.ChevronRight size={20} color={colors.text.tertiary} />
                   </div>
                 </div>
               );
