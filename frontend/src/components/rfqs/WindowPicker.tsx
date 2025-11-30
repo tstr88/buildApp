@@ -3,9 +3,28 @@
  * Allows selecting delivery window with date range and time slots
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius } from '../../theme/tokens';
+
+// Hook for mobile detection
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+};
 
 interface DeliveryWindow {
   start_date: string;
@@ -21,6 +40,7 @@ interface WindowPickerProps {
 }
 
 export const WindowPicker: React.FC<WindowPickerProps> = ({ window, onChange, mode = 'delivery' }) => {
+  const isMobile = useIsMobile();
   const timeSlots = [
     { id: 'morning', label: 'Morning', time: '08:00-12:00', icon: Icons.Sunrise },
     { id: 'afternoon', label: 'Afternoon', time: '12:00-17:00', icon: Icons.Sun },
@@ -88,8 +108,8 @@ export const WindowPicker: React.FC<WindowPickerProps> = ({ window, onChange, mo
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: spacing[4],
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+          gap: spacing[3],
           marginBottom: spacing[4],
         }}
       >
@@ -117,7 +137,8 @@ export const WindowPicker: React.FC<WindowPickerProps> = ({ window, onChange, mo
                 paddingLeft: spacing[10],
                 border: `1px solid ${colors.border.light}`,
                 borderRadius: borderRadius.md,
-                fontSize: typography.fontSize.base,
+                fontSize: '16px', // Prevent iOS zoom
+                boxSizing: 'border-box',
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = colors.primary[600];
@@ -166,7 +187,8 @@ export const WindowPicker: React.FC<WindowPickerProps> = ({ window, onChange, mo
                 paddingLeft: spacing[10],
                 border: `1px solid ${colors.border.light}`,
                 borderRadius: borderRadius.md,
-                fontSize: typography.fontSize.base,
+                fontSize: '16px', // Prevent iOS zoom
+                boxSizing: 'border-box',
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = colors.primary[600];
@@ -205,7 +227,13 @@ export const WindowPicker: React.FC<WindowPickerProps> = ({ window, onChange, mo
         >
           Preferred Time
         </label>
-        <div style={{ display: 'flex', gap: spacing[3] }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+            gap: spacing[2],
+          }}
+        >
           {timeSlots.map((slot) => {
             const isSelected = window?.time_slot === slot.id;
             const Icon = slot.icon;
@@ -214,8 +242,7 @@ export const WindowPicker: React.FC<WindowPickerProps> = ({ window, onChange, mo
                 key={slot.id}
                 onClick={() => handleTimeSlotChange(slot.id as any)}
                 style={{
-                  flex: 1,
-                  padding: spacing[4],
+                  padding: isMobile ? spacing[3] : spacing[4],
                   backgroundColor: isSelected ? colors.primary[50] : colors.neutral[0],
                   border: `2px solid ${isSelected ? colors.primary[600] : colors.border.light}`,
                   borderRadius: borderRadius.lg,
@@ -238,31 +265,39 @@ export const WindowPicker: React.FC<WindowPickerProps> = ({ window, onChange, mo
                 <div
                   style={{
                     display: 'flex',
-                    flexDirection: 'column',
+                    flexDirection: isMobile ? 'row' : 'column',
                     alignItems: 'center',
+                    justifyContent: isMobile ? 'flex-start' : 'center',
                     gap: spacing[2],
                   }}
                 >
-                  <Icon size={24} color={isSelected ? colors.primary[600] : colors.text.tertiary} />
-                  <div>
+                  <Icon size={isMobile ? 20 : 24} color={isSelected ? colors.primary[600] : colors.text.tertiary} />
+                  <div style={{ textAlign: isMobile ? 'left' : 'center' }}>
                     <div
                       style={{
                         fontSize: typography.fontSize.sm,
                         fontWeight: typography.fontWeight.semibold,
                         color: isSelected ? colors.primary[700] : colors.text.primary,
-                        marginBottom: spacing[1],
+                        marginBottom: isMobile ? 0 : spacing[1],
                       }}
                     >
                       {slot.label}
+                      {isMobile && (
+                        <span style={{ fontWeight: typography.fontWeight.normal, color: colors.text.tertiary, marginLeft: spacing[2] }}>
+                          {slot.time}
+                        </span>
+                      )}
                     </div>
-                    <div
-                      style={{
-                        fontSize: typography.fontSize.xs,
-                        color: colors.text.tertiary,
-                      }}
-                    >
-                      {slot.time}
-                    </div>
+                    {!isMobile && (
+                      <div
+                        style={{
+                          fontSize: typography.fontSize.xs,
+                          color: colors.text.tertiary,
+                        }}
+                      >
+                        {slot.time}
+                      </div>
+                    )}
                   </div>
                 </div>
               </button>
@@ -297,6 +332,7 @@ export const WindowPicker: React.FC<WindowPickerProps> = ({ window, onChange, mo
             fontSize: typography.fontSize.base,
             resize: 'vertical',
             fontFamily: 'inherit',
+            boxSizing: 'border-box',
           }}
           onFocus={(e) => {
             e.target.style.borderColor = colors.primary[600];

@@ -7,6 +7,25 @@ import React, { useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius } from '../../theme/tokens';
 
+// Hook for mobile detection
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+};
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 interface TimeSlot {
@@ -55,6 +74,7 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
   const [windowsData, setWindowsData] = useState<WindowsData | null>(null);
   const [selectedDayId, setSelectedDayId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (mode === 'approximate') {
@@ -426,7 +446,7 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
                     gap: spacing[2],
                   }}
                 >
@@ -510,9 +530,9 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
             <div
               style={{
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: isMobile ? 'flex-start' : 'center',
                 gap: spacing[3],
-                padding: spacing[4],
+                padding: isMobile ? spacing[3] : spacing[4],
                 backgroundColor: colors.success[50],
                 borderRadius: borderRadius.xl,
                 border: `1px solid ${colors.success[200]}`,
@@ -520,8 +540,8 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
             >
               <div
                 style={{
-                  width: '40px',
-                  height: '40px',
+                  width: isMobile ? '36px' : '40px',
+                  height: isMobile ? '36px' : '40px',
                   borderRadius: borderRadius.full,
                   backgroundColor: colors.success[100],
                   display: 'flex',
@@ -530,9 +550,9 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
                   flexShrink: 0,
                 }}
               >
-                <Icons.CalendarCheck size={20} color={colors.success[700]} />
+                <Icons.CalendarCheck size={isMobile ? 18 : 20} color={colors.success[700]} />
               </div>
-              <div>
+              <div style={{ minWidth: 0, flex: 1 }}>
                 <p
                   style={{
                     fontSize: typography.fontSize.sm,
@@ -545,14 +565,15 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
                 </p>
                 <p
                   style={{
-                    fontSize: typography.fontSize.sm,
+                    fontSize: isMobile ? typography.fontSize.xs : typography.fontSize.sm,
                     color: colors.success[700],
                     margin: 0,
+                    wordBreak: 'break-word',
                   }}
                 >
                   {new Date(selectedDay.fullDate).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
+                    weekday: isMobile ? 'short' : 'long',
+                    month: isMobile ? 'short' : 'long',
                     day: 'numeric',
                   })} at {selectedDay.timeSlots.find(s => s.id === selectedWindowId)?.label.split(' - ')[0]}
                 </p>
