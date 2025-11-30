@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { colors, spacing, typography, borderRadius } from '../../theme/tokens';
+import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
 import * as Icons from 'lucide-react';
 
 // Hook for mobile detection
@@ -61,24 +61,28 @@ export const RentalDatePicker: React.FC<RentalDatePickerProps> = ({
     return date.toISOString().split('T')[0];
   };
 
-  const isDateUnavailable = (date: Date) => {
-    return unavailableDates.some(
-      unavailable => unavailable.toDateString() === date.toDateString()
-    );
-  };
-
   const duration = calculateDuration();
+
+  const presets = [
+    { days: 1, label: '1 Day' },
+    { days: 3, label: '3 Days' },
+    { days: 7, label: '1 Week' },
+    { days: 14, label: '2 Weeks' },
+    { days: 30, label: '1 Month' },
+  ];
 
   return (
     <div>
-      {/* Duration Preset Pills */}
+      {/* Quick Select Pills */}
       <div style={{ marginBottom: spacing[4] }}>
         <label
           style={{
             display: 'block',
-            fontSize: typography.fontSize.sm,
+            fontSize: typography.fontSize.xs,
             fontWeight: typography.fontWeight.medium,
-            color: colors.text.primary,
+            color: colors.text.tertiary,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
             marginBottom: spacing[2],
           }}
         >
@@ -88,44 +92,35 @@ export const RentalDatePicker: React.FC<RentalDatePickerProps> = ({
           style={{
             display: 'flex',
             gap: spacing[2],
-            flexWrap: 'wrap',
+            overflowX: 'auto',
+            paddingBottom: spacing[1],
+            WebkitOverflowScrolling: 'touch',
           }}
         >
-          {[
-            { days: 1, label: '1 Day' },
-            { days: 3, label: '3 Days' },
-            { days: 7, label: '1 Week' },
-            { days: 14, label: '2 Weeks' },
-            { days: 30, label: '1 Month' },
-          ].map((preset) => (
-            <button
-              key={preset.days}
-              onClick={() => handleDurationPreset(preset.days)}
-              style={{
-                padding: `${spacing[2]}px ${spacing[3]}px`,
-                backgroundColor:
-                  durationPreset === `${preset.days}`
-                    ? colors.primary[600]
-                    : colors.neutral[0],
-                color:
-                  durationPreset === `${preset.days}`
-                    ? colors.neutral[0]
-                    : colors.text.primary,
-                border: `1px solid ${
-                  durationPreset === `${preset.days}`
-                    ? colors.primary[600]
-                    : colors.neutral[300]
-                }`,
-                borderRadius: borderRadius.full,
-                fontSize: typography.fontSize.sm,
-                fontWeight: typography.fontWeight.medium,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              {preset.label}
-            </button>
-          ))}
+          {presets.map((preset) => {
+            const isSelected = durationPreset === `${preset.days}`;
+            return (
+              <button
+                key={preset.days}
+                onClick={() => handleDurationPreset(preset.days)}
+                style={{
+                  padding: `${spacing[2]} ${spacing[3]}`,
+                  backgroundColor: isSelected ? colors.primary[600] : colors.neutral[0],
+                  color: isSelected ? colors.neutral[0] : colors.text.primary,
+                  border: `1px solid ${isSelected ? colors.primary[600] : colors.border.light}`,
+                  borderRadius: borderRadius.full,
+                  fontSize: typography.fontSize.sm,
+                  fontWeight: typography.fontWeight.medium,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -143,33 +138,50 @@ export const RentalDatePicker: React.FC<RentalDatePickerProps> = ({
           <label
             style={{
               display: 'block',
-              fontSize: typography.fontSize.sm,
+              fontSize: typography.fontSize.xs,
               fontWeight: typography.fontWeight.medium,
-              color: colors.text.primary,
+              color: colors.text.tertiary,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
               marginBottom: spacing[2],
             }}
           >
             Start Date
           </label>
-          <input
-            type="date"
-            value={formatDate(startDate)}
-            min={formatDate(new Date())}
-            onChange={(e) => {
-              const date = e.target.value ? new Date(e.target.value) : null;
-              onStartDateChange(date);
-              setDurationPreset('');
-            }}
-            style={{
-              width: '100%',
-              padding: spacing[3],
-              border: `1px solid ${colors.neutral[300]}`,
-              borderRadius: borderRadius.md,
-              fontSize: '16px', // Prevent iOS zoom
-              backgroundColor: colors.neutral[0],
-              boxSizing: 'border-box',
-            }}
-          />
+          <div style={{ position: 'relative' }}>
+            <input
+              type="date"
+              value={formatDate(startDate)}
+              min={formatDate(new Date())}
+              onChange={(e) => {
+                const date = e.target.value ? new Date(e.target.value) : null;
+                onStartDateChange(date);
+                setDurationPreset('');
+              }}
+              style={{
+                width: '100%',
+                padding: spacing[3],
+                paddingLeft: spacing[10],
+                border: `1px solid ${colors.border.light}`,
+                borderRadius: borderRadius.md,
+                fontSize: '16px', // Prevent iOS zoom
+                backgroundColor: colors.neutral[0],
+                boxSizing: 'border-box',
+                color: startDate ? colors.text.primary : colors.text.tertiary,
+              }}
+            />
+            <Icons.Calendar
+              size={18}
+              color={colors.text.tertiary}
+              style={{
+                position: 'absolute',
+                left: spacing[3],
+                top: '50%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+              }}
+            />
+          </div>
         </div>
 
         {/* End Date */}
@@ -177,33 +189,50 @@ export const RentalDatePicker: React.FC<RentalDatePickerProps> = ({
           <label
             style={{
               display: 'block',
-              fontSize: typography.fontSize.sm,
+              fontSize: typography.fontSize.xs,
               fontWeight: typography.fontWeight.medium,
-              color: colors.text.primary,
+              color: colors.text.tertiary,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
               marginBottom: spacing[2],
             }}
           >
             End Date
           </label>
-          <input
-            type="date"
-            value={formatDate(endDate)}
-            min={startDate ? formatDate(startDate) : formatDate(new Date())}
-            onChange={(e) => {
-              const date = e.target.value ? new Date(e.target.value) : null;
-              onEndDateChange(date);
-              setDurationPreset('');
-            }}
-            style={{
-              width: '100%',
-              padding: spacing[3],
-              border: `1px solid ${colors.neutral[300]}`,
-              borderRadius: borderRadius.md,
-              fontSize: '16px', // Prevent iOS zoom
-              backgroundColor: colors.neutral[0],
-              boxSizing: 'border-box',
-            }}
-          />
+          <div style={{ position: 'relative' }}>
+            <input
+              type="date"
+              value={formatDate(endDate)}
+              min={startDate ? formatDate(startDate) : formatDate(new Date())}
+              onChange={(e) => {
+                const date = e.target.value ? new Date(e.target.value) : null;
+                onEndDateChange(date);
+                setDurationPreset('');
+              }}
+              style={{
+                width: '100%',
+                padding: spacing[3],
+                paddingLeft: spacing[10],
+                border: `1px solid ${colors.border.light}`,
+                borderRadius: borderRadius.md,
+                fontSize: '16px', // Prevent iOS zoom
+                backgroundColor: colors.neutral[0],
+                boxSizing: 'border-box',
+                color: endDate ? colors.text.primary : colors.text.tertiary,
+              }}
+            />
+            <Icons.Calendar
+              size={18}
+              color={colors.text.tertiary}
+              style={{
+                position: 'absolute',
+                left: spacing[3],
+                top: '50%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+              }}
+            />
+          </div>
         </div>
       </div>
 
@@ -212,23 +241,34 @@ export const RentalDatePicker: React.FC<RentalDatePickerProps> = ({
         <div
           style={{
             padding: spacing[3],
-            backgroundColor: colors.info[50],
-            border: `1px solid ${colors.info[200]}`,
+            backgroundColor: colors.primary[50],
             borderRadius: borderRadius.md,
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'space-between',
             gap: spacing[2],
           }}
         >
-          <Icons.Calendar size={18} color={colors.info[700]} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+            <Icons.Clock size={18} color={colors.primary[600]} />
+            <span
+              style={{
+                fontSize: typography.fontSize.sm,
+                color: colors.primary[700],
+                fontWeight: typography.fontWeight.medium,
+              }}
+            >
+              Rental Duration
+            </span>
+          </div>
           <span
             style={{
-              fontSize: typography.fontSize.sm,
-              color: colors.info[700],
-              fontWeight: typography.fontWeight.medium,
+              fontSize: typography.fontSize.base,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.primary[600],
             }}
           >
-            Rental Duration: {duration} {duration === 1 ? 'day' : 'days'}
+            {duration} {duration === 1 ? 'day' : 'days'}
           </span>
         </div>
       )}
@@ -247,13 +287,14 @@ export const RentalDatePicker: React.FC<RentalDatePickerProps> = ({
             gap: spacing[2],
           }}
         >
-          <Icons.AlertTriangle size={18} color={colors.warning[700]} style={{ flexShrink: 0 }} />
+          <Icons.AlertTriangle size={18} color={colors.warning[600]} style={{ flexShrink: 0, marginTop: '2px' }} />
           <div>
             <p
               style={{
                 fontSize: typography.fontSize.sm,
                 color: colors.warning[700],
                 fontWeight: typography.fontWeight.medium,
+                margin: 0,
                 marginBottom: spacing[1],
               }}
             >
@@ -263,6 +304,7 @@ export const RentalDatePicker: React.FC<RentalDatePickerProps> = ({
               style={{
                 fontSize: typography.fontSize.xs,
                 color: colors.warning[600],
+                margin: 0,
               }}
             >
               Please check availability with the supplier before confirming
