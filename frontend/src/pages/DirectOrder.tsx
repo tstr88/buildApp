@@ -629,7 +629,7 @@ export const DirectOrder: React.FC = () => {
         }}
       >
         {/* Left Column - Step Content */}
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div
             style={{
               backgroundColor: colors.neutral[0],
@@ -637,6 +637,7 @@ export const DirectOrder: React.FC = () => {
               padding: isMobile ? spacing[4] : spacing[6],
               boxShadow: shadows.sm,
               minHeight: '500px',
+              overflow: 'hidden',
             }}
           >
             {/* Step 1: Supplier Selection */}

@@ -232,7 +232,7 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
   }
 
   return (
-    <div>
+    <div style={{ width: '100%', maxWidth: '100%', overflow: 'hidden', boxSizing: 'border-box' }}>
       {/* Header */}
       <div style={{ marginBottom: spacing[5] }}>
         <h3
@@ -294,7 +294,7 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[5] }}>
           {/* Date Selector - Horizontal scrollable calendar */}
-          <div style={{ overflow: 'visible' }}>
+          <div style={{ overflow: 'visible', margin: isMobile ? `0 -${spacing[1]}` : 0 }}>
             <div
               style={{
                 display: 'flex',
@@ -302,8 +302,11 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
                 overflowX: 'auto',
                 paddingTop: spacing[3],
                 paddingBottom: spacing[2],
+                paddingLeft: isMobile ? spacing[1] : 0,
+                paddingRight: isMobile ? spacing[1] : 0,
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch',
               }}
             >
               {windowsData.days.map((day) => {
@@ -323,14 +326,15 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      minWidth: '72px',
-                      padding: `${spacing[3]} ${spacing[2]}`,
+                      minWidth: isMobile ? '64px' : '72px',
+                      padding: isMobile ? `${spacing[2]} ${spacing[2]}` : `${spacing[3]} ${spacing[2]}`,
                       border: 'none',
                       borderRadius: borderRadius.xl,
                       backgroundColor: isSelected ? colors.primary[600] : colors.neutral[100],
                       cursor: 'pointer',
                       transition: 'all 150ms ease',
                       position: 'relative',
+                      flexShrink: 0,
                     }}
                     onMouseEnter={(e) => {
                       if (!isSelected) {
@@ -466,7 +470,8 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
                         onClick={() => onWindowSelect(slot.id, slot.start, slot.end, displayLabel)}
                         disabled={!slot.available}
                         style={{
-                          padding: `${spacing[3]} ${spacing[2]}`,
+                          padding: isMobile ? `${spacing[3]} ${spacing[2]}` : `${spacing[3]} ${spacing[2]}`,
+                          minHeight: isMobile ? '48px' : '44px',
                           border: isSelected
                             ? `2px solid ${colors.primary[600]}`
                             : `1px solid ${colors.border.light}`,
@@ -482,7 +487,7 @@ export const WindowSlotPicker: React.FC<WindowSlotPickerProps> = ({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          gap: spacing[2],
+                          gap: spacing[1],
                         }}
                         onMouseEnter={(e) => {
                           if (slot.available && !isSelected) {
