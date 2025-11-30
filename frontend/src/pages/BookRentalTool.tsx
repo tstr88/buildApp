@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
+import { colors, spacing, typography, borderRadius, shadows, heights } from '../theme/tokens';
 import * as Icons from 'lucide-react';
 import { RentalDatePicker } from '../components/rentals/RentalDatePicker';
 import { API_BASE_URL } from '../services/api/client';
@@ -1000,13 +1000,14 @@ const BookRentalTool: React.FC = () => {
       <div
         style={{
           position: 'fixed',
-          bottom: isMobile ? '64px' : 0, // Account for BottomTabBar on mobile
+          bottom: isMobile ? `calc(${heights.bottomNav} + env(safe-area-inset-bottom, 0px))` : 0,
           left: 0,
           right: 0,
           backgroundColor: colors.neutral[0],
           padding: isMobile ? spacing[4] : spacing[5],
           borderTop: `1px solid ${colors.border.light}`,
           boxShadow: '0 -4px 12px rgba(0, 0, 0, 0.08)',
+          zIndex: 100,
         }}
       >
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
