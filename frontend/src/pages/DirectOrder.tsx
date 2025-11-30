@@ -1,14 +1,14 @@
 /**
  * Direct Order Page
  * Complete flow for placing direct orders with suppliers
- * 5 Steps: Supplier Selection → Cart/Items → Pickup/Delivery → Scheduling → Review
+ * Redesigned with BookRentalTool design style
  */
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import * as Icons from 'lucide-react';
-import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
+import { colors, spacing, typography, borderRadius, shadows, heights } from '../theme/tokens';
 import { DirectOrderCart } from '../components/orders/DirectOrderCart';
 import type { CartItem } from '../components/orders/DirectOrderCart';
 import { PickupDeliveryToggle } from '../components/orders/PickupDeliveryToggle';
@@ -71,6 +71,7 @@ export const DirectOrder: React.FC = () => {
   const [searchParams] = useSearchParams();
 
   const isGeorgian = i18n.language === 'ka';
+  const isMobile = useIsMobile();
 
   // Check if supplier_id is in query params
   const supplierIdFromQuery = searchParams.get('supplier_id');
@@ -142,12 +143,6 @@ export const DirectOrder: React.FC = () => {
   const fetchSuppliers = async () => {
     setLoadingSuppliers(true);
     try {
-      const token = localStorage.getItem('buildapp_auth_token');
-      // TODO: Create proper endpoint - for now using mock data
-      // const response = await fetch('http://localhost:3001/api/suppliers?direct_order_enabled=true', {
-      //   headers: { Authorization: `Bearer ${token}` },
-      // });
-
       // Mock data for now
       setSuppliers([
         {
@@ -240,8 +235,8 @@ export const DirectOrder: React.FC = () => {
           delivery_options: item.pickup_available && item.delivery_available ? 'both' :
                           item.delivery_available ? 'delivery' : 'pickup',
           approx_lead_time_label: item.lead_time_category,
-          negotiable: false, // Not in API response yet
-          stock_status: 'in_stock', // Default value
+          negotiable: false,
+          stock_status: 'in_stock',
         }));
 
         setAvailableSKUs(skus);
@@ -444,15 +439,947 @@ export const DirectOrder: React.FC = () => {
         { id: 5, label: 'Review', icon: Icons.CheckCircle },
       ];
 
-  const isMobile = useIsMobile();
   const total = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
 
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: colors.neutral[100],
+          paddingBottom: `calc(${heights.bottomNav} + env(safe-area-inset-bottom, 0px) + 80px)`,
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 100,
+            backgroundColor: colors.primary[600],
+            padding: spacing[4],
+            paddingTop: `calc(${spacing[4]} + env(safe-area-inset-top, 0px))`,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3] }}>
+            <button
+              onClick={() => navigate(-1)}
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: borderRadius.full,
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+            >
+              <Icons.ArrowLeft size={20} color={colors.neutral[0]} />
+            </button>
+            <div style={{ flex: 1 }}>
+              <h1
+                style={{
+                  fontSize: typography.fontSize.xl,
+                  fontWeight: typography.fontWeight.bold,
+                  color: colors.neutral[0],
+                  margin: 0,
+                }}
+              >
+                Direct Order
+              </h1>
+              <p
+                style={{
+                  fontSize: typography.fontSize.sm,
+                  color: 'rgba(255,255,255,0.8)',
+                  margin: 0,
+                }}
+              >
+                {selectedSupplier?.business_name || 'Select supplier'}
+              </p>
+            </div>
+          </div>
+
+          {/* Step Indicator */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: spacing[2],
+              marginTop: spacing[4],
+            }}
+          >
+            {steps.map((step, index) => {
+              const isActive = currentStep === step.id;
+              const isCompleted = currentStep > step.id;
+              return (
+                <React.Fragment key={step.id}>
+                  <div
+                    style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: borderRadius.full,
+                      backgroundColor: isCompleted
+                        ? colors.neutral[0]
+                        : isActive
+                        ? 'rgba(255,255,255,0.3)'
+                        : 'rgba(255,255,255,0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {isCompleted ? (
+                      <Icons.Check size={14} color={colors.primary[600]} />
+                    ) : (
+                      <span
+                        style={{
+                          fontSize: typography.fontSize.xs,
+                          fontWeight: typography.fontWeight.semibold,
+                          color: isActive ? colors.neutral[0] : 'rgba(255,255,255,0.6)',
+                        }}
+                      >
+                        {steps.indexOf(step) + 1}
+                      </span>
+                    )}
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div
+                      style={{
+                        flex: 1,
+                        height: '2px',
+                        backgroundColor: isCompleted
+                          ? colors.neutral[0]
+                          : 'rgba(255,255,255,0.2)',
+                      }}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div style={{ padding: spacing[4] }}>
+          {/* Step 1: Supplier Selection */}
+          {currentStep === 1 && (
+            <div
+              style={{
+                backgroundColor: colors.neutral[0],
+                borderRadius: borderRadius.lg,
+                overflow: 'hidden',
+                boxShadow: shadows.sm,
+              }}
+            >
+              {/* Section Header */}
+              <div
+                style={{
+                  padding: spacing[4],
+                  borderBottom: `1px solid ${colors.border.light}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: spacing[3],
+                }}
+              >
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: borderRadius.md,
+                    backgroundColor: colors.primary[100],
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Icons.Factory size={18} color={colors.primary[600]} />
+                </div>
+                <h3
+                  style={{
+                    fontSize: typography.fontSize.lg,
+                    fontWeight: typography.fontWeight.semibold,
+                    color: colors.text.primary,
+                    margin: 0,
+                  }}
+                >
+                  Select Supplier
+                </h3>
+              </div>
+
+              {/* Supplier List */}
+              <div style={{ padding: spacing[4] }}>
+                {loadingSuppliers ? (
+                  <div style={{ padding: spacing[6], textAlign: 'center' }}>
+                    <Icons.Loader size={32} color={colors.text.tertiary} style={{ animation: 'spin 1s linear infinite' }} />
+                    <p style={{ marginTop: spacing[2], color: colors.text.tertiary }}>
+                      Loading suppliers...
+                    </p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+                    {suppliers.map((supplier) => (
+                      <button
+                        key={supplier.id}
+                        onClick={() => setSelectedSupplier(supplier)}
+                        style={{
+                          padding: spacing[4],
+                          border: `2px solid ${
+                            selectedSupplier?.id === supplier.id
+                              ? colors.primary[600]
+                              : colors.border.light
+                          }`,
+                          borderRadius: borderRadius.lg,
+                          backgroundColor:
+                            selectedSupplier?.id === supplier.id
+                              ? colors.primary[50]
+                              : colors.neutral[0],
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div style={{ flex: 1 }}>
+                            <h4
+                              style={{
+                                fontSize: typography.fontSize.base,
+                                fontWeight: typography.fontWeight.semibold,
+                                color: selectedSupplier?.id === supplier.id
+                                  ? colors.primary[700]
+                                  : colors.text.primary,
+                                margin: 0,
+                                marginBottom: spacing[1],
+                              }}
+                            >
+                              {supplier.business_name}
+                            </h4>
+                            {supplier.depot_address && (
+                              <p
+                                style={{
+                                  fontSize: typography.fontSize.sm,
+                                  color: colors.text.secondary,
+                                  margin: 0,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: spacing[1],
+                                }}
+                              >
+                                <Icons.MapPin size={14} />
+                                {supplier.depot_address}
+                              </p>
+                            )}
+                            {supplier.min_order_value && (
+                              <p
+                                style={{
+                                  fontSize: typography.fontSize.xs,
+                                  color: colors.text.tertiary,
+                                  margin: 0,
+                                  marginTop: spacing[1],
+                                }}
+                              >
+                                Min. order: ₾{supplier.min_order_value}
+                              </p>
+                            )}
+                          </div>
+                          {selectedSupplier?.id === supplier.id && (
+                            <Icons.CheckCircle size={24} color={colors.primary[600]} />
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Cart Items */}
+          {currentStep === 2 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4] }}>
+              {/* Cart Section */}
+              <div
+                style={{
+                  backgroundColor: colors.neutral[0],
+                  borderRadius: borderRadius.lg,
+                  overflow: 'hidden',
+                  boxShadow: shadows.sm,
+                }}
+              >
+                <div
+                  style={{
+                    padding: spacing[4],
+                    borderBottom: `1px solid ${colors.border.light}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: spacing[3],
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: borderRadius.md,
+                      backgroundColor: colors.primary[100],
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Icons.ShoppingCart size={18} color={colors.primary[600]} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h3
+                      style={{
+                        fontSize: typography.fontSize.lg,
+                        fontWeight: typography.fontWeight.semibold,
+                        color: colors.text.primary,
+                        margin: 0,
+                      }}
+                    >
+                      Your Cart
+                    </h3>
+                    <p
+                      style={{
+                        fontSize: typography.fontSize.sm,
+                        color: colors.text.secondary,
+                        margin: 0,
+                      }}
+                    >
+                      {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'}
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ padding: spacing[4] }}>
+                  {cartItems.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: spacing[6] }}>
+                      <Icons.ShoppingCart size={48} color={colors.text.tertiary} />
+                      <p style={{ color: colors.text.secondary, marginTop: spacing[2] }}>
+                        Your cart is empty
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+                      {cartItems.map((item, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            padding: spacing[3],
+                            backgroundColor: colors.neutral[50],
+                            borderRadius: borderRadius.md,
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing[2] }}>
+                            <div style={{ flex: 1 }}>
+                              <h4
+                                style={{
+                                  fontSize: typography.fontSize.sm,
+                                  fontWeight: typography.fontWeight.medium,
+                                  color: colors.text.primary,
+                                  margin: 0,
+                                }}
+                              >
+                                {item.description}
+                              </h4>
+                              <p
+                                style={{
+                                  fontSize: typography.fontSize.xs,
+                                  color: colors.text.tertiary,
+                                  margin: 0,
+                                }}
+                              >
+                                ₾{item.unit_price.toFixed(2)} / {item.unit}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => removeCartItem(index)}
+                              style={{
+                                padding: spacing[1],
+                                border: 'none',
+                                backgroundColor: 'transparent',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <Icons.Trash2 size={16} color={colors.error[600]} />
+                            </button>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                              <button
+                                onClick={() => updateCartQuantity(index, Math.max(0.1, item.quantity - 1))}
+                                style={{
+                                  width: '32px',
+                                  height: '32px',
+                                  border: `1px solid ${colors.border.light}`,
+                                  borderRadius: borderRadius.md,
+                                  backgroundColor: colors.neutral[0],
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                <Icons.Minus size={14} />
+                              </button>
+                              <input
+                                type="number"
+                                value={item.quantity}
+                                onChange={(e) => {
+                                  const val = parseFloat(e.target.value);
+                                  if (!isNaN(val) && val > 0) {
+                                    updateCartQuantity(index, val);
+                                  }
+                                }}
+                                style={{
+                                  width: '60px',
+                                  padding: spacing[2],
+                                  border: `1px solid ${colors.border.light}`,
+                                  borderRadius: borderRadius.md,
+                                  fontSize: '16px',
+                                  textAlign: 'center',
+                                }}
+                              />
+                              <button
+                                onClick={() => updateCartQuantity(index, item.quantity + 1)}
+                                style={{
+                                  width: '32px',
+                                  height: '32px',
+                                  border: `1px solid ${colors.border.light}`,
+                                  borderRadius: borderRadius.md,
+                                  backgroundColor: colors.neutral[0],
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                <Icons.Plus size={14} />
+                              </button>
+                            </div>
+                            <span
+                              style={{
+                                fontSize: typography.fontSize.base,
+                                fontWeight: typography.fontWeight.semibold,
+                                color: colors.primary[600],
+                              }}
+                            >
+                              ₾{item.subtotal.toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Add More Items Section */}
+              <div
+                style={{
+                  backgroundColor: colors.neutral[0],
+                  borderRadius: borderRadius.lg,
+                  overflow: 'hidden',
+                  boxShadow: shadows.sm,
+                }}
+              >
+                <div
+                  style={{
+                    padding: spacing[4],
+                    borderBottom: `1px solid ${colors.border.light}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: spacing[3],
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: borderRadius.md,
+                      backgroundColor: colors.secondary[100],
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Icons.Plus size={18} color={colors.secondary[700]} />
+                  </div>
+                  <h3
+                    style={{
+                      fontSize: typography.fontSize.lg,
+                      fontWeight: typography.fontWeight.semibold,
+                      color: colors.text.primary,
+                      margin: 0,
+                    }}
+                  >
+                    Add More Items
+                  </h3>
+                </div>
+
+                {/* Horizontal scroll for available items */}
+                <div
+                  style={{
+                    padding: spacing[4],
+                    overflowX: 'auto',
+                    WebkitOverflowScrolling: 'touch',
+                  }}
+                >
+                  {loadingSKUs ? (
+                    <div style={{ textAlign: 'center', padding: spacing[4] }}>
+                      <Icons.Loader size={24} color={colors.text.tertiary} />
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', gap: spacing[3], minWidth: 'max-content' }}>
+                      {availableSKUs
+                        .filter(sku => !cartItems.some(item => item.sku_id === sku.id))
+                        .slice(0, 10)
+                        .map((sku) => {
+                          const name = isGeorgian ? sku.name_ka : sku.name_en;
+                          const specString = isGeorgian ? sku.spec_string_ka : sku.spec_string_en;
+                          const unit = isGeorgian ? sku.unit_ka : sku.unit_en;
+
+                          return (
+                            <div
+                              key={sku.id}
+                              style={{
+                                width: '160px',
+                                padding: spacing[3],
+                                border: `1px solid ${colors.border.light}`,
+                                borderRadius: borderRadius.lg,
+                                backgroundColor: colors.neutral[0],
+                                flexShrink: 0,
+                              }}
+                            >
+                              <h5
+                                style={{
+                                  fontSize: typography.fontSize.sm,
+                                  fontWeight: typography.fontWeight.medium,
+                                  color: colors.text.primary,
+                                  margin: 0,
+                                  marginBottom: spacing[1],
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {specString ? `${specString} ${name}` : name}
+                              </h5>
+                              <p
+                                style={{
+                                  fontSize: typography.fontSize.sm,
+                                  fontWeight: typography.fontWeight.semibold,
+                                  color: colors.primary[600],
+                                  margin: 0,
+                                  marginBottom: spacing[2],
+                                }}
+                              >
+                                ₾{sku.base_price.toFixed(2)} / {unit}
+                              </p>
+                              <button
+                                onClick={() => addToCart(sku)}
+                                style={{
+                                  width: '100%',
+                                  padding: spacing[2],
+                                  backgroundColor: colors.primary[600],
+                                  color: colors.neutral[0],
+                                  border: 'none',
+                                  borderRadius: borderRadius.md,
+                                  fontSize: typography.fontSize.sm,
+                                  fontWeight: typography.fontWeight.medium,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: spacing[1],
+                                }}
+                              >
+                                <Icons.Plus size={14} />
+                                Add
+                              </button>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Pickup/Delivery */}
+          {currentStep === 3 && selectedSupplier && (
+            <div
+              style={{
+                backgroundColor: colors.neutral[0],
+                borderRadius: borderRadius.lg,
+                overflow: 'hidden',
+                boxShadow: shadows.sm,
+              }}
+            >
+              <div
+                style={{
+                  padding: spacing[4],
+                  borderBottom: `1px solid ${colors.border.light}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: spacing[3],
+                }}
+              >
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: borderRadius.md,
+                    backgroundColor: colors.info[100],
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Icons.Truck size={18} color={colors.info[600]} />
+                </div>
+                <h3
+                  style={{
+                    fontSize: typography.fontSize.lg,
+                    fontWeight: typography.fontWeight.semibold,
+                    color: colors.text.primary,
+                    margin: 0,
+                  }}
+                >
+                  Delivery Method
+                </h3>
+              </div>
+
+              <div style={{ padding: spacing[4] }}>
+                <PickupDeliveryToggle
+                  selectedOption={pickupOrDelivery}
+                  onOptionChange={setPickupOrDelivery}
+                  selectedProjectId={selectedProjectId}
+                  onProjectSelect={handleProjectSelect}
+                  supplierLocation={{
+                    address: selectedSupplier.depot_address || '',
+                    latitude: selectedSupplier.depot_latitude,
+                    longitude: selectedSupplier.depot_longitude,
+                  }}
+                  availableOptions="both"
+                  onManualAddressChange={handleManualAddressChange}
+                  manualAddress={deliveryAddress}
+                  onDeliveryNotesChange={setDeliveryNotes}
+                  deliveryNotes={deliveryNotes}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Scheduling */}
+          {currentStep === 4 && selectedSupplier && (
+            <div
+              style={{
+                backgroundColor: colors.neutral[0],
+                borderRadius: borderRadius.lg,
+                overflow: 'hidden',
+                boxShadow: shadows.sm,
+              }}
+            >
+              <div
+                style={{
+                  padding: spacing[4],
+                  borderBottom: `1px solid ${colors.border.light}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: spacing[3],
+                }}
+              >
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: borderRadius.md,
+                    backgroundColor: colors.warning[100],
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Icons.Calendar size={18} color={colors.warning[700]} />
+                </div>
+                <h3
+                  style={{
+                    fontSize: typography.fontSize.lg,
+                    fontWeight: typography.fontWeight.semibold,
+                    color: colors.text.primary,
+                    margin: 0,
+                  }}
+                >
+                  Schedule
+                </h3>
+              </div>
+
+              <div style={{ padding: spacing[4] }}>
+                <WindowSlotPicker
+                  supplierId={selectedSupplier.id}
+                  mode={scheduleMode}
+                  selectedWindowId={selectedWindowId}
+                  onWindowSelect={handleWindowSelect}
+                  preferredWindowNote={preferredNote}
+                  onPreferredNoteChange={setPreferredNote}
+                  pickupOrDelivery={pickupOrDelivery}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Step 5: Review */}
+          {currentStep === 5 && selectedSupplier && (
+            <div
+              style={{
+                backgroundColor: colors.neutral[0],
+                borderRadius: borderRadius.lg,
+                overflow: 'hidden',
+                boxShadow: shadows.sm,
+              }}
+            >
+              <div
+                style={{
+                  padding: spacing[4],
+                  borderBottom: `1px solid ${colors.border.light}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: spacing[3],
+                }}
+              >
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: borderRadius.md,
+                    backgroundColor: colors.success[100],
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Icons.ClipboardCheck size={18} color={colors.success[600]} />
+                </div>
+                <h3
+                  style={{
+                    fontSize: typography.fontSize.lg,
+                    fontWeight: typography.fontWeight.semibold,
+                    color: colors.text.primary,
+                    margin: 0,
+                  }}
+                >
+                  Review Order
+                </h3>
+              </div>
+
+              <div style={{ padding: spacing[4] }}>
+                <OrderReviewCard
+                  supplierName={selectedSupplier.business_name}
+                  items={cartItems}
+                  total={total}
+                  deliveryFee={0}
+                  grandTotal={total}
+                  pickupOrDelivery={pickupOrDelivery}
+                  deliveryAddress={deliveryAddress}
+                  scheduledWindowLabel={windowDisplayLabel}
+                  isNegotiable={scheduleMode === 'negotiable'}
+                  paymentTerms={selectedSupplier.payment_terms?.[0] || 'cod'}
+                  onPlaceOrder={handlePlaceOrder}
+                  isSubmitting={submitting}
+                  hideButton={true}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Fixed Bottom CTA */}
+        <div
+          style={{
+            position: 'fixed',
+            bottom: `calc(${heights.bottomNav} + env(safe-area-inset-bottom, 0px))`,
+            left: 0,
+            right: 0,
+            backgroundColor: colors.neutral[0],
+            padding: spacing[4],
+            borderTop: `1px solid ${colors.border.light}`,
+            boxShadow: shadows.lg,
+            zIndex: 100,
+          }}
+        >
+          <div style={{ display: 'flex', gap: spacing[3] }}>
+            {currentStep > (showSupplierStep ? 1 : 2) && (
+              <button
+                onClick={goBack}
+                style={{
+                  flex: 1,
+                  padding: spacing[4],
+                  backgroundColor: colors.neutral[100],
+                  border: 'none',
+                  borderRadius: borderRadius.lg,
+                  fontSize: typography.fontSize.base,
+                  fontWeight: typography.fontWeight.medium,
+                  color: colors.text.primary,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: spacing[2],
+                }}
+              >
+                <Icons.ArrowLeft size={18} />
+                Back
+              </button>
+            )}
+            {currentStep < 5 ? (
+              <button
+                onClick={goNext}
+                disabled={!canGoNext()}
+                style={{
+                  flex: currentStep === (showSupplierStep ? 1 : 2) ? 1 : 2,
+                  padding: spacing[4],
+                  backgroundColor: canGoNext() ? colors.primary[600] : colors.neutral[300],
+                  border: 'none',
+                  borderRadius: borderRadius.lg,
+                  fontSize: typography.fontSize.base,
+                  fontWeight: typography.fontWeight.semibold,
+                  color: colors.neutral[0],
+                  cursor: canGoNext() ? 'pointer' : 'not-allowed',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: spacing[2],
+                }}
+              >
+                Continue
+                <Icons.ArrowRight size={18} />
+              </button>
+            ) : (
+              <button
+                onClick={handlePlaceOrder}
+                disabled={submitting}
+                style={{
+                  flex: 2,
+                  padding: spacing[4],
+                  backgroundColor: submitting ? colors.neutral[300] : colors.primary[600],
+                  border: 'none',
+                  borderRadius: borderRadius.lg,
+                  fontSize: typography.fontSize.base,
+                  fontWeight: typography.fontWeight.semibold,
+                  color: colors.neutral[0],
+                  cursor: submitting ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: spacing[2],
+                }}
+              >
+                {submitting ? (
+                  <>
+                    <Icons.Loader size={18} style={{ animation: 'spin 1s linear infinite' }} />
+                    Placing Order...
+                  </>
+                ) : (
+                  <>
+                    <Icons.ShoppingCart size={18} />
+                    Place Order - ₾{total.toFixed(2)}
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Success Modal */}
+        {showSuccessModal && orderDetails && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999,
+              padding: spacing[4],
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: colors.neutral[0],
+                borderRadius: borderRadius.xl,
+                padding: spacing[6],
+                maxWidth: '400px',
+                width: '100%',
+                boxShadow: shadows.xl,
+                textAlign: 'center',
+              }}
+            >
+              <div
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  backgroundColor: colors.success[100],
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto',
+                  marginBottom: spacing[4],
+                }}
+              >
+                <Icons.CheckCircle size={36} color={colors.success[600]} />
+              </div>
+              <h2
+                style={{
+                  fontSize: typography.fontSize.xl,
+                  fontWeight: typography.fontWeight.bold,
+                  color: colors.text.primary,
+                  margin: 0,
+                  marginBottom: spacing[2],
+                }}
+              >
+                Order Placed!
+              </h2>
+              <p
+                style={{
+                  fontSize: typography.fontSize.base,
+                  color: colors.text.secondary,
+                  margin: 0,
+                }}
+              >
+                Order #{orderDetails.order_number}
+              </p>
+              <p
+                style={{
+                  fontSize: typography.fontSize.sm,
+                  color: colors.text.tertiary,
+                  margin: 0,
+                  marginTop: spacing[4],
+                }}
+              >
+                Redirecting to order details...
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Desktop Layout
   return (
     <div
       style={{
         minHeight: '100vh',
         backgroundColor: colors.neutral[50],
-        padding: isMobile ? spacing[3] : spacing[6],
+        padding: spacing[6],
       }}
     >
       {/* Header */}
@@ -510,131 +1437,129 @@ export const DirectOrder: React.FC = () => {
         </p>
       </div>
 
-      {/* Progress Steps - Hidden on mobile */}
-      {!isMobile && (
+      {/* Progress Steps */}
+      <div
+        style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          marginBottom: spacing[6],
+        }}
+      >
         <div
           style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            marginBottom: spacing[6],
+            backgroundColor: colors.neutral[0],
+            borderRadius: borderRadius.lg,
+            padding: spacing[4],
+            boxShadow: shadows.sm,
           }}
         >
           <div
             style={{
-              backgroundColor: colors.neutral[0],
-              borderRadius: borderRadius.lg,
-              padding: spacing[4],
-              boxShadow: shadows.sm,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
             }}
           >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              {steps.map((step, index) => {
-                const Icon = step.icon;
-                const isActive = currentStep === step.id;
-                const isCompleted = currentStep > step.id;
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              const isActive = currentStep === step.id;
+              const isCompleted = currentStep > step.id;
 
-                return (
-                  <React.Fragment key={step.id}>
+              return (
+                <React.Fragment key={step.id}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: spacing[2],
+                      flex: '0 1 auto',
+                      minWidth: '80px',
+                    }}
+                  >
                     <div
                       style={{
+                        position: 'relative',
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: borderRadius.full,
+                        backgroundColor: isCompleted
+                          ? colors.success[100]
+                          : isActive
+                          ? colors.primary[600]
+                          : colors.neutral[100],
                         display: 'flex',
-                        flexDirection: 'column',
                         alignItems: 'center',
-                        gap: spacing[2],
-                        flex: '0 1 auto',
-                        minWidth: '80px',
+                        justifyContent: 'center',
                       }}
                     >
-                      <div
-                        style={{
-                          position: 'relative',
-                          width: '48px',
-                          height: '48px',
-                          borderRadius: borderRadius.full,
-                          backgroundColor: isCompleted
-                            ? colors.success[100]
-                            : isActive
-                            ? colors.primary[600]
-                            : colors.neutral[100],
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Icon
-                          size={24}
-                          color={
-                            isCompleted
-                              ? colors.success[700]
-                              : isActive
-                              ? colors.neutral[0]
-                              : colors.text.tertiary
-                          }
-                        />
-                        {isCompleted && (
-                          <div
-                            style={{
-                              position: 'absolute',
-                              bottom: '-4px',
-                              right: '-4px',
-                              width: '20px',
-                              height: '20px',
-                              borderRadius: borderRadius.full,
-                              backgroundColor: colors.success[600],
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              border: `2px solid ${colors.neutral[0]}`,
-                            }}
-                          >
-                            <Icons.Check size={12} color={colors.neutral[0]} />
-                          </div>
-                        )}
-                      </div>
-                      <span
-                        style={{
-                          fontSize: typography.fontSize.sm,
-                          fontWeight:
-                            isActive || isCompleted
-                              ? typography.fontWeight.semibold
-                              : typography.fontWeight.medium,
-                          color: isCompleted
+                      <Icon
+                        size={24}
+                        color={
+                          isCompleted
                             ? colors.success[700]
                             : isActive
-                            ? colors.primary[600]
-                            : colors.text.secondary,
-                          textAlign: 'center',
-                        }}
-                      >
-                        {step.label}
-                      </span>
-                    </div>
-                    {index < steps.length - 1 && (
-                      <div
-                        style={{
-                          width: '60px',
-                          height: '2px',
-                          backgroundColor: isCompleted
-                            ? colors.success[600]
-                            : colors.neutral[200],
-                          marginBottom: spacing[8],
-                          flexShrink: 0,
-                        }}
+                            ? colors.neutral[0]
+                            : colors.text.tertiary
+                        }
                       />
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </div>
+                      {isCompleted && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            bottom: '-4px',
+                            right: '-4px',
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: borderRadius.full,
+                            backgroundColor: colors.success[600],
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            border: `2px solid ${colors.neutral[0]}`,
+                          }}
+                        >
+                          <Icons.Check size={12} color={colors.neutral[0]} />
+                        </div>
+                      )}
+                    </div>
+                    <span
+                      style={{
+                        fontSize: typography.fontSize.sm,
+                        fontWeight:
+                          isActive || isCompleted
+                            ? typography.fontWeight.semibold
+                            : typography.fontWeight.medium,
+                        color: isCompleted
+                          ? colors.success[700]
+                          : isActive
+                          ? colors.primary[600]
+                          : colors.text.secondary,
+                        textAlign: 'center',
+                      }}
+                    >
+                      {step.label}
+                    </span>
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div
+                      style={{
+                        width: '60px',
+                        height: '2px',
+                        backgroundColor: isCompleted
+                          ? colors.success[600]
+                          : colors.neutral[200],
+                        marginBottom: spacing[8],
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
         </div>
-      )}
+      </div>
 
       {/* Main Content */}
       <div
@@ -642,19 +1567,18 @@ export const DirectOrder: React.FC = () => {
           maxWidth: '1200px',
           margin: '0 auto',
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : currentStep === 5 ? '1fr 400px' : '1fr 320px',
+          gridTemplateColumns: currentStep === 5 ? '1fr 400px' : '1fr 320px',
           gap: spacing[6],
           paddingBottom: spacing[12],
         }}
       >
         {/* Left Column - Step Content */}
-        {/* Hide on mobile when at step 5 (Review) since OrderReviewCard is shown in right column */}
-        <div style={{ minWidth: 0, display: isMobile && currentStep === 5 ? 'none' : 'block' }}>
+        <div style={{ minWidth: 0 }}>
           <div
             style={{
               backgroundColor: colors.neutral[0],
               borderRadius: borderRadius.lg,
-              padding: isMobile ? spacing[4] : spacing[6],
+              padding: spacing[6],
               boxShadow: shadows.sm,
               minHeight: currentStep === 5 ? 'auto' : '500px',
               overflow: 'hidden',
@@ -663,17 +1587,31 @@ export const DirectOrder: React.FC = () => {
             {/* Step 1: Supplier Selection */}
             {currentStep === 1 && (
               <div>
-                <h3
-                  style={{
-                    fontSize: typography.fontSize.lg,
-                    fontWeight: typography.fontWeight.semibold,
-                    color: colors.text.primary,
-                    margin: 0,
-                    marginBottom: spacing[4],
-                  }}
-                >
-                  Select Supplier
-                </h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], marginBottom: spacing[4] }}>
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: borderRadius.md,
+                      backgroundColor: colors.primary[100],
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Icons.Factory size={18} color={colors.primary[600]} />
+                  </div>
+                  <h3
+                    style={{
+                      fontSize: typography.fontSize.lg,
+                      fontWeight: typography.fontWeight.semibold,
+                      color: colors.text.primary,
+                      margin: 0,
+                    }}
+                  >
+                    Select Supplier
+                  </h3>
+                </div>
 
                 {loadingSuppliers ? (
                   <div style={{ padding: spacing[6], textAlign: 'center' }}>
@@ -781,27 +1719,42 @@ export const DirectOrder: React.FC = () => {
             {/* Step 2: Cart (Main Content) */}
             {currentStep === 2 && (
               <div>
-                <h3
-                  style={{
-                    fontSize: typography.fontSize['2xl'],
-                    fontWeight: typography.fontWeight.bold,
-                    color: colors.text.primary,
-                    margin: 0,
-                    marginBottom: spacing[2],
-                  }}
-                >
-                  Your Order
-                </h3>
-                <p
-                  style={{
-                    fontSize: typography.fontSize.base,
-                    color: colors.text.secondary,
-                    margin: 0,
-                    marginBottom: spacing[6],
-                  }}
-                >
-                  Review and adjust quantities for {selectedSupplier?.business_name}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], marginBottom: spacing[4] }}>
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: borderRadius.md,
+                      backgroundColor: colors.primary[100],
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Icons.ShoppingCart size={18} color={colors.primary[600]} />
+                  </div>
+                  <div>
+                    <h3
+                      style={{
+                        fontSize: typography.fontSize['2xl'],
+                        fontWeight: typography.fontWeight.bold,
+                        color: colors.text.primary,
+                        margin: 0,
+                      }}
+                    >
+                      Your Order
+                    </h3>
+                    <p
+                      style={{
+                        fontSize: typography.fontSize.sm,
+                        color: colors.text.secondary,
+                        margin: 0,
+                      }}
+                    >
+                      Review and adjust quantities for {selectedSupplier?.business_name}
+                    </p>
+                  </div>
+                </div>
 
                 <DirectOrderCart
                   items={cartItems}
@@ -815,51 +1768,121 @@ export const DirectOrder: React.FC = () => {
 
             {/* Step 3: Pickup or Delivery */}
             {currentStep === 3 && selectedSupplier && (
-              <PickupDeliveryToggle
-                selectedOption={pickupOrDelivery}
-                onOptionChange={setPickupOrDelivery}
-                selectedProjectId={selectedProjectId}
-                onProjectSelect={handleProjectSelect}
-                supplierLocation={{
-                  address: selectedSupplier.depot_address || '',
-                  latitude: selectedSupplier.depot_latitude,
-                  longitude: selectedSupplier.depot_longitude,
-                }}
-                availableOptions="both"
-                onManualAddressChange={handleManualAddressChange}
-                manualAddress={deliveryAddress}
-                onDeliveryNotesChange={setDeliveryNotes}
-                deliveryNotes={deliveryNotes}
-              />
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], marginBottom: spacing[4] }}>
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: borderRadius.md,
+                      backgroundColor: colors.info[100],
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Icons.Truck size={18} color={colors.info[600]} />
+                  </div>
+                  <h3
+                    style={{
+                      fontSize: typography.fontSize.lg,
+                      fontWeight: typography.fontWeight.semibold,
+                      color: colors.text.primary,
+                      margin: 0,
+                    }}
+                  >
+                    Delivery Method
+                  </h3>
+                </div>
+
+                <PickupDeliveryToggle
+                  selectedOption={pickupOrDelivery}
+                  onOptionChange={setPickupOrDelivery}
+                  selectedProjectId={selectedProjectId}
+                  onProjectSelect={handleProjectSelect}
+                  supplierLocation={{
+                    address: selectedSupplier.depot_address || '',
+                    latitude: selectedSupplier.depot_latitude,
+                    longitude: selectedSupplier.depot_longitude,
+                  }}
+                  availableOptions="both"
+                  onManualAddressChange={handleManualAddressChange}
+                  manualAddress={deliveryAddress}
+                  onDeliveryNotesChange={setDeliveryNotes}
+                  deliveryNotes={deliveryNotes}
+                />
+              </div>
             )}
 
             {/* Step 4: Scheduling */}
             {currentStep === 4 && selectedSupplier && (
-              <WindowSlotPicker
-                supplierId={selectedSupplier.id}
-                mode={scheduleMode}
-                selectedWindowId={selectedWindowId}
-                onWindowSelect={handleWindowSelect}
-                preferredWindowNote={preferredNote}
-                onPreferredNoteChange={setPreferredNote}
-                pickupOrDelivery={pickupOrDelivery}
-              />
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], marginBottom: spacing[4] }}>
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: borderRadius.md,
+                      backgroundColor: colors.warning[100],
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Icons.Calendar size={18} color={colors.warning[700]} />
+                  </div>
+                  <h3
+                    style={{
+                      fontSize: typography.fontSize.lg,
+                      fontWeight: typography.fontWeight.semibold,
+                      color: colors.text.primary,
+                      margin: 0,
+                    }}
+                  >
+                    Schedule
+                  </h3>
+                </div>
+
+                <WindowSlotPicker
+                  supplierId={selectedSupplier.id}
+                  mode={scheduleMode}
+                  selectedWindowId={selectedWindowId}
+                  onWindowSelect={handleWindowSelect}
+                  preferredWindowNote={preferredNote}
+                  onPreferredNoteChange={setPreferredNote}
+                  pickupOrDelivery={pickupOrDelivery}
+                />
+              </div>
             )}
 
             {/* Step 5: Review - Content shown in right sidebar on desktop */}
-            {currentStep === 5 && !isMobile && (
+            {currentStep === 5 && (
               <div>
-                <h3
-                  style={{
-                    fontSize: typography.fontSize.lg,
-                    fontWeight: typography.fontWeight.semibold,
-                    color: colors.text.primary,
-                    margin: 0,
-                    marginBottom: spacing[4],
-                  }}
-                >
-                  Almost There!
-                </h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], marginBottom: spacing[4] }}>
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: borderRadius.md,
+                      backgroundColor: colors.success[100],
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Icons.CheckCircle size={18} color={colors.success[600]} />
+                  </div>
+                  <h3
+                    style={{
+                      fontSize: typography.fontSize.lg,
+                      fontWeight: typography.fontWeight.semibold,
+                      color: colors.text.primary,
+                      margin: 0,
+                    }}
+                  >
+                    Almost There!
+                  </h3>
+                </div>
                 <p
                   style={{
                     fontSize: typography.fontSize.base,
@@ -956,7 +1979,7 @@ export const DirectOrder: React.FC = () => {
         </div>
 
         {/* Right Column - Add Items (Step 2) or Review (Step 5) */}
-        <div style={{ position: isMobile ? 'static' : 'sticky', top: spacing[6], height: 'fit-content' }}>
+        <div style={{ position: 'sticky', top: spacing[6], height: 'fit-content' }}>
           {currentStep === 2 ? (
             <div
               style={{
@@ -966,27 +1989,42 @@ export const DirectOrder: React.FC = () => {
                 boxShadow: shadows.sm,
               }}
             >
-              <h4
-                style={{
-                  fontSize: typography.fontSize.lg,
-                  fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
-                  margin: 0,
-                  marginBottom: spacing[1],
-                }}
-              >
-                Add More Items
-              </h4>
-              <p
-                style={{
-                  fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
-                  margin: 0,
-                  marginBottom: spacing[4],
-                }}
-              >
-                Other products from this supplier
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], marginBottom: spacing[4] }}>
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: borderRadius.md,
+                    backgroundColor: colors.secondary[100],
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Icons.Plus size={18} color={colors.secondary[700]} />
+                </div>
+                <div>
+                  <h4
+                    style={{
+                      fontSize: typography.fontSize.lg,
+                      fontWeight: typography.fontWeight.semibold,
+                      color: colors.text.primary,
+                      margin: 0,
+                    }}
+                  >
+                    Add More Items
+                  </h4>
+                  <p
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      color: colors.text.secondary,
+                      margin: 0,
+                    }}
+                  >
+                    Other products from this supplier
+                  </p>
+                </div>
+              </div>
 
               {loadingSKUs ? (
                 <div style={{ padding: spacing[4], textAlign: 'center' }}>
