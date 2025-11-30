@@ -148,40 +148,26 @@ export const RentalDatePicker: React.FC<RentalDatePickerProps> = ({
           >
             Start Date
           </label>
-          <div style={{ position: 'relative' }}>
-            <input
-              type="date"
-              value={formatDate(startDate)}
-              min={formatDate(new Date())}
-              onChange={(e) => {
-                const date = e.target.value ? new Date(e.target.value) : null;
-                onStartDateChange(date);
-                setDurationPreset('');
-              }}
-              style={{
-                width: '100%',
-                padding: spacing[3],
-                paddingLeft: spacing[10],
-                border: `1px solid ${colors.border.light}`,
-                borderRadius: borderRadius.md,
-                fontSize: '16px', // Prevent iOS zoom
-                backgroundColor: colors.neutral[0],
-                boxSizing: 'border-box',
-                color: startDate ? colors.text.primary : colors.text.tertiary,
-              }}
-            />
-            <Icons.Calendar
-              size={18}
-              color={colors.text.tertiary}
-              style={{
-                position: 'absolute',
-                left: spacing[3],
-                top: '50%',
-                transform: 'translateY(-50%)',
-                pointerEvents: 'none',
-              }}
-            />
-          </div>
+          <input
+            type="date"
+            value={formatDate(startDate)}
+            min={formatDate(new Date())}
+            onChange={(e) => {
+              const date = e.target.value ? new Date(e.target.value) : null;
+              onStartDateChange(date);
+              setDurationPreset('');
+            }}
+            style={{
+              width: '100%',
+              padding: spacing[3],
+              border: `1px solid ${colors.border.light}`,
+              borderRadius: borderRadius.md,
+              fontSize: '16px', // Prevent iOS zoom
+              backgroundColor: colors.neutral[0],
+              boxSizing: 'border-box',
+              color: startDate ? colors.text.primary : colors.text.tertiary,
+            }}
+          />
         </div>
 
         {/* End Date */}
@@ -199,40 +185,26 @@ export const RentalDatePicker: React.FC<RentalDatePickerProps> = ({
           >
             End Date
           </label>
-          <div style={{ position: 'relative' }}>
-            <input
-              type="date"
-              value={formatDate(endDate)}
-              min={startDate ? formatDate(startDate) : formatDate(new Date())}
-              onChange={(e) => {
-                const date = e.target.value ? new Date(e.target.value) : null;
-                onEndDateChange(date);
-                setDurationPreset('');
-              }}
-              style={{
-                width: '100%',
-                padding: spacing[3],
-                paddingLeft: spacing[10],
-                border: `1px solid ${colors.border.light}`,
-                borderRadius: borderRadius.md,
-                fontSize: '16px', // Prevent iOS zoom
-                backgroundColor: colors.neutral[0],
-                boxSizing: 'border-box',
-                color: endDate ? colors.text.primary : colors.text.tertiary,
-              }}
-            />
-            <Icons.Calendar
-              size={18}
-              color={colors.text.tertiary}
-              style={{
-                position: 'absolute',
-                left: spacing[3],
-                top: '50%',
-                transform: 'translateY(-50%)',
-                pointerEvents: 'none',
-              }}
-            />
-          </div>
+          <input
+            type="date"
+            value={formatDate(endDate)}
+            min={startDate ? formatDate(startDate) : formatDate(new Date())}
+            onChange={(e) => {
+              const date = e.target.value ? new Date(e.target.value) : null;
+              onEndDateChange(date);
+              setDurationPreset('');
+            }}
+            style={{
+              width: '100%',
+              padding: spacing[3],
+              border: `1px solid ${colors.border.light}`,
+              borderRadius: borderRadius.md,
+              fontSize: '16px', // Prevent iOS zoom
+              backgroundColor: colors.neutral[0],
+              boxSizing: 'border-box',
+              color: endDate ? colors.text.primary : colors.text.tertiary,
+            }}
+          />
         </div>
       </div>
 
