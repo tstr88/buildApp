@@ -629,14 +629,15 @@ export const DirectOrder: React.FC = () => {
         }}
       >
         {/* Left Column - Step Content */}
-        <div style={{ minWidth: 0 }}>
+        {/* Hide on mobile when at step 5 (Review) since OrderReviewCard is shown in right column */}
+        <div style={{ minWidth: 0, display: isMobile && currentStep === 5 ? 'none' : 'block' }}>
           <div
             style={{
               backgroundColor: colors.neutral[0],
               borderRadius: borderRadius.lg,
               padding: isMobile ? spacing[4] : spacing[6],
               boxShadow: shadows.sm,
-              minHeight: '500px',
+              minHeight: currentStep === 5 ? 'auto' : '500px',
               overflow: 'hidden',
             }}
           >

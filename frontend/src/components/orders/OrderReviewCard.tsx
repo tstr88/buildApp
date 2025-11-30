@@ -46,6 +46,8 @@ export const OrderReviewCard: React.FC<OrderReviewCardProps> = ({
         border: `1px solid ${colors.border.light}`,
         boxShadow: shadows.md,
         overflow: 'hidden',
+        width: '100%',
+        boxSizing: 'border-box',
       }}
     >
       {/* Header */}
