@@ -48,6 +48,11 @@ const CreateRentalRFQ: React.FC = () => {
   const isMobile = useIsMobile();
   const preselectedToolIds = location.state?.preselectedTools as string[] | undefined;
 
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Form state
   const [selectedTools, setSelectedTools] = useState<RentalTool[]>([]);
   const [startDate, setStartDate] = useState<Date | null>(null);

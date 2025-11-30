@@ -80,6 +80,11 @@ export const DirectOrder: React.FC = () => {
   // Step management
   const [currentStep, setCurrentStep] = useState(initialSupplierId ? 2 : 1);
 
+  // Scroll to top on mount and step change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentStep]);
+
   // Step 1: Supplier Selection
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
@@ -464,7 +469,14 @@ export const DirectOrder: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3] }}>
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                const minStep = showSupplierStep ? 1 : 2;
+                if (currentStep > minStep) {
+                  goBack();
+                } else {
+                  navigate(-1);
+                }
+              }}
               style={{
                 width: '40px',
                 height: '40px',

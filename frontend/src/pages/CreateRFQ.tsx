@@ -64,6 +64,7 @@ export const CreateRFQ: React.FC = () => {
 
   // UI state
   const [currentStep, setCurrentStep] = useState(1);
+
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [projectLocation, setProjectLocation] = useState<{ lat: number; lng: number } | undefined>();
@@ -81,6 +82,11 @@ export const CreateRFQ: React.FC = () => {
     title: string;
     message?: string;
   } | null>(null);
+
+  // Scroll to top on mount and step change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentStep]);
 
   // Load project location when project is selected
   useEffect(() => {
@@ -429,7 +435,13 @@ export const CreateRFQ: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3] }}>
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (currentStep > 1) {
+                  goBack();
+                } else {
+                  navigate(-1);
+                }
+              }}
               style={{
                 width: '40px',
                 height: '40px',
