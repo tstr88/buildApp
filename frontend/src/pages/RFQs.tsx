@@ -32,12 +32,20 @@ const useIsMobile = () => {
   return isMobile;
 };
 
+interface RFQLine {
+  description: string;
+  quantity: number;
+  unit: string;
+  sku_id?: string;
+  spec_notes?: string;
+}
+
 interface RFQ {
   id: string;
   project_id: string;
   project_name: string;
   title: string | null;
-  lines: any[];
+  lines: RFQLine[];
   status: 'draft' | 'active' | 'expired' | 'closed';
   supplier_count: number;
   offer_count: number;
@@ -47,6 +55,43 @@ interface RFQ {
 }
 
 type TabType = 'active' | 'offers' | 'accepted' | 'expired';
+
+// Generate a short reference code from UUID (first 8 chars uppercase)
+const getRfqCode = (id: string): string => {
+  return `#${id.slice(0, 8).toUpperCase()}`;
+};
+
+// Generate smart RFQ display name based on items
+const getRfqDisplayInfo = (rfq: RFQ): { title: string; subtitle: string } => {
+  const code = getRfqCode(rfq.id);
+
+  // If RFQ has a custom title, use it
+  if (rfq.title) {
+    return {
+      title: `${code} · ${rfq.title}`,
+      subtitle: rfq.lines.length > 0
+        ? `${rfq.lines[0].description}${rfq.lines.length > 1 ? ` +${rfq.lines.length - 1} more` : ''}`
+        : '',
+    };
+  }
+
+  // Generate title from first item
+  if (rfq.lines.length > 0) {
+    const firstItem = rfq.lines[0].description;
+    const moreCount = rfq.lines.length - 1;
+
+    return {
+      title: code,
+      subtitle: moreCount > 0 ? `${firstItem} +${moreCount} more` : firstItem,
+    };
+  }
+
+  // Fallback
+  return {
+    title: code,
+    subtitle: 'No items',
+  };
+};
 
 export const RFQs: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -397,6 +442,7 @@ export const RFQs: React.FC = () => {
               {rfqs.map((rfq) => {
                 const statusColor = getStatusColor(rfq.status);
                 const hasUnread = rfq.unread_offer_count > 0;
+                const displayInfo = getRfqDisplayInfo(rfq);
 
                 return (
                   <div
@@ -428,28 +474,24 @@ export const RFQs: React.FC = () => {
                     )}
 
                     {/* Header */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing[3] }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing[2] }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <h3
-                          style={{
-                            fontSize: typography.fontSize.base,
-                            fontWeight: typography.fontWeight.semibold,
-                            color: colors.text.primary,
-                            margin: 0,
-                            marginBottom: spacing[1],
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {rfq.title || `RFQ - ${formatDate(rfq.created_at)}`}
-                        </h3>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[1] }}>
+                          <span
+                            style={{
+                              fontSize: typography.fontSize.xs,
+                              fontWeight: typography.fontWeight.bold,
+                              color: colors.primary[600],
+                              fontFamily: 'monospace',
+                            }}
+                          >
+                            {displayInfo.title}
+                          </span>
                           <span
                             style={{
                               fontSize: typography.fontSize.xs,
                               fontWeight: typography.fontWeight.medium,
-                              padding: `${spacing[1]} ${spacing[2]}`,
+                              padding: `2px ${spacing[2]}`,
                               borderRadius: borderRadius.full,
                               backgroundColor: statusColor.bg,
                               color: statusColor.text,
@@ -463,7 +505,7 @@ export const RFQs: React.FC = () => {
                               style={{
                                 fontSize: typography.fontSize.xs,
                                 fontWeight: typography.fontWeight.bold,
-                                padding: `${spacing[1]} ${spacing[2]}`,
+                                padding: `2px ${spacing[2]}`,
                                 borderRadius: borderRadius.full,
                                 backgroundColor: colors.error[600],
                                 color: colors.neutral[0],
@@ -473,6 +515,19 @@ export const RFQs: React.FC = () => {
                             </span>
                           )}
                         </div>
+                        <h3
+                          style={{
+                            fontSize: typography.fontSize.base,
+                            fontWeight: hasUnread ? typography.fontWeight.bold : typography.fontWeight.semibold,
+                            color: colors.text.primary,
+                            margin: 0,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {displayInfo.subtitle}
+                        </h3>
                       </div>
                       <span
                         style={{
@@ -886,6 +941,7 @@ export const RFQs: React.FC = () => {
             {rfqs.map((rfq) => {
               const statusColor = getStatusColor(rfq.status);
               const hasUnread = rfq.unread_offer_count > 0;
+              const displayInfo = getRfqDisplayInfo(rfq);
 
               return (
                 <div
@@ -946,20 +1002,18 @@ export const RFQs: React.FC = () => {
 
                   {/* Main Content */}
                   <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Code and status row */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], marginBottom: spacing[1] }}>
-                      <h3
+                      <span
                         style={{
-                          fontSize: typography.fontSize.base,
-                          fontWeight: hasUnread ? typography.fontWeight.bold : typography.fontWeight.semibold,
-                          color: colors.text.primary,
-                          margin: 0,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
+                          fontSize: typography.fontSize.sm,
+                          fontWeight: typography.fontWeight.bold,
+                          color: colors.primary[600],
+                          fontFamily: 'monospace',
                         }}
                       >
-                        {rfq.title || `RFQ - ${formatDate(rfq.created_at)}`}
-                      </h3>
+                        {displayInfo.title}
+                      </span>
                       <span
                         style={{
                           fontSize: typography.fontSize.xs,
@@ -991,33 +1045,41 @@ export const RFQs: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Project name */}
-                    {rfq.project_name && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: spacing[1],
-                          marginBottom: spacing[2],
-                        }}
-                      >
-                        <Icons.MapPin size={14} color={colors.text.tertiary} />
-                        <span
-                          style={{
-                            fontSize: typography.fontSize.sm,
-                            color: colors.text.secondary,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {rfq.project_name}
-                        </span>
-                      </div>
-                    )}
+                    {/* Item description */}
+                    <h3
+                      style={{
+                        fontSize: typography.fontSize.base,
+                        fontWeight: hasUnread ? typography.fontWeight.bold : typography.fontWeight.semibold,
+                        color: colors.text.primary,
+                        margin: 0,
+                        marginBottom: spacing[2],
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {displayInfo.subtitle}
+                    </h3>
 
-                    {/* Stats inline */}
+                    {/* Project name and stats row */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: spacing[4] }}>
+                      {rfq.project_name && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: spacing[1] }}>
+                          <Icons.MapPin size={14} color={colors.text.tertiary} />
+                          <span
+                            style={{
+                              fontSize: typography.fontSize.sm,
+                              color: colors.text.secondary,
+                              maxWidth: '200px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {rfq.project_name}
+                          </span>
+                        </div>
+                      )}
                       <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
                         <Icons.Package size={14} color={colors.info[600]} />
                         <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
