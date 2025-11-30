@@ -407,7 +407,7 @@ const BookRentalTool: React.FC = () => {
           maxWidth: '900px',
           margin: '0 auto',
           padding: isMobile ? spacing[4] : spacing[6],
-          paddingBottom: isMobile ? '120px' : spacing[6],
+          paddingBottom: isMobile ? '100px' : spacing[6], // Space for fixed button (button height ~80px)
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? spacing[4] : spacing[5] }}>
@@ -1000,7 +1000,7 @@ const BookRentalTool: React.FC = () => {
       <div
         style={{
           position: 'fixed',
-          bottom: 0,
+          bottom: isMobile ? '64px' : 0, // Account for BottomTabBar on mobile
           left: 0,
           right: 0,
           backgroundColor: colors.neutral[0],
