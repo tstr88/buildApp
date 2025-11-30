@@ -59,9 +59,22 @@ export const Toast: React.FC<ToastProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
 
   const style = toastStyles[type];
   const Icon = style.icon;
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     // Slide in animation
@@ -96,14 +109,16 @@ export const Toast: React.FC<ToastProps> = ({
         border: `1px solid ${style.borderColor}`,
         borderRadius: borderRadius.lg,
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        minWidth: '320px',
-        maxWidth: '420px',
+        minWidth: isMobile ? 'auto' : '320px',
+        maxWidth: isMobile ? '100%' : '420px',
+        width: isMobile ? '100%' : 'auto',
+        boxSizing: 'border-box',
         opacity: isLeaving ? 0 : isVisible ? 1 : 0,
         transform: isLeaving
-          ? 'translateX(100%)'
+          ? 'translateY(-100%)'
           : isVisible
-          ? 'translateX(0)'
-          : 'translateX(100%)',
+          ? 'translateY(0)'
+          : 'translateY(-100%)',
         transition: 'opacity 300ms, transform 300ms',
       }}
     >
@@ -183,6 +198,28 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({
   onRemove,
   position = 'top-right',
 }) => {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // On mobile, always center horizontally
+  const getMobileStyles = () => {
+    if (position.includes('bottom')) {
+      return { bottom: spacing[4], left: spacing[4], right: spacing[4] };
+    }
+    return { top: spacing[4], left: spacing[4], right: spacing[4] };
+  };
+
   const positionStyles = {
     'top-right': { top: spacing[4], right: spacing[4] },
     'top-left': { top: spacing[4], left: spacing[4] },
@@ -196,7 +233,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({
     <div
       style={{
         position: 'fixed',
-        ...positionStyles[position],
+        ...(isMobile ? getMobileStyles() : positionStyles[position]),
         zIndex: 9999,
         display: 'flex',
         flexDirection: 'column',

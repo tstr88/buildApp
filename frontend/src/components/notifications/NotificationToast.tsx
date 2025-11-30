@@ -180,6 +180,21 @@ export function NotificationToast() {
     }
   };
 
+  // Check for mobile
+  const [isMobile, setIsMobile] = React.useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   if (notifications.length === 0) {
     return null;
   }
@@ -189,12 +204,19 @@ export function NotificationToast() {
       style={{
         position: 'fixed',
         top: spacing[4],
-        right: spacing[4],
+        ...(isMobile
+          ? {
+              left: spacing[4],
+              right: spacing[4],
+            }
+          : {
+              right: spacing[4],
+              maxWidth: '400px',
+            }),
         zIndex: 9999,
         display: 'flex',
         flexDirection: 'column',
         gap: spacing[2],
-        maxWidth: '400px',
       }}
     >
       {notifications.map((notification) => (
