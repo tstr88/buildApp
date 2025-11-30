@@ -540,30 +540,39 @@ export const RFQs: React.FC = () => {
                       </span>
                     </div>
 
-                    {/* Project */}
-                    {rfq.project_name && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: spacing[2],
-                          marginBottom: spacing[3],
-                        }}
-                      >
-                        <Icons.MapPin size={14} color={colors.text.tertiary} />
-                        <span
-                          style={{
-                            fontSize: typography.fontSize.sm,
-                            color: colors.text.secondary,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {rfq.project_name}
+                    {/* Date and Project info */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: spacing[3],
+                        marginBottom: spacing[3],
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: spacing[1] }}>
+                        <Icons.Calendar size={14} color={colors.text.tertiary} />
+                        <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                          {formatDate(rfq.created_at)}
                         </span>
                       </div>
-                    )}
+                      {rfq.project_name && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: spacing[1] }}>
+                          <Icons.MapPin size={14} color={colors.text.tertiary} />
+                          <span
+                            style={{
+                              fontSize: typography.fontSize.sm,
+                              color: colors.text.secondary,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {rfq.project_name}
+                          </span>
+                        </div>
+                      )}
+                    </div>
 
                     {/* Stats */}
                     <div
@@ -1063,6 +1072,12 @@ export const RFQs: React.FC = () => {
 
                     {/* Project name and stats row */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: spacing[4] }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: spacing[1] }}>
+                        <Icons.Calendar size={14} color={colors.text.tertiary} />
+                        <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                          {formatDate(rfq.created_at)}
+                        </span>
+                      </div>
                       {rfq.project_name && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: spacing[1] }}>
                           <Icons.MapPin size={14} color={colors.text.tertiary} />
