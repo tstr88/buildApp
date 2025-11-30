@@ -5,6 +5,25 @@ import * as Icons from 'lucide-react';
 import { RentalDatePicker } from '../components/rentals/RentalDatePicker';
 import { API_BASE_URL } from '../services/api/client';
 
+// Hook for mobile detection
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+};
+
 interface RentalTool {
   id: string;
   tool_name: string;
@@ -29,6 +48,7 @@ interface Project {
 const BookRentalTool: React.FC = () => {
   const { toolId } = useParams();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const [selectedTools, setSelectedTools] = useState<RentalTool[]>([]);
   const [relatedTools, setRelatedTools] = useState<RentalTool[]>([]);
@@ -310,7 +330,7 @@ const BookRentalTool: React.FC = () => {
           </button>
           <h1
             style={{
-              fontSize: typography.fontSize['2xl'],
+              fontSize: isMobile ? typography.fontSize.xl : typography.fontSize['2xl'],
               fontWeight: typography.fontWeight.bold,
               color: colors.text.primary,
             }}
@@ -321,7 +341,7 @@ const BookRentalTool: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: spacing[6] }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? spacing[4] : spacing[6] }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: spacing[6] }}>
           {/* Selected Tools */}
           <div
@@ -500,7 +520,7 @@ const BookRentalTool: React.FC = () => {
               >
                 Book multiple tools in one order
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: spacing[3] }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(200px, 1fr))', gap: spacing[3] }}>
                 {relatedTools.map((tool) => {
                   const isSelected = selectedTools.find((t) => t.id === tool.id);
                   return (
@@ -662,7 +682,7 @@ const BookRentalTool: React.FC = () => {
               Pickup or Delivery
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: spacing[3], marginBottom: spacing[4] }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: spacing[3], marginBottom: spacing[4] }}>
               {selectedTools[0]?.pickup_available && (
                 <button
                   onClick={() => setDeliveryMethod('pickup')}
@@ -675,24 +695,30 @@ const BookRentalTool: React.FC = () => {
                     borderRadius: borderRadius.lg,
                     cursor: 'pointer',
                     textAlign: 'left',
+                    display: 'flex',
+                    flexDirection: isMobile ? 'row' : 'column',
+                    alignItems: isMobile ? 'center' : 'flex-start',
+                    gap: isMobile ? spacing[3] : 0,
                   }}
                 >
                   <Icons.MapPin
                     size={24}
                     color={deliveryMethod === 'pickup' ? colors.primary[600] : colors.neutral[500]}
-                    style={{ marginBottom: spacing[2] }}
+                    style={{ marginBottom: isMobile ? 0 : spacing[2], flexShrink: 0 }}
                   />
-                  <div
-                    style={{
-                      fontSize: typography.fontSize.base,
-                      fontWeight: typography.fontWeight.semibold,
-                      color: deliveryMethod === 'pickup' ? colors.primary[600] : colors.text.primary,
-                    }}
-                  >
-                    Pickup
-                  </div>
-                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-                    Collect from supplier
+                  <div>
+                    <div
+                      style={{
+                        fontSize: typography.fontSize.base,
+                        fontWeight: typography.fontWeight.semibold,
+                        color: deliveryMethod === 'pickup' ? colors.primary[600] : colors.text.primary,
+                      }}
+                    >
+                      Pickup
+                    </div>
+                    <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                      Collect from supplier
+                    </div>
                   </div>
                 </button>
               )}
@@ -709,24 +735,30 @@ const BookRentalTool: React.FC = () => {
                     borderRadius: borderRadius.lg,
                     cursor: 'pointer',
                     textAlign: 'left',
+                    display: 'flex',
+                    flexDirection: isMobile ? 'row' : 'column',
+                    alignItems: isMobile ? 'center' : 'flex-start',
+                    gap: isMobile ? spacing[3] : 0,
                   }}
                 >
                   <Icons.Truck
                     size={24}
                     color={deliveryMethod === 'delivery' ? colors.primary[600] : colors.neutral[500]}
-                    style={{ marginBottom: spacing[2] }}
+                    style={{ marginBottom: isMobile ? 0 : spacing[2], flexShrink: 0 }}
                   />
-                  <div
-                    style={{
-                      fontSize: typography.fontSize.base,
-                      fontWeight: typography.fontWeight.semibold,
-                      color: deliveryMethod === 'delivery' ? colors.primary[600] : colors.text.primary,
-                    }}
-                  >
-                    Delivery
-                  </div>
-                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-                    Deliver to project site
+                  <div>
+                    <div
+                      style={{
+                        fontSize: typography.fontSize.base,
+                        fontWeight: typography.fontWeight.semibold,
+                        color: deliveryMethod === 'delivery' ? colors.primary[600] : colors.text.primary,
+                      }}
+                    >
+                      Delivery
+                    </div>
+                    <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                      Deliver to project site
+                    </div>
                   </div>
                 </button>
               )}
@@ -754,8 +786,9 @@ const BookRentalTool: React.FC = () => {
                     padding: spacing[3],
                     border: `1px solid ${colors.neutral[300]}`,
                     borderRadius: borderRadius.md,
-                    fontSize: typography.fontSize.sm,
+                    fontSize: '16px', // Prevent iOS zoom
                     backgroundColor: colors.neutral[0],
+                    boxSizing: 'border-box',
                   }}
                 >
                   <option value="">Select project...</option>

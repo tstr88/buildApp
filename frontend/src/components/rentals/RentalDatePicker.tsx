@@ -1,6 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { colors, spacing, typography, borderRadius } from '../../theme/tokens';
 import * as Icons from 'lucide-react';
+
+// Hook for mobile detection
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+};
 
 interface RentalDatePickerProps {
   startDate: Date | null;
@@ -17,6 +36,7 @@ export const RentalDatePicker: React.FC<RentalDatePickerProps> = ({
   onEndDateChange,
   unavailableDates = [],
 }) => {
+  const isMobile = useIsMobile();
   const [durationPreset, setDurationPreset] = useState<string>('');
 
   const handleDurationPreset = (days: number) => {
@@ -113,7 +133,7 @@ export const RentalDatePicker: React.FC<RentalDatePickerProps> = ({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
           gap: spacing[3],
           marginBottom: spacing[4],
         }}
@@ -145,8 +165,9 @@ export const RentalDatePicker: React.FC<RentalDatePickerProps> = ({
               padding: spacing[3],
               border: `1px solid ${colors.neutral[300]}`,
               borderRadius: borderRadius.md,
-              fontSize: typography.fontSize.sm,
+              fontSize: '16px', // Prevent iOS zoom
               backgroundColor: colors.neutral[0],
+              boxSizing: 'border-box',
             }}
           />
         </div>
@@ -178,8 +199,9 @@ export const RentalDatePicker: React.FC<RentalDatePickerProps> = ({
               padding: spacing[3],
               border: `1px solid ${colors.neutral[300]}`,
               borderRadius: borderRadius.md,
-              fontSize: typography.fontSize.sm,
+              fontSize: '16px', // Prevent iOS zoom
               backgroundColor: colors.neutral[0],
+              boxSizing: 'border-box',
             }}
           />
         </div>
