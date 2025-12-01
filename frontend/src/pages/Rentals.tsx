@@ -233,7 +233,7 @@ const Rentals: React.FC = () => {
           background-color: ${colors.neutral[0]};
           color: ${colors.text.primary};
         }
-        @media (max-width: 480px) {
+        @media (max-width: 768px) {
           .sort-select {
             padding: ${spacing[2]};
             padding-right: ${spacing[6]};
