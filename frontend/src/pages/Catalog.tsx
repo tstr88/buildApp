@@ -286,14 +286,15 @@ export const Catalog: React.FC = () => {
             padding: ${spacing[2]};
             padding-right: ${spacing[6]};
             font-size: ${typography.fontSize.xs};
+            font-family: inherit;
             height: 36px;
-            display: flex;
-            align-items: center;
-            line-height: 1;
+            line-height: 36px;
+            box-sizing: border-box;
           }
           .mobile-filter-btn {
             padding: ${spacing[2]};
             font-size: ${typography.fontSize.xs};
+            font-family: inherit;
             gap: ${spacing[1]};
             height: 36px;
             line-height: 1;
