@@ -93,12 +93,19 @@ export const RFQDetail: React.FC = () => {
     return `#${rfqId.slice(0, 8).toUpperCase()}`;
   };
 
+  // Check if title is an old auto-generated "RFQ - date" format that should be ignored
+  const isOldAutoTitle = (title: string | null): boolean => {
+    if (!title) return false;
+    // Match patterns like "RFQ - 11/30/2025", "RFQ - 1/5/2025", "RFQ - 30/11/2025"
+    return /^RFQ\s*-\s*\d{1,2}\/\d{1,2}\/\d{4}$/.test(title);
+  };
+
   // Generate smart RFQ display name based on items
   const getRfqDisplayTitle = (rfqData: RFQDetail): string => {
     const code = getRfqCode(rfqData.id);
 
-    // If RFQ has a custom title, use it with code
-    if (rfqData.title) {
+    // If RFQ has a custom title (not old auto-generated), use it with code
+    if (rfqData.title && !isOldAutoTitle(rfqData.title)) {
       return `${code} · ${rfqData.title}`;
     }
 
@@ -945,7 +952,6 @@ export const RFQDetail: React.FC = () => {
               style={{
                 fontSize: typography.fontSize.sm,
                 color: colors.text.secondary,
-                marginBottom: spacing[4],
                 margin: 0,
                 marginBottom: spacing[4],
               }}
