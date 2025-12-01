@@ -235,14 +235,16 @@ const Rentals: React.FC = () => {
         }
         @media (max-width: 480px) {
           .sort-select {
-            padding: ${spacing[1.5]} ${spacing[2]};
+            padding: ${spacing[2]};
             padding-right: ${spacing[6]};
             font-size: ${typography.fontSize.xs};
+            height: 36px;
           }
           .mobile-filter-btn {
-            padding: ${spacing[1.5]} ${spacing[2]};
+            padding: ${spacing[2]};
             font-size: ${typography.fontSize.xs};
             gap: ${spacing[1]};
+            height: 36px;
           }
         }
       `}</style>
