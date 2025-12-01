@@ -264,6 +264,8 @@ export const Catalog: React.FC = () => {
           padding: ${spacing[2]} ${spacing[3]};
           padding-right: ${spacing[8]};
           font-size: ${typography.fontSize.sm};
+          font-weight: ${typography.fontWeight.medium};
+          font-family: inherit;
           border: 1px solid rgba(255, 255, 255, 0.3);
           border-radius: ${borderRadius.md};
           background-color: rgba(255, 255, 255, 0.15);
