@@ -61,7 +61,11 @@
     "noProjects": "No projects yet",
     "noProjectsDescription": "Start your first project using one of our templates above",
     "startFirstProject": "Start Your First Project",
-    "legalDisclaimer": "Indicative calculations only. Non-structural scope. Consult licensed professionals for structural work."
+    "legalDisclaimer": "Indicative calculations only. Non-structural scope. Consult licensed professionals for structural work.",
+    "materials": "Materials",
+    "toolRentals": "Tool Rentals",
+    "factories": "Factories",
+    "seeMore": "See more"
   },
   "template": {
     "startProject": "Start Project",
