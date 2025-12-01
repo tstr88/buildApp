@@ -461,29 +461,26 @@ export const RFQs: React.FC = () => {
                       padding: spacing[4],
                       boxShadow: shadows.sm,
                       cursor: 'pointer',
-                      border: hasUnread ? `2px solid ${colors.primary[400]}` : `1px solid ${colors.border.light}`,
-                      position: 'relative',
-                      overflow: 'hidden',
+                      border: `1px solid ${colors.border.light}`,
                     }}
                   >
-                    {/* Unread indicator line */}
-                    {hasUnread && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          height: '3px',
-                          backgroundColor: colors.primary[600],
-                        }}
-                      />
-                    )}
 
                     {/* Header */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing[2] }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[1] }}>
+                          {/* Unread indicator dot */}
+                          {hasUnread && (
+                            <span
+                              style={{
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: borderRadius.full,
+                                backgroundColor: colors.primary[500],
+                                flexShrink: 0,
+                              }}
+                            />
+                          )}
                           <span
                             style={{
                               fontSize: typography.fontSize.xs,
@@ -969,10 +966,9 @@ export const RFQs: React.FC = () => {
                     padding: spacing[5],
                     boxShadow: shadows.sm,
                     cursor: 'pointer',
-                    border: hasUnread ? `2px solid ${colors.primary[400]}` : `1px solid ${colors.border.light}`,
+                    border: `1px solid ${colors.border.light}`,
+                    borderLeft: hasUnread ? `4px solid ${colors.primary[500]}` : `1px solid ${colors.border.light}`,
                     transition: 'all 200ms ease',
-                    position: 'relative',
-                    overflow: 'hidden',
                     display: 'flex',
                     alignItems: 'center',
                     gap: spacing[5],
@@ -986,19 +982,6 @@ export const RFQs: React.FC = () => {
                     e.currentTarget.style.backgroundColor = colors.neutral[0];
                   }}
                 >
-                  {/* Unread indicator - left border */}
-                  {hasUnread && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        bottom: 0,
-                        width: '4px',
-                        backgroundColor: colors.primary[600],
-                      }}
-                    />
-                  )}
 
                   {/* Icon */}
                   <div
