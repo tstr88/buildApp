@@ -239,12 +239,16 @@ const Rentals: React.FC = () => {
             padding-right: ${spacing[6]};
             font-size: ${typography.fontSize.xs};
             height: 36px;
+            display: flex;
+            align-items: center;
+            line-height: 1;
           }
           .mobile-filter-btn {
             padding: ${spacing[2]};
             font-size: ${typography.fontSize.xs};
             gap: ${spacing[1]};
             height: 36px;
+            line-height: 1;
           }
         }
       `}</style>
