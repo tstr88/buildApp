@@ -408,29 +408,26 @@ export const MyRentals: React.FC = () => {
                       padding: spacing[4],
                       boxShadow: shadows.sm,
                       cursor: 'pointer',
-                      border: isCurrentlyActive ? `2px solid ${colors.success[400]}` : `1px solid ${colors.border.light}`,
-                      position: 'relative',
-                      overflow: 'hidden',
+                      border: `1px solid ${colors.border.light}`,
                     }}
                   >
-                    {/* Active indicator line */}
-                    {isCurrentlyActive && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          height: '3px',
-                          backgroundColor: colors.success[600],
-                        }}
-                      />
-                    )}
 
                     {/* Header */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing[2] }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[1] }}>
+                          {/* Active rental indicator dot */}
+                          {isCurrentlyActive && (
+                            <span
+                              style={{
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: borderRadius.full,
+                                backgroundColor: colors.success[500],
+                                flexShrink: 0,
+                              }}
+                            />
+                          )}
                           <span
                             style={{
                               fontSize: typography.fontSize.xs,
@@ -781,10 +778,9 @@ export const MyRentals: React.FC = () => {
                     padding: spacing[5],
                     boxShadow: shadows.sm,
                     cursor: 'pointer',
-                    border: isCurrentlyActive ? `2px solid ${colors.success[400]}` : `1px solid ${colors.border.light}`,
+                    border: `1px solid ${colors.border.light}`,
+                    borderLeft: isCurrentlyActive ? `4px solid ${colors.success[500]}` : `1px solid ${colors.border.light}`,
                     transition: 'all 200ms ease',
-                    position: 'relative',
-                    overflow: 'hidden',
                     display: 'flex',
                     alignItems: 'center',
                     gap: spacing[5],
@@ -798,19 +794,6 @@ export const MyRentals: React.FC = () => {
                     e.currentTarget.style.backgroundColor = colors.neutral[0];
                   }}
                 >
-                  {/* Active indicator - left border */}
-                  {isCurrentlyActive && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        bottom: 0,
-                        width: '4px',
-                        backgroundColor: colors.success[600],
-                      }}
-                    />
-                  )}
 
                   {/* Icon */}
                   <div
