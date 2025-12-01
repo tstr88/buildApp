@@ -344,7 +344,8 @@ export function SupplierRFQDetail() {
         }
       } else {
         const data = await response.json();
-        setError(data.error || 'Failed to send offer');
+        const errorMsg = typeof data.error === 'string' ? data.error : (data.message || 'Failed to send offer');
+        setError(errorMsg);
       }
     } catch (err) {
       console.error('Failed to send offer:', err);
