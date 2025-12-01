@@ -1,18 +1,22 @@
 /**
  * ListCard Component
- * Unified card wrapper for list items with consistent styling and hover effects
+ * Modern unified card wrapper for list items with left accent indicator
+ * Matches the design pattern from RFQs, Orders, MyRentals pages
  */
 
 import React, { useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { colors, spacing, borderRadius, shadows, transitions } from '../../theme/tokens';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface ListCardProps {
   onClick?: () => void;
   children: React.ReactNode;
   showChevron?: boolean;
   isUnread?: boolean;
+  isActive?: boolean;
   disabled?: boolean;
+  accentColor?: 'primary' | 'success' | 'warning' | 'error';
 }
 
 export const ListCard: React.FC<ListCardProps> = ({
@@ -20,9 +24,29 @@ export const ListCard: React.FC<ListCardProps> = ({
   children,
   showChevron = true,
   isUnread = false,
+  isActive = false,
   disabled = false,
+  accentColor = 'primary',
 }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const isMobile = useIsMobile();
+
+  // Determine if we need attention indicator
+  const needsAttention = isUnread || isActive;
+
+  // Get accent color based on prop
+  const getAccentColor = () => {
+    switch (accentColor) {
+      case 'success':
+        return colors.success[500];
+      case 'warning':
+        return colors.warning;
+      case 'error':
+        return colors.error[500];
+      default:
+        return colors.primary[500];
+    }
+  };
 
   return (
     <div
@@ -34,37 +58,39 @@ export const ListCard: React.FC<ListCardProps> = ({
         display: 'flex',
         alignItems: 'center',
         gap: spacing[3],
-        padding: spacing[3],
-        backgroundColor: colors.neutral[0],
-        border: `1px solid ${isUnread ? colors.primary[200] : colors.border.light}`,
+        padding: isMobile ? spacing[4] : spacing[5],
+        backgroundColor: isHovered && !disabled ? colors.neutral[50] : colors.neutral[0],
+        border: `1px solid ${colors.border.light}`,
+        borderLeft: !isMobile && needsAttention
+          ? `4px solid ${getAccentColor()}`
+          : `1px solid ${colors.border.light}`,
         borderRadius: borderRadius.lg,
         cursor: disabled ? 'default' : onClick ? 'pointer' : 'default',
         transition: `all ${transitions.fast} ease`,
         boxShadow: isHovered && !disabled ? shadows.md : shadows.sm,
-        transform: isHovered && !disabled ? 'translateY(-1px)' : 'none',
         opacity: disabled ? 0.6 : 1,
         width: '100%',
         boxSizing: 'border-box',
         overflow: 'hidden',
       }}
     >
-      {/* Unread indicator */}
-      {isUnread && (
-        <div
-          style={{
-            position: 'absolute',
-            top: spacing[3],
-            right: spacing[3],
-            width: '8px',
-            height: '8px',
-            backgroundColor: colors.primary[500],
-            borderRadius: '50%',
-          }}
-        />
-      )}
-
-      {/* Content */}
-      <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
+      {/* Content wrapper with optional dot indicator for mobile */}
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'flex-start', gap: spacing[3] }}>
+        {/* Mobile dot indicator */}
+        {isMobile && needsAttention && (
+          <span
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: borderRadius.full,
+              backgroundColor: getAccentColor(),
+              flexShrink: 0,
+              marginTop: '6px',
+            }}
+          />
+        )}
+        <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
+      </div>
 
       {/* Chevron */}
       {showChevron && onClick && !disabled && (
