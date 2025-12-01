@@ -173,7 +173,19 @@ const Rentals: React.FC = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          gap: ${spacing[3]};
+          gap: ${spacing[2]};
+          width: 100%;
+        }
+        .rentals-controls-right {
+          display: flex;
+          align-items: center;
+          gap: ${spacing[2]};
+          flex-shrink: 0;
+        }
+        @media (max-width: 480px) {
+          .rentals-controls-right {
+            gap: ${spacing[1]};
+          }
         }
         .results-count-row {
           display: flex;
@@ -192,6 +204,7 @@ const Rentals: React.FC = () => {
           align-items: center;
           gap: ${spacing[2]};
           white-space: nowrap;
+          flex-shrink: 0;
         }
         .mobile-filter-btn:hover {
           background-color: rgba(255, 255, 255, 0.25);
@@ -201,9 +214,14 @@ const Rentals: React.FC = () => {
             display: flex;
           }
         }
-        @media (max-width: 768px) {
-          .rentals-controls-top {
-            width: 100%;
+        @media (max-width: 480px) {
+          .mobile-filter-btn {
+            padding: ${spacing[1]} ${spacing[2]};
+            font-size: ${typography.fontSize.xs};
+            gap: ${spacing[1]};
+          }
+          .mobile-filter-btn span {
+            display: none;
           }
         }
         .results-count {
@@ -229,6 +247,9 @@ const Rentals: React.FC = () => {
           background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
           background-repeat: no-repeat;
           background-position: right ${spacing[2]} center;
+          max-width: 140px;
+          text-overflow: ellipsis;
+          overflow: hidden;
         }
         .sort-select:hover {
           background-color: rgba(255, 255, 255, 0.25);
@@ -240,8 +261,14 @@ const Rentals: React.FC = () => {
         @media (max-width: 480px) {
           .sort-select {
             font-size: ${typography.fontSize.xs};
-            padding: ${spacing[2]};
-            padding-right: ${spacing[6]};
+            padding: ${spacing[1]} ${spacing[2]};
+            padding-right: ${spacing[5]};
+            max-width: 100px;
+          }
+        }
+        @media (max-width: 360px) {
+          .sort-select {
+            max-width: 85px;
           }
         }
       `}</style>
@@ -308,17 +335,20 @@ const Rentals: React.FC = () => {
                   <span>{t('rentalsPage.filtersButton', 'Filters')}</span>
                 </button>
 
-                {/* Sort Dropdown */}
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="sort-select"
-                >
-                  <option value="recommended">{t('rentalsPage.sort.recommended')}</option>
-                  <option value="price_low">{t('rentalsPage.sort.priceLow')}</option>
-                  <option value="price_high">{t('rentalsPage.sort.priceHigh')}</option>
-                  <option value="name">{t('rentalsPage.sort.name')}</option>
-                </select>
+                {/* Right side controls */}
+                <div className="rentals-controls-right">
+                  {/* Sort Dropdown */}
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortOption)}
+                    className="sort-select"
+                  >
+                    <option value="recommended">{t('rentalsPage.sort.recommended')}</option>
+                    <option value="price_low">{t('rentalsPage.sort.priceLow')}</option>
+                    <option value="price_high">{t('rentalsPage.sort.priceHigh')}</option>
+                    <option value="name">{t('rentalsPage.sort.name')}</option>
+                  </select>
+                </div>
               </div>
 
               {/* Bottom row: Results Count */}
