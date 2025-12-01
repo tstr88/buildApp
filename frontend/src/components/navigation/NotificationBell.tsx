@@ -22,6 +22,9 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
 
+  // Ensure count is a proper number (handle string/bigint from API)
+  const numericCount = typeof count === 'string' ? parseInt(count, 10) : Number(count) || 0;
+
   const handleClick = () => {
     if (onClick) {
       onClick();
@@ -53,21 +56,21 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
         transition: `all ${transitions.fast} ease`,
         WebkitTapHighlightColor: 'transparent',
       }}
-      aria-label={`Notifications${count > 0 ? ` (${count} unread)` : ''}`}
+      aria-label={`Notifications${numericCount > 0 ? ` (${numericCount} unread)` : ''}`}
     >
       <Icons.Bell
         size={20}
         strokeWidth={2}
         color={isLight
           ? colors.neutral[0]
-          : (count > 0 ? colors.primary[600] : colors.text.secondary)
+          : (numericCount > 0 ? colors.primary[600] : colors.text.secondary)
         }
         style={{
           transition: `all ${transitions.fast} ease`,
         }}
       />
 
-      {count > 0 && (
+      {numericCount > 0 && (
         <span
           style={{
             position: 'absolute',
@@ -90,7 +93,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
               : `0 0 0 2px ${colors.neutral[0]}`,
           }}
         >
-          {count > 99 ? '99+' : count}
+          {numericCount > 99 ? '99+' : numericCount}
         </span>
       )}
     </button>
