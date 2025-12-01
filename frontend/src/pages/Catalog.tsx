@@ -160,15 +160,19 @@ export const Catalog: React.FC = () => {
         .catalog-page {
           min-height: 100vh;
           background-color: ${colors.neutral[50]};
+          padding-bottom: 80px;
         }
         .catalog-header {
-          background-color: ${colors.neutral[0]};
-          border-bottom: 1px solid ${colors.border.light};
-          padding: ${spacing[4]} ${spacing[6]};
+          background: linear-gradient(135deg, ${colors.primary[600]} 0%, ${colors.primary[700]} 100%);
+          padding: ${spacing[5]} ${spacing[6]};
+          box-shadow: ${shadows.md};
+          position: sticky;
+          top: 0;
+          z-index: 1020;
         }
         @media (max-width: 640px) {
           .catalog-header {
-            padding: ${spacing[3]} ${spacing[3]};
+            padding: ${spacing[4]} ${spacing[3]};
           }
         }
         .catalog-header-inner {
@@ -178,7 +182,7 @@ export const Catalog: React.FC = () => {
         .catalog-title {
           font-size: ${typography.fontSize['2xl']};
           font-weight: ${typography.fontWeight.bold};
-          color: ${colors.text.primary};
+          color: ${colors.neutral[0]};
           margin: 0;
           margin-bottom: ${spacing[4]};
         }
@@ -215,7 +219,7 @@ export const Catalog: React.FC = () => {
         }
         .results-count {
           font-size: ${typography.fontSize.sm};
-          color: ${colors.text.secondary};
+          color: rgba(255, 255, 255, 0.85);
           white-space: nowrap;
         }
         @media (max-width: 480px) {
@@ -226,16 +230,19 @@ export const Catalog: React.FC = () => {
         .mobile-filter-btn {
           display: none;
           padding: ${spacing[2]} ${spacing[3]};
-          background-color: ${colors.neutral[0]};
-          border: 1px solid ${colors.border.light};
+          background-color: rgba(255, 255, 255, 0.15);
+          border: 1px solid rgba(255, 255, 255, 0.3);
           border-radius: ${borderRadius.md};
           font-size: ${typography.fontSize.sm};
           font-weight: ${typography.fontWeight.medium};
-          color: ${colors.text.primary};
+          color: ${colors.neutral[0]};
           cursor: pointer;
           align-items: center;
           gap: ${spacing[2]};
           white-space: nowrap;
+        }
+        .mobile-filter-btn:hover {
+          background-color: rgba(255, 255, 255, 0.25);
         }
         @media (max-width: 768px) {
           .mobile-filter-btn {
@@ -244,9 +251,17 @@ export const Catalog: React.FC = () => {
         }
         .view-toggle {
           display: flex;
-          border: 1px solid ${colors.border.light};
+          border: 1px solid rgba(255, 255, 255, 0.3);
           border-radius: ${borderRadius.md};
           overflow: hidden;
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+        .view-toggle button {
+          background-color: transparent !important;
+          border-color: rgba(255, 255, 255, 0.3) !important;
+        }
+        .view-toggle button.active, .view-toggle button:hover {
+          background-color: rgba(255, 255, 255, 0.2) !important;
         }
         @media (max-width: 480px) {
           .view-toggle {
@@ -257,15 +272,22 @@ export const Catalog: React.FC = () => {
           padding: ${spacing[2]} ${spacing[3]};
           padding-right: ${spacing[8]};
           font-size: ${typography.fontSize.sm};
-          border: 1px solid ${colors.border.light};
+          border: 1px solid rgba(255, 255, 255, 0.3);
           border-radius: ${borderRadius.md};
-          background-color: ${colors.neutral[0]};
-          color: ${colors.text.primary};
+          background-color: rgba(255, 255, 255, 0.15);
+          color: ${colors.neutral[0]};
           cursor: pointer;
           appearance: none;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
           background-repeat: no-repeat;
           background-position: right ${spacing[2]} center;
+        }
+        .sort-select:hover {
+          background-color: rgba(255, 255, 255, 0.25);
+        }
+        .sort-select option {
+          background-color: ${colors.neutral[0]};
+          color: ${colors.text.primary};
         }
         @media (max-width: 480px) {
           .sort-select {
@@ -287,12 +309,13 @@ export const Catalog: React.FC = () => {
           <div style={{ position: 'relative', marginBottom: spacing[3] }}>
             <Icons.Search
               size={20}
-              color={colors.text.tertiary}
+              color={colors.neutral[400]}
               style={{
                 position: 'absolute',
                 left: spacing[3],
                 top: '50%',
                 transform: 'translateY(-50%)',
+                zIndex: 1,
               }}
             />
             <input
@@ -304,18 +327,20 @@ export const Catalog: React.FC = () => {
                 width: '100%',
                 padding: `${spacing[3]} ${spacing[3]} ${spacing[3]} ${spacing[10]}`,
                 fontSize: typography.fontSize.base,
-                border: `1px solid ${colors.border.light}`,
+                border: 'none',
                 borderRadius: borderRadius.lg,
                 outline: 'none',
                 boxSizing: 'border-box',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                boxShadow: shadows.sm,
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = colors.primary[600];
-                e.target.style.boxShadow = `0 0 0 3px ${colors.primary[50]}`;
+                e.target.style.backgroundColor = colors.neutral[0];
+                e.target.style.boxShadow = `0 0 0 3px rgba(255, 255, 255, 0.3)`;
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = colors.border.light;
-                e.target.style.boxShadow = 'none';
+                e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+                e.target.style.boxShadow = shadows.sm;
               }}
             />
           </div>
@@ -338,9 +363,10 @@ export const Catalog: React.FC = () => {
                 <div className="view-toggle">
                   <button
                     onClick={() => setViewMode('grid')}
+                    className={viewMode === 'grid' ? 'active' : ''}
                     style={{
                       padding: spacing[2],
-                      backgroundColor: viewMode === 'grid' ? colors.primary[50] : colors.neutral[0],
+                      backgroundColor: viewMode === 'grid' ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
                       border: 'none',
                       cursor: 'pointer',
                       display: 'flex',
@@ -348,22 +374,23 @@ export const Catalog: React.FC = () => {
                       justifyContent: 'center',
                     }}
                   >
-                    <Icons.Grid size={18} color={viewMode === 'grid' ? colors.primary[600] : colors.text.tertiary} />
+                    <Icons.Grid size={18} color={colors.neutral[0]} />
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
+                    className={viewMode === 'list' ? 'active' : ''}
                     style={{
                       padding: spacing[2],
-                      backgroundColor: viewMode === 'list' ? colors.primary[50] : colors.neutral[0],
+                      backgroundColor: viewMode === 'list' ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
                       border: 'none',
-                      borderLeft: `1px solid ${colors.border.light}`,
+                      borderLeft: `1px solid rgba(255, 255, 255, 0.3)`,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Icons.List size={18} color={viewMode === 'list' ? colors.primary[600] : colors.text.tertiary} />
+                    <Icons.List size={18} color={colors.neutral[0]} />
                   </button>
                 </div>
 

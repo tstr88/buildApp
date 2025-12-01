@@ -114,14 +114,18 @@ export const Factories: React.FC = () => {
       style={{
         minHeight: '100vh',
         backgroundColor: colors.neutral[50],
+        paddingBottom: '80px',
       }}
     >
-      {/* Header */}
+      {/* Header - Primary branded */}
       <div
         style={{
-          backgroundColor: colors.neutral[0],
-          borderBottom: `1px solid ${colors.border.light}`,
-          padding: `${spacing[4]} ${spacing[6]}`,
+          background: `linear-gradient(135deg, ${colors.primary[600]} 0%, ${colors.primary[700]} 100%)`,
+          padding: `${spacing[5]} ${spacing[6]}`,
+          boxShadow: shadows.md,
+          position: 'sticky',
+          top: 0,
+          zIndex: 1020,
         }}
       >
         <div
@@ -142,7 +146,7 @@ export const Factories: React.FC = () => {
               style={{
                 fontSize: typography.fontSize['2xl'],
                 fontWeight: typography.fontWeight.bold,
-                color: colors.text.primary,
+                color: colors.neutral[0],
                 margin: 0,
               }}
             >
@@ -154,9 +158,10 @@ export const Factories: React.FC = () => {
               <div
                 style={{
                   display: 'flex',
-                  border: `1px solid ${colors.border.light}`,
+                  border: `1px solid rgba(255, 255, 255, 0.3)`,
                   borderRadius: borderRadius.md,
                   overflow: 'hidden',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
                 }}
               >
                 <button
@@ -164,14 +169,14 @@ export const Factories: React.FC = () => {
                   style={{
                     padding: spacing[2],
                     backgroundColor:
-                      viewMode === 'map-list' ? colors.primary[50] : colors.neutral[0],
+                      viewMode === 'map-list' ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
                     border: 'none',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: spacing[1],
                     fontSize: typography.fontSize.sm,
-                    color: viewMode === 'map-list' ? colors.primary[600] : colors.text.tertiary,
+                    color: colors.neutral[0],
                   }}
                 >
                   <Icons.Map size={16} />
@@ -182,15 +187,15 @@ export const Factories: React.FC = () => {
                   style={{
                     padding: spacing[2],
                     backgroundColor:
-                      viewMode === 'list-only' ? colors.primary[50] : colors.neutral[0],
+                      viewMode === 'list-only' ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
                     border: 'none',
-                    borderLeft: `1px solid ${colors.border.light}`,
+                    borderLeft: `1px solid rgba(255, 255, 255, 0.3)`,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: spacing[1],
                     fontSize: typography.fontSize.sm,
-                    color: viewMode === 'list-only' ? colors.primary[600] : colors.text.tertiary,
+                    color: colors.neutral[0],
                   }}
                 >
                   <Icons.List size={16} />
@@ -205,17 +210,17 @@ export const Factories: React.FC = () => {
                 style={{
                   padding: `${spacing[2]} ${spacing[3]}`,
                   fontSize: typography.fontSize.sm,
-                  border: `1px solid ${colors.border.light}`,
+                  border: `1px solid rgba(255, 255, 255, 0.3)`,
                   borderRadius: borderRadius.md,
-                  backgroundColor: colors.neutral[0],
-                  color: colors.text.primary,
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  color: colors.neutral[0],
                   cursor: 'pointer',
                 }}
               >
-                <option value="reliability">{t('factoriesPage.sort.reliability')}</option>
-                <option value="nearest">{t('factoriesPage.sort.nearest')}</option>
-                <option value="most_skus">{t('factoriesPage.sort.mostSkus')}</option>
-                <option value="newest">{t('factoriesPage.sort.newest')}</option>
+                <option value="reliability" style={{ backgroundColor: colors.neutral[0], color: colors.text.primary }}>{t('factoriesPage.sort.reliability')}</option>
+                <option value="nearest" style={{ backgroundColor: colors.neutral[0], color: colors.text.primary }}>{t('factoriesPage.sort.nearest')}</option>
+                <option value="most_skus" style={{ backgroundColor: colors.neutral[0], color: colors.text.primary }}>{t('factoriesPage.sort.mostSkus')}</option>
+                <option value="newest" style={{ backgroundColor: colors.neutral[0], color: colors.text.primary }}>{t('factoriesPage.sort.newest')}</option>
               </select>
             </div>
           </div>
@@ -236,12 +241,12 @@ export const Factories: React.FC = () => {
               style={{
                 display: 'none',
                 padding: `${spacing[2]} ${spacing[3]}`,
-                backgroundColor: colors.neutral[0],
-                border: `1px solid ${colors.border.light}`,
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                border: `1px solid rgba(255, 255, 255, 0.3)`,
                 borderRadius: borderRadius.md,
                 fontSize: typography.fontSize.sm,
                 fontWeight: typography.fontWeight.medium,
-                color: colors.text.primary,
+                color: colors.neutral[0],
                 cursor: 'pointer',
                 alignItems: 'center',
                 gap: spacing[1],
@@ -262,15 +267,13 @@ export const Factories: React.FC = () => {
                     fontSize: typography.fontSize.sm,
                     fontWeight: typography.fontWeight.medium,
                     backgroundColor: selectedCategories.includes(cat.value)
-                      ? colors.primary[100]
-                      : colors.neutral[100],
-                    color: selectedCategories.includes(cat.value)
-                      ? colors.primary[700]
-                      : colors.text.secondary,
+                      ? 'rgba(255, 255, 255, 0.3)'
+                      : 'rgba(255, 255, 255, 0.1)',
+                    color: colors.neutral[0],
                     border: `1px solid ${
                       selectedCategories.includes(cat.value)
-                        ? colors.primary[300]
-                        : colors.border.light
+                        ? 'rgba(255, 255, 255, 0.5)'
+                        : 'rgba(255, 255, 255, 0.2)'
                     }`,
                     borderRadius: borderRadius.full,
                     cursor: 'pointer',
@@ -287,22 +290,27 @@ export const Factories: React.FC = () => {
                   alignItems: 'center',
                   gap: spacing[2],
                   padding: `${spacing[1]} ${spacing[3]}`,
-                  backgroundColor: directOrderOnly ? colors.warning[50] : colors.neutral[100],
+                  backgroundColor: directOrderOnly
+                    ? 'rgba(255, 193, 7, 0.3)'
+                    : 'rgba(255, 255, 255, 0.1)',
                   border: `1px solid ${
-                    directOrderOnly ? colors.warning[300] : colors.border.light
+                    directOrderOnly
+                      ? 'rgba(255, 193, 7, 0.5)'
+                      : 'rgba(255, 255, 255, 0.2)'
                   }`,
                   borderRadius: borderRadius.full,
                   cursor: 'pointer',
                   fontSize: typography.fontSize.sm,
+                  color: colors.neutral[0],
                 }}
               >
                 <input
                   type="checkbox"
                   checked={directOrderOnly}
                   onChange={(e) => setDirectOrderOnly(e.target.checked)}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', accentColor: colors.warning[400] }}
                 />
-                <Icons.Zap size={14} color={colors.warning[600]} />
+                <Icons.Zap size={14} color={colors.warning[300]} />
                 {t('factoriesPage.filters.directOrder')}
               </label>
 
@@ -313,16 +321,16 @@ export const Factories: React.FC = () => {
                 style={{
                   padding: `${spacing[1]} ${spacing[3]}`,
                   fontSize: typography.fontSize.sm,
-                  border: `1px solid ${colors.border.light}`,
+                  border: `1px solid rgba(255, 255, 255, 0.3)`,
                   borderRadius: borderRadius.full,
-                  backgroundColor: colors.neutral[100],
-                  color: colors.text.primary,
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  color: colors.neutral[0],
                   cursor: 'pointer',
                 }}
               >
-                <option value="all">{t('factoriesPage.filters.trustTier.all')}</option>
-                <option value="verified">{t('factoriesPage.filters.trustTier.verified')}</option>
-                <option value="trusted">{t('factoriesPage.filters.trustTier.trusted')}</option>
+                <option value="all" style={{ backgroundColor: colors.neutral[0], color: colors.text.primary }}>{t('factoriesPage.filters.trustTier.all')}</option>
+                <option value="verified" style={{ backgroundColor: colors.neutral[0], color: colors.text.primary }}>{t('factoriesPage.filters.trustTier.verified')}</option>
+                <option value="trusted" style={{ backgroundColor: colors.neutral[0], color: colors.text.primary }}>{t('factoriesPage.filters.trustTier.trusted')}</option>
               </select>
 
               {/* Distance Filter */}
@@ -333,17 +341,17 @@ export const Factories: React.FC = () => {
                   style={{
                     padding: `${spacing[1]} ${spacing[3]}`,
                     fontSize: typography.fontSize.sm,
-                    border: `1px solid ${colors.border.light}`,
+                    border: `1px solid rgba(255, 255, 255, 0.3)`,
                     borderRadius: borderRadius.full,
-                    backgroundColor: colors.neutral[100],
-                    color: colors.text.primary,
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    color: colors.neutral[0],
                     cursor: 'pointer',
                   }}
                 >
-                  <option value="all">{t('factoriesPage.filters.distance.all')}</option>
-                  <option value="10km">{t('factoriesPage.filters.distance.10km')}</option>
-                  <option value="25km">{t('factoriesPage.filters.distance.25km')}</option>
-                  <option value="50km">{t('factoriesPage.filters.distance.50km')}</option>
+                  <option value="all" style={{ backgroundColor: colors.neutral[0], color: colors.text.primary }}>{t('factoriesPage.filters.distance.all')}</option>
+                  <option value="10km" style={{ backgroundColor: colors.neutral[0], color: colors.text.primary }}>{t('factoriesPage.filters.distance.10km')}</option>
+                  <option value="25km" style={{ backgroundColor: colors.neutral[0], color: colors.text.primary }}>{t('factoriesPage.filters.distance.25km')}</option>
+                  <option value="50km" style={{ backgroundColor: colors.neutral[0], color: colors.text.primary }}>{t('factoriesPage.filters.distance.50km')}</option>
                 </select>
               )}
 
@@ -359,9 +367,10 @@ export const Factories: React.FC = () => {
                     fontSize: typography.fontSize.sm,
                     fontWeight: typography.fontWeight.medium,
                     backgroundColor: 'transparent',
-                    color: colors.primary[600],
+                    color: 'rgba(255, 255, 255, 0.9)',
                     border: 'none',
                     cursor: 'pointer',
+                    textDecoration: 'underline',
                   }}
                 >
                   {t('factoriesPage.filters.reset')}

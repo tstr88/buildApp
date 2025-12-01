@@ -309,34 +309,55 @@ export function SupplierDashboard() {
   return (
     <div
       style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: spacing[6],
+        minHeight: '100vh',
+        backgroundColor: colors.background.secondary,
+        paddingBottom: '80px',
       }}
     >
-      {/* Header */}
-      <div style={{ marginBottom: spacing[6] }}>
-        <h1
-          style={{
-            fontSize: typography.fontSize['2xl'],
-            fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
-            margin: 0,
-            marginBottom: spacing[2],
-          }}
-        >
-          {t('supplierDashboard.title', 'Supplier Dashboard')}
-        </h1>
-        <p
-          style={{
-            fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
-            margin: 0,
-          }}
-        >
-          {t('supplierDashboard.subtitle', 'Manage your RFQs, offers, and deliveries')}
-        </p>
+      {/* Header - Primary branded */}
+      <div
+        style={{
+          background: `linear-gradient(135deg, ${colors.primary[600]} 0%, ${colors.primary[700]} 100%)`,
+          padding: `${spacing[5]} ${spacing[6]}`,
+          boxShadow: shadows.md,
+          position: 'sticky',
+          top: 0,
+          zIndex: 1020,
+          marginBottom: spacing[6],
+        }}
+      >
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <h1
+            style={{
+              fontSize: typography.fontSize['2xl'],
+              fontWeight: typography.fontWeight.bold,
+              color: colors.neutral[0],
+              margin: 0,
+              marginBottom: spacing[2],
+            }}
+          >
+            {t('supplierDashboard.title', 'Supplier Dashboard')}
+          </h1>
+          <p
+            style={{
+              fontSize: typography.fontSize.base,
+              color: 'rgba(255, 255, 255, 0.8)',
+              margin: 0,
+            }}
+          >
+            {t('supplierDashboard.subtitle', 'Manage your RFQs, offers, and deliveries')}
+          </p>
+        </div>
       </div>
+
+      {/* Main Content */}
+      <div
+        style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: `0 ${spacing[6]}`,
+        }}
+      >
 
       {/* Summary Cards */}
       <div
@@ -821,6 +842,7 @@ export function SupplierDashboard() {
             ))}
           </div>
         )}
+      </div>
       </div>
     </div>
   );

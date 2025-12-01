@@ -1,6 +1,6 @@
 /**
  * NotificationBell Component
- * Displays notification count badge
+ * Displays notification count badge with support for light/dark variants
  */
 
 import React, { useState } from 'react';
@@ -11,9 +11,14 @@ import { colors, transitions, borderRadius } from '../../theme/tokens';
 interface NotificationBellProps {
   count?: number;
   onClick?: () => void;
+  variant?: 'default' | 'light';
 }
 
-export const NotificationBell: React.FC<NotificationBellProps> = ({ count = 0, onClick }) => {
+export const NotificationBell: React.FC<NotificationBellProps> = ({
+  count = 0,
+  onClick,
+  variant = 'default',
+}) => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
 
@@ -24,6 +29,8 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ count = 0, o
       navigate('/notifications');
     }
   };
+
+  const isLight = variant === 'light';
 
   return (
     <button
@@ -38,7 +45,9 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ count = 0, o
         width: '40px',
         height: '40px',
         border: 'none',
-        backgroundColor: isHovered ? colors.neutral[100] : 'transparent',
+        backgroundColor: isHovered
+          ? (isLight ? 'rgba(255, 255, 255, 0.2)' : colors.neutral[100])
+          : 'transparent',
         borderRadius: borderRadius.full,
         cursor: 'pointer',
         transition: `all ${transitions.fast} ease`,
@@ -49,7 +58,10 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ count = 0, o
       <Icons.Bell
         size={20}
         strokeWidth={2}
-        color={count > 0 ? colors.primary[600] : colors.text.secondary}
+        color={isLight
+          ? colors.neutral[0]
+          : (count > 0 ? colors.primary[600] : colors.text.secondary)
+        }
         style={{
           transition: `all ${transitions.fast} ease`,
         }}
@@ -61,7 +73,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ count = 0, o
             position: 'absolute',
             top: '6px',
             right: '6px',
-            backgroundColor: colors.error,
+            backgroundColor: colors.error[500] || colors.error,
             color: colors.text.inverse,
             fontSize: '10px',
             fontWeight: 700,
@@ -73,7 +85,9 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ count = 0, o
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: `0 0 0 2px ${colors.neutral[0]}`,
+            boxShadow: isLight
+              ? `0 0 0 2px ${colors.primary[600]}`
+              : `0 0 0 2px ${colors.neutral[0]}`,
           }}
         >
           {count > 99 ? '99+' : count}

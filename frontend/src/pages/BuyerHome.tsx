@@ -103,22 +103,21 @@ export const BuyerHome: React.FC = () => {
         paddingBottom: '80px', // Space for bottom nav
       }}
     >
-      {/* Top Header */}
+      {/* Top Header - Premium branded */}
       <header
         style={{
           position: 'sticky',
           top: 0,
           zIndex: 1020,
-          backgroundColor: colors.neutral[0],
-          borderBottom: `1px solid ${colors.border.light}`,
-          boxShadow: shadows.sm,
+          background: `linear-gradient(135deg, ${colors.primary[600]} 0%, ${colors.primary[700]} 100%)`,
+          boxShadow: shadows.lg,
         }}
       >
         <div
           style={{
             maxWidth: '1200px',
             margin: '0 auto',
-            padding: `${spacing[4]} ${spacing[4]}`,
+            padding: `${spacing[5]} ${spacing[4]}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -129,14 +128,15 @@ export const BuyerHome: React.FC = () => {
             style={{
               fontSize: typography.fontSize['2xl'],
               fontWeight: typography.fontWeight.bold,
-              color: colors.primary[600],
+              color: colors.neutral[0],
+              letterSpacing: '-0.5px',
             }}
           >
             buildApp
           </div>
 
           {/* Notification Bell */}
-          <NotificationBell count={notificationCount} />
+          <NotificationBell count={notificationCount} variant="light" />
         </div>
       </header>
 
