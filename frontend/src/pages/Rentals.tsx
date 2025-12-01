@@ -233,6 +233,18 @@ const Rentals: React.FC = () => {
           background-color: ${colors.neutral[0]};
           color: ${colors.text.primary};
         }
+        @media (max-width: 480px) {
+          .sort-select {
+            padding: ${spacing[1.5]} ${spacing[2]};
+            padding-right: ${spacing[6]};
+            font-size: ${typography.fontSize.xs};
+          }
+          .mobile-filter-btn {
+            padding: ${spacing[1.5]} ${spacing[2]};
+            font-size: ${typography.fontSize.xs};
+            gap: ${spacing[1]};
+          }
+        }
       `}</style>
 
       <div className="rentals-page">
