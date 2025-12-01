@@ -4,10 +4,23 @@
  * Matches the design pattern from RFQs, Orders, MyRentals pages
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { colors, spacing, borderRadius, shadows, transitions } from '../../theme/tokens';
-import { useIsMobile } from '../../hooks/useIsMobile';
+
+// Mobile detection hook
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+};
 
 interface ListCardProps {
   onClick?: () => void;
