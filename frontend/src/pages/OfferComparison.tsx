@@ -370,6 +370,7 @@ export default function OfferComparison() {
             justifyContent: 'center',
             zIndex: 1000,
             padding: spacing[4],
+            overflowY: 'auto',
           }}
           onClick={() => !isAccepting && setShowConfirmModal(false)}
         >
@@ -381,6 +382,9 @@ export default function OfferComparison() {
               maxWidth: '500px',
               width: '100%',
               boxShadow: shadows.lg,
+              margin: 'auto',
+              maxHeight: '90vh',
+              overflowY: 'auto',
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -415,10 +419,10 @@ export default function OfferComparison() {
                   }).format(parseFloat(selectedOffer.total_amount.toString()) + selectedOffer.delivery_fee)}
                 </span>
               </p>
-              {selectedOffer.delivery_window_start && selectedOffer.delivery_window_end && (
+              {selectedOffer.delivery_window_start && (
                 <p style={{ marginBottom: spacing[2], color: colors.text.secondary }}>
-                  <strong>Delivery:</strong> {new Date(selectedOffer.delivery_window_start).toLocaleDateString()} -{' '}
-                  {new Date(selectedOffer.delivery_window_end).toLocaleDateString()}
+                  <strong>Delivery:</strong> {new Date(selectedOffer.delivery_window_start).toLocaleDateString()}{' '}
+                  {new Date(selectedOffer.delivery_window_start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
               )}
             </div>

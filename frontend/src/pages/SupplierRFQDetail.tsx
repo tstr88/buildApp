@@ -67,7 +67,6 @@ interface LinePrice {
   subtotal_input?: string; // Track raw subtotal input
 }
 
-type TimeSlot = 'morning' | 'afternoon' | 'all_day';
 type PaymentTerm = 'cod' | 'net_7' | 'advance_100';
 
 export function SupplierRFQDetail() {
@@ -84,9 +83,8 @@ export function SupplierRFQDetail() {
 
   // Offer form state
   const [linePrices, setLinePrices] = useState<LinePrice[]>([]);
-  const [deliveryStartDate, setDeliveryStartDate] = useState('');
-  const [deliveryEndDate, setDeliveryEndDate] = useState('');
-  const [timeSlot, setTimeSlot] = useState<TimeSlot>('all_day');
+  const [deliveryDate, setDeliveryDate] = useState('');
+  const [deliveryTime, setDeliveryTime] = useState('09:00');
   const [paymentTerm, setPaymentTerm] = useState<PaymentTerm>('cod');
   const [deliveryFee, setDeliveryFee] = useState('');
   const [offerNotes, setOfferNotes] = useState('');
@@ -131,10 +129,9 @@ export function SupplierRFQDetail() {
         // Update rfq with indexed lines
         setRfq({ ...data.rfq, lines: linesWithIndex });
 
-        // Set default delivery window to preferred window
-        if (data.rfq.preferred_window_start && data.rfq.preferred_window_end) {
-          setDeliveryStartDate(data.rfq.preferred_window_start.split('T')[0]);
-          setDeliveryEndDate(data.rfq.preferred_window_end.split('T')[0]);
+        // Set default delivery date to preferred window start
+        if (data.rfq.preferred_window_start) {
+          setDeliveryDate(data.rfq.preferred_window_start.split('T')[0]);
         }
       } else {
         setError('Failed to load RFQ');
@@ -178,12 +175,13 @@ export function SupplierRFQDetail() {
       }));
       setLinePrices(prices);
 
-      // Set delivery dates
+      // Set delivery date and time from existing offer
       if (offer.delivery_window_start) {
-        setDeliveryStartDate(offer.delivery_window_start.split('T')[0]);
-      }
-      if (offer.delivery_window_end) {
-        setDeliveryEndDate(offer.delivery_window_end.split('T')[0]);
+        const dateTime = new Date(offer.delivery_window_start);
+        setDeliveryDate(offer.delivery_window_start.split('T')[0]);
+        const hours = dateTime.getHours().toString().padStart(2, '0');
+        const minutes = dateTime.getMinutes().toString().padStart(2, '0');
+        setDeliveryTime(`${hours}:${minutes}`);
       }
 
       // Set payment term and delivery fee
@@ -286,16 +284,14 @@ export function SupplierRFQDetail() {
       return false;
     }
 
-    // Check delivery window
-    if (!deliveryStartDate || !deliveryEndDate) {
-      setError('Please select a delivery window');
+    // Check delivery date and time
+    if (!deliveryDate) {
+      setError('Please select a delivery date');
       return false;
     }
 
-    const start = new Date(deliveryStartDate);
-    const end = new Date(deliveryEndDate);
-    if (start >= end) {
-      setError('Delivery end date must be after start date');
+    if (!deliveryTime) {
+      setError('Please select a delivery time');
       return false;
     }
 
@@ -326,8 +322,8 @@ export function SupplierRFQDetail() {
             notes: lp.notes || null,
           })),
           total_amount: calculateTotal(),
-          delivery_window_start: `${deliveryStartDate}T${timeSlot === 'morning' ? '08:00:00' : timeSlot === 'afternoon' ? '14:00:00' : '09:00:00'}`,
-          delivery_window_end: `${deliveryEndDate}T${timeSlot === 'morning' ? '12:00:00' : timeSlot === 'afternoon' ? '18:00:00' : '17:00:00'}`,
+          delivery_window_start: `${deliveryDate}T${deliveryTime}:00`,
+          delivery_window_end: `${deliveryDate}T${deliveryTime}:00`,
           payment_terms: paymentTerm,
           delivery_fee: deliveryFee ? parseFloat(deliveryFee) : 0,
           notes: offerNotes || null,
@@ -768,7 +764,7 @@ export function SupplierRFQDetail() {
             })}
           </div>
 
-          {/* Delivery Window */}
+          {/* Delivery Date & Time */}
           <div style={{ marginBottom: spacing[5] }}>
             <h3
               style={{
@@ -779,18 +775,18 @@ export function SupplierRFQDetail() {
                 marginBottom: spacing[3],
               }}
             >
-              {t('supplierRFQDetail.deliveryWindow', 'Delivery Window')}
+              {t('supplierRFQDetail.deliveryDateTime', 'Delivery Date & Time')}
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: spacing[3], marginBottom: spacing[3] }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: spacing[3] }}>
               <div>
                 <label style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, display: 'block', marginBottom: spacing[1] }}>
-                  {t('supplierRFQDetail.startDate', 'Start Date')}
+                  {t('supplierRFQDetail.deliveryDate', 'Date')}
                 </label>
                 <input
                   type="date"
-                  value={deliveryStartDate}
-                  onChange={(e) => setDeliveryStartDate(e.target.value)}
+                  value={deliveryDate}
+                  onChange={(e) => setDeliveryDate(e.target.value)}
                   style={{
                     width: '100%',
                     padding: spacing[2],
@@ -803,12 +799,12 @@ export function SupplierRFQDetail() {
 
               <div>
                 <label style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, display: 'block', marginBottom: spacing[1] }}>
-                  {t('supplierRFQDetail.endDate', 'End Date')}
+                  {t('supplierRFQDetail.deliveryTime', 'Time')}
                 </label>
                 <input
-                  type="date"
-                  value={deliveryEndDate}
-                  onChange={(e) => setDeliveryEndDate(e.target.value)}
+                  type="time"
+                  value={deliveryTime}
+                  onChange={(e) => setDeliveryTime(e.target.value)}
                   style={{
                     width: '100%',
                     padding: spacing[2],
@@ -817,31 +813,6 @@ export function SupplierRFQDetail() {
                     fontSize: typography.fontSize.sm,
                   }}
                 />
-              </div>
-            </div>
-
-            <div>
-              <label style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, display: 'block', marginBottom: spacing[2] }}>
-                {t('supplierRFQDetail.timeSlot', 'Time Slot')}
-              </label>
-              <div style={{ display: 'flex', gap: spacing[2] }}>
-                {(['morning', 'afternoon', 'all_day'] as TimeSlot[]).map((slot) => (
-                  <button
-                    key={slot}
-                    onClick={() => setTimeSlot(slot)}
-                    style={{
-                      padding: `${spacing[2]} ${spacing[4]}`,
-                      backgroundColor: timeSlot === slot ? colors.primary[600] : colors.neutral[0],
-                      color: timeSlot === slot ? colors.neutral[0] : colors.text.primary,
-                      border: `1px solid ${timeSlot === slot ? colors.primary[600] : colors.border.default}`,
-                      borderRadius: borderRadius.md,
-                      fontSize: typography.fontSize.sm,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {t(`supplierRFQDetail.${slot}`, slot.replace('_', ' '))}
-                  </button>
-                ))}
               </div>
             </div>
           </div>
@@ -1101,11 +1072,11 @@ export function SupplierRFQDetail() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: spacing[4], marginBottom: spacing[4] }}>
             <div>
               <div style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, marginBottom: spacing[1] }}>
-                {t('supplierRFQDetail.deliveryWindow', 'Delivery Window')}
+                {t('supplierRFQDetail.deliveryDateTime', 'Delivery Date & Time')}
               </div>
               <div style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
-                {new Date(rfq.existing_offer.delivery_window_start).toLocaleDateString()} -{' '}
-                {new Date(rfq.existing_offer.delivery_window_end).toLocaleDateString()}
+                {new Date(rfq.existing_offer.delivery_window_start).toLocaleDateString()}{' '}
+                {new Date(rfq.existing_offer.delivery_window_start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
 
@@ -1341,13 +1312,11 @@ export function SupplierRFQDetail() {
               >
                 <div>
                   <div style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, marginBottom: spacing[1] }}>
-                    Delivery Window
+                    Delivery Date & Time
                   </div>
                   <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>
-                    {historyOffer.delivery_window_start && historyOffer.delivery_window_end
-                      ? `${new Date(historyOffer.delivery_window_start).toLocaleDateString()} - ${new Date(
-                          historyOffer.delivery_window_end
-                        ).toLocaleDateString()}`
+                    {historyOffer.delivery_window_start
+                      ? `${new Date(historyOffer.delivery_window_start).toLocaleDateString()} ${new Date(historyOffer.delivery_window_start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
                       : 'Not specified'}
                   </div>
                 </div>

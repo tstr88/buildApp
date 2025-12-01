@@ -214,8 +214,8 @@ export function OfferCard({ offer, isLowestPrice, onAccept, onMessage }: OfferCa
         </span>
       </div>
 
-      {/* Delivery window */}
-      {offer.delivery_window_start && offer.delivery_window_end && (
+      {/* Delivery date & time */}
+      {offer.delivery_window_start && (
         <div style={{ marginBottom: spacing[3] }}>
           <p
             style={{
@@ -225,7 +225,7 @@ export function OfferCard({ offer, isLowestPrice, onAccept, onMessage }: OfferCa
               marginBottom: spacing[1],
             }}
           >
-            Delivery Window:
+            Delivery Date & Time:
           </p>
           <p
             style={{
@@ -235,7 +235,7 @@ export function OfferCard({ offer, isLowestPrice, onAccept, onMessage }: OfferCa
               margin: 0,
             }}
           >
-            {formatDate(offer.delivery_window_start)} - {formatDate(offer.delivery_window_end)}
+            {formatDate(offer.delivery_window_start)} {new Date(offer.delivery_window_start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
       )}
