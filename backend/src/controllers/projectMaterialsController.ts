@@ -27,26 +27,30 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
   // Get materials with supplier and SKU info
   const result = await pool.query(
     `SELECT
-      pm.*,
+      pm.id,
+      pm.project_id,
+      pm.sku_id,
+      pm.custom_name,
+      pm.description,
+      pm.quantity,
+      pm.unit as material_unit,
+      pm.status,
+      pm.supplier_id,
+      pm.unit_price,
+      pm.estimated_total,
+      pm.cart_item_id,
+      pm.rfq_id,
+      pm.order_id,
+      pm.template_slug,
+      pm.template_calculation_id,
+      pm.sort_order,
+      pm.created_at,
+      pm.updated_at,
       s.name_en as sku_name_en,
       s.name_ka as sku_name_ka,
       s.unit as sku_unit,
       s.images as sku_images,
-      sup.id as supplier_id,
-      COALESCE(sup.business_name_en, sup.business_name_ka) as supplier_name,
-      (
-        SELECT json_agg(json_build_object(
-          'supplier_id', sup2.id,
-          'supplier_name', COALESCE(sup2.business_name_en, sup2.business_name_ka),
-          'unit_price', s2.unit_price,
-          'sku_id', s2.id
-        ))
-        FROM skus s2
-        JOIN suppliers sup2 ON s2.supplier_id = sup2.id
-        WHERE LOWER(COALESCE(s2.name_en, s2.name_ka)) = LOWER(COALESCE(s.name_en, s.name_ka, pm.custom_name))
-          AND s2.is_active = true
-          AND sup2.is_active = true
-      ) as available_suppliers
+      COALESCE(sup.business_name_en, sup.business_name_ka) as supplier_name
     FROM project_materials pm
     LEFT JOIN skus s ON pm.sku_id = s.id
     LEFT JOIN suppliers sup ON pm.supplier_id = sup.id
@@ -62,7 +66,7 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
     name: row.custom_name || row.sku_name_en || row.sku_name_ka,
     description: row.description,
     quantity: parseFloat(row.quantity),
-    unit: row.unit || row.sku_unit,
+    unit: row.material_unit || row.sku_unit,
     status: row.status,
     supplier_id: row.supplier_id,
     supplier_name: row.supplier_name,
@@ -74,7 +78,7 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
     order_id: row.order_id,
     cart_item_id: row.cart_item_id,
     images: row.sku_images,
-    available_suppliers: row.available_suppliers || [],
+    available_suppliers: [],
     sort_order: row.sort_order,
     created_at: row.created_at,
     updated_at: row.updated_at,
