@@ -104,13 +104,15 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
           return;
         }
 
-        const createResponse = await api.post<{ id: string }>('/buyers/projects', {
+        const createResponse = await api.post<{ success: boolean; data: { id: string } }>('/buyers/projects', {
           name: newProjectName.trim(),
         });
 
         if (createResponse.success && createResponse.data) {
-          // createProject returns data directly as the project object
-          projectId = (createResponse.data as any).id;
+          // api.ts wraps response, so: createResponse.data = backend response { success, data: project }
+          const backendData = createResponse.data as any;
+          projectId = backendData.data?.id || backendData.id;
+          console.log('Created project:', backendData, 'projectId:', projectId);
         } else {
           throw new Error('Failed to create project');
         }
