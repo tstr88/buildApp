@@ -104,12 +104,13 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
           return;
         }
 
-        const createResponse = await api.post<{ project?: { id: string }; data?: { id: string } }>('/buyers/projects', {
+        const createResponse = await api.post<{ id: string }>('/buyers/projects', {
           name: newProjectName.trim(),
         });
 
-        if (createResponse.success) {
-          projectId = createResponse.data?.project?.id || createResponse.data?.data?.id;
+        if (createResponse.success && createResponse.data) {
+          // createProject returns data directly as the project object
+          projectId = (createResponse.data as any).id;
         } else {
           throw new Error('Failed to create project');
         }
@@ -460,18 +461,18 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
                     marginTop: spacing[4],
                     padding: spacing[3],
                     backgroundColor: colors.error[50] || '#FEF2F2',
-                    border: `1px solid ${colors.error[200] || colors.error}`,
+                    border: `1px solid ${colors.error[200] || '#E53935'}`,
                     borderRadius: borderRadius.md,
                     display: 'flex',
                     alignItems: 'center',
                     gap: spacing[2],
                   }}
                 >
-                  <Icons.AlertCircle size={16} color={colors.error[600] || colors.error} />
+                  <Icons.AlertCircle size={16} color={colors.error[600] || '#E53935'} />
                   <span
                     style={{
                       fontSize: typography.fontSize.sm,
-                      color: colors.error[700] || colors.error,
+                      color: colors.error[700] || '#D32F2F',
                     }}
                   >
                     {error}
