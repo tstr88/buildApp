@@ -33,6 +33,24 @@ import {
   getOrderById,
   getAvailableWindows,
 } from '../../controllers/ordersController';
+import {
+  getProjectMaterials,
+  addProjectMaterials,
+  updateProjectMaterial,
+  deleteProjectMaterial,
+  bulkUpdateMaterialStatus,
+  getAvailableSuppliersForMaterial,
+} from '../../controllers/projectMaterialsController';
+import {
+  getCart,
+  getCartCount,
+  addToCart,
+  bulkAddToCart,
+  updateCartItem,
+  removeFromCart,
+  clearCart,
+  checkoutCart,
+} from '../../controllers/cartController';
 import pool from '../../config/database';
 import { success } from '../../utils/responseHelpers';
 import { emitWindowAccepted, emitWindowProposed } from '../../websocket';
@@ -83,6 +101,98 @@ router.put('/projects/:id', asyncHandler(updateProject));
  * Delete a project
  */
 router.delete('/projects/:id', asyncHandler(deleteProject));
+
+// =============================================================================
+// PROJECT MATERIALS ROUTES
+// =============================================================================
+
+/**
+ * GET /api/buyers/projects/:projectId/materials
+ * Get all materials for a project
+ */
+router.get('/projects/:projectId/materials', asyncHandler(getProjectMaterials));
+
+/**
+ * POST /api/buyers/projects/:projectId/materials
+ * Add materials to a project
+ */
+router.post('/projects/:projectId/materials', asyncHandler(addProjectMaterials));
+
+/**
+ * PUT /api/buyers/projects/:projectId/materials/:materialId
+ * Update a project material
+ */
+router.put('/projects/:projectId/materials/:materialId', asyncHandler(updateProjectMaterial));
+
+/**
+ * DELETE /api/buyers/projects/:projectId/materials/:materialId
+ * Delete a project material
+ */
+router.delete('/projects/:projectId/materials/:materialId', asyncHandler(deleteProjectMaterial));
+
+/**
+ * PUT /api/buyers/projects/:projectId/materials/bulk-status
+ * Bulk update material statuses
+ */
+router.put('/projects/:projectId/materials/bulk-status', asyncHandler(bulkUpdateMaterialStatus));
+
+/**
+ * GET /api/buyers/materials/:materialId/suppliers
+ * Get available suppliers for a material
+ */
+router.get('/materials/:materialId/suppliers', asyncHandler(getAvailableSuppliersForMaterial));
+
+// =============================================================================
+// CART ROUTES
+// =============================================================================
+
+/**
+ * GET /api/buyers/cart
+ * Get user's cart with items grouped by supplier
+ */
+router.get('/cart', asyncHandler(getCart));
+
+/**
+ * GET /api/buyers/cart/count
+ * Get cart item count for badge
+ */
+router.get('/cart/count', asyncHandler(getCartCount));
+
+/**
+ * POST /api/buyers/cart
+ * Add item to cart
+ */
+router.post('/cart', asyncHandler(addToCart));
+
+/**
+ * POST /api/buyers/cart/bulk
+ * Add multiple items to cart
+ */
+router.post('/cart/bulk', asyncHandler(bulkAddToCart));
+
+/**
+ * PUT /api/buyers/cart/:cartItemId
+ * Update cart item
+ */
+router.put('/cart/:cartItemId', asyncHandler(updateCartItem));
+
+/**
+ * DELETE /api/buyers/cart/:cartItemId
+ * Remove item from cart
+ */
+router.delete('/cart/:cartItemId', asyncHandler(removeFromCart));
+
+/**
+ * DELETE /api/buyers/cart
+ * Clear entire cart
+ */
+router.delete('/cart', asyncHandler(clearCart));
+
+/**
+ * POST /api/buyers/cart/checkout
+ * Checkout cart - creates orders/RFQs
+ */
+router.post('/cart/checkout', asyncHandler(checkoutCart));
 
 /**
  * GET /api/buyers/rfqs/stats

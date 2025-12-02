@@ -11,6 +11,7 @@ import { TemplateCard } from '../components/home/TemplateCard';
 import { QuickLinkButton } from '../components/home/QuickLinkButton';
 import { EmptyState } from '../components/common/EmptyState';
 import { NotificationBell } from '../components/navigation/NotificationBell';
+import { CartIcon } from '../components/navigation/CartIcon';
 import { getBuyerHome, getPublishedTemplates } from '../services/api/homeService';
 import { colors, spacing, typography, shadows, borderRadius } from '../theme/tokens';
 import { API_BASE_URL } from '../services/api/client';
@@ -232,8 +233,11 @@ export const BuyerHome: React.FC = () => {
             buildApp
           </div>
 
-          {/* Notification Bell */}
-          <NotificationBell count={notificationCount} variant="light" />
+          {/* Cart and Notification Icons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[1] }}>
+            <CartIcon variant="light" />
+            <NotificationBell count={notificationCount} variant="light" />
+          </div>
         </div>
       </header>
 

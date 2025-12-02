@@ -12,6 +12,7 @@ import type { PillOption } from '../forms/PillSelector';
 import { BOMTable } from '../bom/BOMTable';
 import { SafetyNoticeCard } from '../common/SafetyNoticeCard';
 import type { SafetyNotice } from '../common/SafetyNoticeCard';
+import { SaveToProjectModal } from '../modals/SaveToProjectModal';
 import { Icons } from '../icons/Icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
 import type {
@@ -59,6 +60,7 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
   );
   const [isCalculating, setIsCalculating] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [showSaveModal, setShowSaveModal] = useState(false);
 
   // Style options
   const styleOptions: PillOption[] = [
@@ -470,12 +472,9 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
               marginTop: spacing[6],
             }}
           >
-            {/* Primary: Request Offers */}
+            {/* Primary: Save to Project */}
             <button
-              onClick={() => {
-                // Navigate to RFQ builder with pre-filled data
-                navigate('/rfq/create', { state: { bom: calculationResult.bom } });
-              }}
+              onClick={() => setShowSaveModal(true)}
               style={{
                 flex: isMobile ? 'none' : 1,
                 padding: `${spacing[4]} ${spacing[6]}`,
@@ -500,48 +499,14 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
                 e.currentTarget.style.backgroundColor = colors.primary[600];
               }}
             >
-              {t('fence.actions.requestOffers')}
-              <ChevronIcon size={20} />
+              <Icons.FolderPlus size={20} />
+              {t('fence.actions.saveToProject', 'Save to Project')}
             </button>
 
-            {/* Secondary: Direct Order */}
+            {/* Secondary: Request Offers (direct to RFQ) */}
             <button
               onClick={() => {
-                // Navigate to direct order page
-                navigate('/orders/direct');
-              }}
-              style={{
-                flex: isMobile ? 'none' : 1,
-                padding: `${spacing[4]} ${spacing[6]}`,
-                fontSize: typography.fontSize.base,
-                fontWeight: typography.fontWeight.semibold,
-                color: colors.neutral[0],
-                backgroundColor: colors.success[600],
-                border: 'none',
-                borderRadius: borderRadius.lg,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: spacing[2],
-                transition: 'all 200ms ease',
-                minHeight: '52px',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = colors.success[700];
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = colors.success[600];
-              }}
-            >
-              <Icons.Zap size={20} />
-              {t('fence.actions.directOrder')}
-            </button>
-
-            {/* Tertiary: Tool Rental */}
-            <button
-              onClick={() => {
-                navigate('/tools/rental');
+                navigate('/rfq/create', { state: { bom: calculationResult.bom } });
               }}
               style={{
                 flex: isMobile ? 'none' : 1,
@@ -562,6 +527,39 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = colors.primary[50];
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = colors.neutral[0];
+              }}
+            >
+              {t('fence.actions.requestOffers')}
+              <ChevronIcon size={20} />
+            </button>
+
+            {/* Tertiary: Tool Rental */}
+            <button
+              onClick={() => {
+                navigate('/tools/rental');
+              }}
+              style={{
+                flex: isMobile ? 'none' : 1,
+                padding: `${spacing[4]} ${spacing[6]}`,
+                fontSize: typography.fontSize.base,
+                fontWeight: typography.fontWeight.medium,
+                color: colors.text.secondary,
+                backgroundColor: colors.neutral[0],
+                border: `1px solid ${colors.border.default}`,
+                borderRadius: borderRadius.lg,
+                cursor: 'pointer',
+                transition: 'all 200ms ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: spacing[2],
+                minHeight: '52px',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = colors.neutral[50];
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = colors.neutral[0];
@@ -674,6 +672,18 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
             </div>
           </div>
         </div>
+      )}
+
+      {/* Save to Project Modal */}
+      {calculationResult && (
+        <SaveToProjectModal
+          isOpen={showSaveModal}
+          onClose={() => setShowSaveModal(false)}
+          bom={calculationResult.bom}
+          templateSlug="fence"
+          templateInputs={calculationResult.inputs}
+          totalPrice={calculationResult.totalPrice}
+        />
       )}
     </div>
   );

@@ -23,6 +23,7 @@ interface MenuItem {
 const BUYER_MENU: MenuItem[] = [
   { id: 'home', icon: 'Home', labelKey: 'nav.home', path: '/home' },
   { id: 'projects', icon: 'Projects', labelKey: 'nav.projects', path: '/projects' },
+  { id: 'cart', icon: 'ShoppingCart', labelKey: 'nav.cart', path: '/cart' },
   { id: 'requests', icon: 'RFQs', labelKey: 'nav.requests', path: '/rfqs' },
   { id: 'catalog', icon: 'Catalog', labelKey: 'nav.catalog', path: '/catalog' },
   { id: 'rentals', icon: 'Rentals', labelKey: 'nav.rentals', path: '/rentals' },

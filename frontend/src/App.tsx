@@ -27,6 +27,8 @@ const SlabTemplate = lazy(() => import('./pages/SlabTemplate').then(m => ({ defa
 const Projects = lazy(() => import('./pages/Projects'));
 const ProjectForm = lazy(() => import('./pages/ProjectForm'));
 const ProjectDetail = lazy(() => import('./pages/ProjectDetail'));
+const ProjectMaterials = lazy(() => import('./pages/ProjectMaterials'));
+const Cart = lazy(() => import('./pages/Cart'));
 const RFQs = lazy(() => import('./pages/RFQs').then(m => ({ default: m.RFQs })));
 const CreateRFQ = lazy(() => import('./pages/CreateRFQ').then(m => ({ default: m.CreateRFQ })));
 const RFQDetail = lazy(() => import('./pages/RFQDetail').then(m => ({ default: m.RFQDetail })));
@@ -162,6 +164,10 @@ function App() {
             <Route path="/projects/new" element={<ProjectForm />} />
             <Route path="/projects/:id" element={<ProjectDetail />} />
             <Route path="/projects/:id/edit" element={<ProjectForm />} />
+            <Route path="/projects/:projectId/materials" element={<ProjectMaterials />} />
+
+            {/* Cart route */}
+            <Route path="/cart" element={<Cart />} />
 
             {/* RFQ routes */}
             <Route path="/rfqs" element={<RFQs />} />
