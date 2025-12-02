@@ -268,10 +268,38 @@ export default function ProjectDetail() {
 // Overview Tab Component
 function OverviewTab({ project, onDelete }: { project: ProjectDetailType['project']; onDelete: () => void }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const hasLocation = project.latitude !== null && project.longitude !== null;
 
   return (
     <div>
+      {/* Materials Quick Action */}
+      <button
+        onClick={() => navigate(`/projects/${project.id}/materials`)}
+        style={{
+          width: '100%',
+          padding: spacing[4],
+          backgroundColor: colors.primary[600],
+          color: colors.text.inverse,
+          border: 'none',
+          borderRadius: borderRadius.lg,
+          fontWeight: typography.fontWeight.semibold,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: spacing[2],
+          cursor: 'pointer',
+          marginBottom: spacing[6],
+          fontSize: typography.fontSize.base,
+          transition: 'background-color 200ms ease',
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.primary[700]}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary[600]}
+      >
+        <Icons.ClipboardCheck size={20} />
+        {t('projects.detail.viewMaterials', 'View Materials List')}
+      </button>
+
       {/* Location */}
       {hasLocation && (
         <div style={{

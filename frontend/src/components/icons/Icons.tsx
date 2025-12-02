@@ -60,6 +60,7 @@ import {
   Globe,
   HelpCircle,
   Trash2,
+  ClipboardCheck,
 } from 'lucide-react';
 
 export const Icons = {
@@ -136,6 +137,7 @@ export const Icons = {
   Globe,
   HelpCircle,
   Trash2,
+  ClipboardCheck,
 } as const;
 
 export type IconName = keyof typeof Icons;
