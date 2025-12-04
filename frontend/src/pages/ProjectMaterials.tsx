@@ -284,6 +284,7 @@ export const ProjectMaterials: React.FC = () => {
             supplier_id: tool.supplier_id,
             supplier_name: tool.supplier_name || supplierInfo?.supplier_name || 'Unknown',
             location: supplierInfo?.location || null,
+            // Only allow direct booking if supplier supports it AND all tools have rental_tool_id
             direct_booking_available: supplierInfo?.direct_booking_available ?? false,
             tools: [],
             total: 0,
@@ -294,7 +295,13 @@ export const ProjectMaterials: React.FC = () => {
       }
     });
 
-    return Object.values(orderMap);
+    // Check if all tools in each order have rental_tool_id for direct booking
+    return Object.values(orderMap).map(order => ({
+      ...order,
+      // Disable direct booking if any tool doesn't have a rental_tool_id
+      direct_booking_available: order.direct_booking_available &&
+        order.tools.every(t => t.rental_tool_id != null && t.rental_tool_id !== ''),
+    }));
   }, [tools]);
 
   // Create direct order or RFQ
