@@ -58,7 +58,6 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
 
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
-  const [newProjectName, setNewProjectName] = useState('');
 
   // Fetch user's projects
   useEffect(() => {
@@ -89,34 +88,41 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
     }
   };
 
+  // Transform BOM items to materials format
+  const transformBomToMaterials = () => {
+    return bom.map((item, index) => ({
+      name: isGeorgian ? (item.specification_ka || item.specification) : (item.specification_en || item.specification),
+      description: item.category || null,
+      quantity: item.quantity,
+      unit: isGeorgian ? (item.unit_ka || item.unit) : (item.unit_en || item.unit),
+      unit_price: item.estimatedPrice || null,
+      estimated_total: item.estimatedPrice ? item.quantity * item.estimatedPrice : null,
+      status: 'need_to_buy',
+      sort_order: index,
+    }));
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setError(null);
 
     try {
-      let projectId = selectedProjectId;
-
-      // Create new project if needed
+      // If creating new project, redirect to project form with materials data
       if (isCreatingNew) {
-        if (!newProjectName.trim()) {
-          setError(t('project.errors.nameRequired', 'Project name is required'));
-          setSaving(false);
-          return;
-        }
-
-        const createResponse = await api.post<{ success: boolean; data: { id: string } }>('/buyers/projects', {
-          name: newProjectName.trim(),
+        onClose();
+        navigate('/projects/new', {
+          state: {
+            pendingMaterials: {
+              materials: transformBomToMaterials(),
+              template_slug: templateSlug,
+              template_inputs: templateInputs,
+            },
+          },
         });
-
-        if (createResponse.success && createResponse.data) {
-          // api.ts wraps response, so: createResponse.data = backend response { success, data: project }
-          const backendData = createResponse.data as any;
-          projectId = backendData.data?.id || backendData.id;
-          console.log('Created project:', backendData, 'projectId:', projectId);
-        } else {
-          throw new Error('Failed to create project');
-        }
+        return;
       }
+
+      const projectId = selectedProjectId;
 
       if (!projectId) {
         setError(t('project.errors.selectProject', 'Please select a project'));
@@ -124,21 +130,9 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
         return;
       }
 
-      // Transform BOM items to materials format
-      const materials = bom.map((item, index) => ({
-        name: isGeorgian ? (item.specification_ka || item.specification) : (item.specification_en || item.specification),
-        description: item.category || null,
-        quantity: item.quantity,
-        unit: isGeorgian ? (item.unit_ka || item.unit) : (item.unit_en || item.unit),
-        unit_price: item.estimatedPrice || null,
-        estimated_total: item.estimatedPrice ? item.quantity * item.estimatedPrice : null,
-        status: 'need_to_buy',
-        sort_order: index,
-      }));
-
-      // Add materials to project
+      // Add materials to existing project
       const addResponse = await api.post(`/buyers/projects/${projectId}/materials`, {
-        materials,
+        materials: transformBomToMaterials(),
         template_slug: templateSlug,
         template_inputs: templateInputs,
       });
@@ -328,35 +322,24 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
               </div>
 
               {isCreatingNew ? (
-                /* New Project Form */
-                <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontSize: typography.fontSize.sm,
-                      fontWeight: typography.fontWeight.medium,
-                      color: colors.text.primary,
-                      marginBottom: spacing[2],
-                    }}
-                  >
-                    {t('project.projectName', 'Project Name')}
-                  </label>
-                  <input
-                    type="text"
-                    value={newProjectName}
-                    onChange={(e) => setNewProjectName(e.target.value)}
-                    placeholder={t('project.projectNamePlaceholder', 'e.g., Home Renovation')}
-                    style={{
-                      width: '100%',
-                      padding: spacing[3],
-                      fontSize: typography.fontSize.base,
-                      border: `1px solid ${colors.border.default}`,
-                      borderRadius: borderRadius.md,
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                    autoFocus
-                  />
+                /* New Project Info */
+                <div
+                  style={{
+                    padding: spacing[4],
+                    backgroundColor: colors.primary[50],
+                    borderRadius: borderRadius.md,
+                    border: `1px solid ${colors.primary[200]}`,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[2] }}>
+                    <Icons.MapPin size={18} color={colors.primary[600]} />
+                    <span style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.primary[700] }}>
+                      {t('project.createNewWithLocation', 'Create New Project')}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, margin: 0 }}>
+                    {t('project.newProjectInfo', "You'll be redirected to create a new project with name, location, and address. Your materials will be saved automatically.")}
+                  </p>
                 </div>
               ) : (
                 /* Project List */
@@ -589,6 +572,11 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
                   }}
                 />
                 {t('common.saving', 'Saving...')}
+              </>
+            ) : isCreatingNew ? (
+              <>
+                {t('project.continueToCreate', 'Continue to Create Project')}
+                <Icons.ChevronRight size={18} />
               </>
             ) : (
               <>

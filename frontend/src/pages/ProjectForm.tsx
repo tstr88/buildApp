@@ -4,18 +4,38 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { projectsService } from '../services/api/projectsService';
+import { api } from '../services/api';
 import MapPinPicker from '../components/map/MapPinPicker';
 import { Icons } from '../components/icons/Icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 
+interface PendingMaterials {
+  materials: Array<{
+    name: string;
+    description: string | null;
+    quantity: number;
+    unit: string;
+    unit_price: number | null;
+    estimated_total: number | null;
+    status: string;
+    sort_order: number;
+  }>;
+  template_slug: string;
+  template_inputs: Record<string, any>;
+}
+
 export default function ProjectForm() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
   const isEditMode = !!id;
+
+  // Check for pending materials from calculator redirect
+  const pendingMaterials = (location.state as { pendingMaterials?: PendingMaterials } | null)?.pendingMaterials;
 
   const [isLoading, setIsLoading] = useState(isEditMode);
   const [isSaving, setIsSaving] = useState(false);
@@ -88,12 +108,32 @@ export default function ProjectForm() {
 
       if (isEditMode && id) {
         await projectsService.updateProject(id, data);
+        navigate('/projects');
       } else {
-        await projectsService.createProject(data);
-      }
+        // Create the project
+        const createdProject = await projectsService.createProject(data);
+        const projectId = createdProject.id;
 
-      // Navigate back to projects list
-      navigate('/projects');
+        // If we have pending materials from calculator, save them
+        if (pendingMaterials && projectId) {
+          try {
+            await api.post(`/buyers/projects/${projectId}/materials`, {
+              materials: pendingMaterials.materials,
+              template_slug: pendingMaterials.template_slug,
+              template_inputs: pendingMaterials.template_inputs,
+            });
+            // Navigate to materials page
+            navigate(`/projects/${projectId}/materials`);
+          } catch (materialErr) {
+            console.error('Failed to save materials:', materialErr);
+            // Still navigate to project, materials save failed
+            navigate(`/projects/${projectId}`);
+          }
+        } else {
+          // No pending materials, go to projects list
+          navigate('/projects');
+        }
+      }
     } catch (err: any) {
       console.error('Failed to save project:', err);
       setError(err.response?.data?.error || 'Failed to save project');
@@ -190,11 +230,51 @@ export default function ProjectForm() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} style={{ padding: spacing[4] }}>
+        {/* Pending Materials Banner */}
+        {pendingMaterials && (
+          <div style={{
+            backgroundColor: colors.primary[50],
+            border: `1px solid ${colors.primary[200]}`,
+            borderRadius: borderRadius.lg,
+            padding: spacing[4],
+            display: 'flex',
+            alignItems: 'flex-start',
+            marginBottom: spacing[6],
+          }}>
+            <Icons.Package style={{
+              width: '20px',
+              height: '20px',
+              color: colors.primary[600],
+              marginRight: spacing[3],
+              flexShrink: 0,
+              marginTop: '2px',
+            }} />
+            <div>
+              <p style={{
+                fontSize: typography.fontSize.sm,
+                fontWeight: typography.fontWeight.medium,
+                color: colors.primary[700],
+                margin: 0,
+                marginBottom: spacing[1],
+              }}>
+                {t('projects.form.materialsWillBeAdded', 'Materials will be added')}
+              </p>
+              <p style={{
+                fontSize: typography.fontSize.sm,
+                color: colors.text.secondary,
+                margin: 0,
+              }}>
+                {t('projects.form.materialsCount', '{{count}} materials from calculator will be saved to this project', { count: pendingMaterials.materials.length })}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Error Message */}
         {error && (
           <div style={{
             backgroundColor: '#FEF2F2',
-            border: `1px solid ${colors.error}`,
+            border: `1px solid ${colors.error[500] || '#F44336'}`,
             borderRadius: borderRadius.lg,
             padding: spacing[4],
             display: 'flex',
@@ -204,7 +284,7 @@ export default function ProjectForm() {
             <Icons.AlertCircle style={{
               width: '20px',
               height: '20px',
-              color: colors.error,
+              color: colors.error[500] || '#F44336',
               marginRight: spacing[2],
               flexShrink: 0,
               marginTop: '2px',
@@ -477,7 +557,9 @@ export default function ProjectForm() {
                 {t('common.saving')}
               </>
             ) : (
-              t('common.save')
+              pendingMaterials
+                ? t('projects.form.createAndAddMaterials', 'Create & Add Materials')
+                : t('common.save')
             )}
           </button>
         </div>
