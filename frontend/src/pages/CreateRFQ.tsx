@@ -1401,6 +1401,162 @@ export const CreateRFQ: React.FC = () => {
                 </div>
               </div>
 
+              {/* Delivery Details */}
+              <div
+                style={{
+                  backgroundColor: colors.neutral[0],
+                  borderRadius: borderRadius.lg,
+                  overflow: 'hidden',
+                  boxShadow: shadows.sm,
+                }}
+              >
+                <div
+                  style={{
+                    padding: spacing[4],
+                    borderBottom: `1px solid ${colors.border.light}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: spacing[3],
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: borderRadius.md,
+                      backgroundColor: colors.info[100],
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Icons.Truck size={18} color={colors.info[600]} />
+                  </div>
+                  <h3
+                    style={{
+                      fontSize: typography.fontSize.lg,
+                      fontWeight: typography.fontWeight.semibold,
+                      color: colors.text.primary,
+                      margin: 0,
+                    }}
+                  >
+                    Delivery Details
+                  </h3>
+                </div>
+                <div style={{ padding: spacing[4] }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+                    {/* Delivery Preference */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: spacing[3],
+                        padding: spacing[3],
+                        backgroundColor: colors.neutral[50],
+                        borderRadius: borderRadius.md,
+                      }}
+                    >
+                      {deliveryPreference === 'delivery' ? (
+                        <Icons.Truck size={18} color={colors.primary[600]} />
+                      ) : deliveryPreference === 'pickup' ? (
+                        <Icons.MapPin size={18} color={colors.primary[600]} />
+                      ) : (
+                        <Icons.ArrowLeftRight size={18} color={colors.primary[600]} />
+                      )}
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0 }}>
+                          Preference
+                        </p>
+                        <p style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.text.primary, margin: 0 }}>
+                          {deliveryPreference === 'delivery' ? 'Delivery' : deliveryPreference === 'pickup' ? 'Pickup' : 'Delivery or Pickup'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Delivery Address */}
+                    {(deliveryPreference === 'delivery' || deliveryPreference === 'both') && deliveryAddress && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: spacing[3],
+                          padding: spacing[3],
+                          backgroundColor: colors.neutral[50],
+                          borderRadius: borderRadius.md,
+                        }}
+                      >
+                        <Icons.MapPin size={18} color={colors.primary[600]} style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0 }}>
+                            Delivery Address
+                          </p>
+                          <p style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.text.primary, margin: 0 }}>
+                            {deliveryAddress}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Delivery Window */}
+                    {deliveryWindow && deliveryWindow.start_date && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: spacing[3],
+                          padding: spacing[3],
+                          backgroundColor: colors.neutral[50],
+                          borderRadius: borderRadius.md,
+                        }}
+                      >
+                        <Icons.Calendar size={18} color={colors.primary[600]} style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0 }}>
+                            {deliveryPreference === 'pickup' ? 'Pickup Window' : 'Delivery Window'}
+                          </p>
+                          <p style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.text.primary, margin: 0 }}>
+                            {new Date(deliveryWindow.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                            {deliveryWindow.end_date && deliveryWindow.end_date !== deliveryWindow.start_date && (
+                              <> - {new Date(deliveryWindow.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</>
+                            )}
+                          </p>
+                          {deliveryWindow.time_slot && (
+                            <p style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary, margin: 0, marginTop: spacing[1] }}>
+                              {deliveryWindow.time_slot === 'morning' ? 'Morning (8AM - 12PM)' :
+                               deliveryWindow.time_slot === 'afternoon' ? 'Afternoon (12PM - 6PM)' : 'Flexible timing'}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* No window set */}
+                    {(!deliveryWindow || !deliveryWindow.start_date) && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: spacing[3],
+                          padding: spacing[3],
+                          backgroundColor: colors.neutral[50],
+                          borderRadius: borderRadius.md,
+                        }}
+                      >
+                        <Icons.Clock size={18} color={colors.text.tertiary} />
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0 }}>
+                            {deliveryPreference === 'pickup' ? 'Pickup Window' : 'Delivery Window'}
+                          </p>
+                          <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, margin: 0 }}>
+                            Flexible - no specific date set
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* Suppliers */}
               <div
                 style={{
@@ -2339,6 +2495,105 @@ export const CreateRFQ: React.FC = () => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+
+                {/* Delivery Details - Desktop */}
+                <div style={{ backgroundColor: colors.neutral[0], border: `1px solid ${colors.border.light}`, borderRadius: borderRadius.lg, overflow: 'hidden', marginBottom: spacing[4] }}>
+                  <div style={{ padding: spacing[3], backgroundColor: colors.neutral[50], borderBottom: `1px solid ${colors.border.light}`, display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                    <Icons.Truck size={16} color={colors.info[600]} />
+                    <h4 style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold, color: colors.text.primary, margin: 0 }}>Delivery Details</h4>
+                  </div>
+                  <div style={{ padding: spacing[4] }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: spacing[4] }}>
+                      {/* Delivery Preference */}
+                      <div>
+                        <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0, marginBottom: spacing[1] }}>Preference</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                          {deliveryPreference === 'delivery' ? (
+                            <Icons.Truck size={16} color={colors.primary[600]} />
+                          ) : deliveryPreference === 'pickup' ? (
+                            <Icons.MapPin size={16} color={colors.primary[600]} />
+                          ) : (
+                            <Icons.ArrowLeftRight size={16} color={colors.primary[600]} />
+                          )}
+                          <p style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.text.primary, margin: 0 }}>
+                            {deliveryPreference === 'delivery' ? 'Delivery' : deliveryPreference === 'pickup' ? 'Pickup' : 'Either'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Delivery Window */}
+                      <div>
+                        <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0, marginBottom: spacing[1] }}>
+                          {deliveryPreference === 'pickup' ? 'Pickup Window' : 'Delivery Window'}
+                        </p>
+                        {deliveryWindow && deliveryWindow.start_date ? (
+                          <div>
+                            <p style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.text.primary, margin: 0 }}>
+                              {new Date(deliveryWindow.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                              {deliveryWindow.end_date && deliveryWindow.end_date !== deliveryWindow.start_date && (
+                                <> - {new Date(deliveryWindow.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</>
+                              )}
+                            </p>
+                            {deliveryWindow.time_slot && (
+                              <p style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary, margin: 0 }}>
+                                {deliveryWindow.time_slot === 'morning' ? 'Morning' : deliveryWindow.time_slot === 'afternoon' ? 'Afternoon' : 'Flexible'}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, margin: 0 }}>Flexible</p>
+                        )}
+                      </div>
+
+                      {/* Address */}
+                      <div>
+                        <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0, marginBottom: spacing[1] }}>
+                          {deliveryPreference === 'pickup' ? 'Pickup Location' : 'Delivery Address'}
+                        </p>
+                        <p style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.text.primary, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {deliveryAddress || 'Not specified'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Suppliers - Desktop */}
+                <div style={{ backgroundColor: colors.neutral[0], border: `1px solid ${colors.border.light}`, borderRadius: borderRadius.lg, overflow: 'hidden', marginBottom: spacing[4] }}>
+                  <div style={{ padding: spacing[3], backgroundColor: colors.neutral[50], borderBottom: `1px solid ${colors.border.light}`, display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                    <Icons.Building2 size={16} color={colors.success[600]} />
+                    <h4 style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold, color: colors.text.primary, margin: 0 }}>Recipients ({selectedSupplierIds.length})</h4>
+                  </div>
+                  <div style={{ padding: spacing[4] }}>
+                    {selectedSuppliers.length > 0 ? (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: spacing[2] }}>
+                        {selectedSuppliers.map((supplier) => (
+                          <div
+                            key={supplier.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: spacing[2],
+                              padding: `${spacing[2]} ${spacing[3]}`,
+                              backgroundColor: colors.primary[50],
+                              borderRadius: borderRadius.md,
+                            }}
+                          >
+                            <Icons.Building2 size={14} color={colors.primary[600]} />
+                            <span style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.text.primary }}>
+                              {supplier.business_name_en || supplier.business_name_ka || supplier.business_name}
+                            </span>
+                            <Icons.CheckCircle size={14} color={colors.success[600]} />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, margin: 0 }}>
+                        {selectedSupplierIds.length} suppliers selected
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Additional Notes */}
