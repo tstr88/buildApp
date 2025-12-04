@@ -168,10 +168,13 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
 
       // Add tools to existing project (if any)
       if (tools.length > 0) {
-        await api.post(`/buyers/projects/${projectId}/tools`, {
+        const toolsResponse = await api.post(`/buyers/projects/${projectId}/tools`, {
           tools: transformToolsToProjectTools(),
           template_slug: templateSlug,
         });
+        if (!toolsResponse.success) {
+          console.error('Failed to save tools:', toolsResponse);
+        }
       }
 
       if (addMaterialsResponse.success) {
