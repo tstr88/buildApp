@@ -257,7 +257,7 @@ export default function ProjectDetail() {
       <div style={{ padding: spacing[4] }}>
         {activeTab === 'overview' && <OverviewTab project={project} onDelete={handleDelete} />}
         {activeTab === 'rfqs' && <RFQsTab rfqs={rfqs} navigate={navigate} />}
-        {activeTab === 'orders' && <OrdersTab orders={orders} />}
+        {activeTab === 'orders' && <OrdersTab orders={orders} navigate={navigate} />}
         {activeTab === 'deliveries' && <DeliveriesTab deliveries={deliveries} />}
         {activeTab === 'rentals' && <RentalsTab rentals={rentals} />}
       </div>
@@ -534,7 +534,7 @@ function RFQsTab({ rfqs, navigate }: { rfqs: ProjectDetailType['rfqs']; navigate
 }
 
 // Orders Tab Component
-function OrdersTab({ orders }: { orders: ProjectDetailType['orders'] }) {
+function OrdersTab({ orders, navigate }: { orders: ProjectDetailType['orders']; navigate: (path: string) => void }) {
   const { t } = useTranslation();
 
   if (orders.length === 0) {
@@ -557,14 +557,28 @@ function OrdersTab({ orders }: { orders: ProjectDetailType['orders'] }) {
   return (
     <div>
       {orders.map((order, index) => (
-        <div key={order.id} style={{
-          backgroundColor: colors.neutral[0],
-          borderRadius: borderRadius.lg,
-          border: `1px solid ${colors.border.light}`,
-          padding: spacing[4],
-          boxShadow: shadows.sm,
-          marginBottom: index < orders.length - 1 ? spacing[3] : 0,
-        }}>
+        <div
+          key={order.id}
+          onClick={() => navigate(`/orders/${order.id}`)}
+          style={{
+            backgroundColor: colors.neutral[0],
+            borderRadius: borderRadius.lg,
+            border: `1px solid ${colors.border.light}`,
+            padding: spacing[4],
+            boxShadow: shadows.sm,
+            marginBottom: index < orders.length - 1 ? spacing[3] : 0,
+            cursor: 'pointer',
+            transition: 'all 200ms ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = shadows.md;
+            e.currentTarget.style.transform = 'translateY(-2px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = shadows.sm;
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
+        >
           <div style={{
             display: 'flex',
             alignItems: 'flex-start',
