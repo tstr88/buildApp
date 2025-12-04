@@ -20,6 +20,7 @@ import type {
   SlabInputs,
   SlabPurpose,
   SlabCalculationResult,
+  SlabToolItem,
 } from '../../types/slab';
 
 interface SlabCalculatorProps {
@@ -298,14 +299,91 @@ export const SlabCalculator: React.FC<SlabCalculatorProps> = ({ onCalculate }) =
       category: 'preparation',
     });
 
-    const totalPrice = bom.reduce(
+    const totalMaterialPrice = bom.reduce(
       (sum, item) => sum + item.quantity * item.estimatedPrice,
       0
     );
 
+    // Generate tool recommendations based on project size
+    const tools: SlabToolItem[] = [];
+
+    // Concrete vibrator - always needed for proper compaction
+    tools.push({
+      id: 'tool-1',
+      name: 'Concrete Vibrator',
+      name_ka: 'ბეტონის ვიბრატორი',
+      name_en: 'Concrete Vibrator',
+      category: 'Concrete Equipment',
+      rental_duration_days: 1,
+      daily_rate_estimate: 50,
+      estimated_total: 50,
+      notes: t('slab.tools.vibratorNote', 'Essential for removing air bubbles'),
+    });
+
+    // Concrete pump for larger volumes
+    if (pumpRecommended) {
+      tools.push({
+        id: 'tool-2',
+        name: 'Concrete Pump',
+        name_ka: 'ბეტონის ტუმბო',
+        name_en: 'Concrete Pump',
+        category: 'Concrete Equipment',
+        rental_duration_days: 1,
+        daily_rate_estimate: 300,
+        estimated_total: 300,
+        notes: t('slab.tools.pumpNote', 'Recommended for volumes over 3m³'),
+      });
+    } else {
+      // Concrete mixer for smaller jobs
+      tools.push({
+        id: 'tool-2',
+        name: 'Concrete Mixer',
+        name_ka: 'ბეტონის მიქსერი',
+        name_en: 'Concrete Mixer',
+        category: 'Concrete Equipment',
+        rental_duration_days: 1,
+        daily_rate_estimate: 80,
+        estimated_total: 80,
+      });
+    }
+
+    // Power trowel for larger slabs
+    if (area > 20) {
+      tools.push({
+        id: 'tool-3',
+        name: 'Power Trowel',
+        name_ka: 'ელექტრო შლიფმანქანა',
+        name_en: 'Power Trowel',
+        category: 'Finishing Equipment',
+        rental_duration_days: 1,
+        daily_rate_estimate: 120,
+        estimated_total: 120,
+        notes: t('slab.tools.trowelNote', 'For smooth finishing on larger slabs'),
+      });
+    }
+
+    // Plate compactor for sub-base
+    tools.push({
+      id: 'tool-4',
+      name: 'Plate Compactor',
+      name_ka: 'ფილის კომპაქტორი',
+      name_en: 'Plate Compactor',
+      category: 'Ground Preparation',
+      rental_duration_days: 1,
+      daily_rate_estimate: 70,
+      estimated_total: 70,
+      notes: t('slab.tools.compactorNote', 'For compacting gravel sub-base'),
+    });
+
+    const totalToolPrice = tools.reduce((sum, tool) => sum + tool.estimated_total, 0);
+    const totalPrice = totalMaterialPrice + totalToolPrice;
+
     return {
       inputs,
       bom,
+      tools,
+      totalMaterialPrice,
+      totalToolPrice,
       totalPrice,
       volume,
       area,
@@ -892,6 +970,7 @@ export const SlabCalculator: React.FC<SlabCalculatorProps> = ({ onCalculate }) =
           isOpen={showSaveModal}
           onClose={() => setShowSaveModal(false)}
           bom={calculationResult.bom}
+          tools={calculationResult.tools}
           templateSlug="slab"
           templateInputs={calculationResult.inputs}
           totalPrice={calculationResult.totalPrice}

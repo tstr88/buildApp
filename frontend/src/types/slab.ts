@@ -25,9 +25,24 @@ export interface SlabBOMItem {
   category: string;
 }
 
+export interface SlabToolItem {
+  id: string;
+  name: string;
+  name_ka: string;
+  name_en: string;
+  category: string;
+  rental_duration_days: number;
+  daily_rate_estimate: number;
+  estimated_total: number;
+  notes?: string;
+}
+
 export interface SlabCalculationResult {
   inputs: SlabInputs;
   bom: SlabBOMItem[];
+  tools: SlabToolItem[];
+  totalMaterialPrice: number;
+  totalToolPrice: number;
   totalPrice: number;
   volume: number; // m³
   area: number; // m²

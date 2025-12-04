@@ -65,6 +65,57 @@ interface SupplierOrder {
   total: number;
 }
 
+// Tool types
+interface ToolSupplier {
+  supplier_id: string;
+  supplier_name: string;
+  logo_url: string | null;
+  location: string | null;
+  is_verified: boolean;
+  direct_booking_available: boolean;
+  delivery_option: string;
+  trust_score: number | null;
+  rental_tool_id: string;
+  tool_name: string;
+  day_rate: number;
+  week_rate: number | null;
+  deposit_amount: number | null;
+  tools_available: number;
+  total_tools_needed: number;
+}
+
+interface ProjectTool {
+  id: string;
+  project_id: string;
+  rental_tool_id: string | null;
+  name: string;
+  category: string;
+  description: string | null;
+  rental_duration_days: number;
+  daily_rate_estimate: number | null;
+  estimated_total: number | null;
+  status: 'need_to_buy' | 'already_have' | 'in_cart' | 'rfq_sent' | 'ordered' | 'delivered';
+  supplier_id: string | null;
+  supplier_name: string | null;
+  template_slug: string | null;
+  rental_rfq_id: string | null;
+  booking_id: string | null;
+  direct_booking_available: boolean;
+  available_suppliers: ToolSupplier[];
+  sort_order: number;
+}
+
+interface SupplierToolOrder {
+  supplier_id: string;
+  supplier_name: string;
+  location: string | null;
+  direct_booking_available: boolean;
+  tools: ProjectTool[];
+  total: number;
+}
+
+type ActiveTab = 'materials' | 'tools';
+
 export const ProjectMaterials: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
@@ -72,12 +123,14 @@ export const ProjectMaterials: React.FC = () => {
 
   const [project, setProject] = useState<Project | null>(null);
   const [materials, setMaterials] = useState<ProjectMaterial[]>([]);
+  const [tools, setTools] = useState<ProjectTool[]>([]);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('materials');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
   const [creatingOrder, setCreatingOrder] = useState<string | null>(null);
 
-  // Fetch project and materials
+  // Fetch project, materials, and tools
   const fetchData = useCallback(async () => {
     if (!projectId) return;
 
@@ -85,18 +138,27 @@ export const ProjectMaterials: React.FC = () => {
     setError(null);
 
     try {
-      const projectRes = await api.get<{ project?: Project; data?: Project }>(`/buyers/projects/${projectId}`);
+      const [projectRes, materialsRes, toolsRes] = await Promise.all([
+        api.get<{ project?: Project; data?: Project }>(`/buyers/projects/${projectId}`),
+        api.get<{ materials?: ProjectMaterial[]; data?: { materials?: ProjectMaterial[] } }>(`/buyers/projects/${projectId}/materials`),
+        api.get<{ tools?: ProjectTool[]; data?: { tools?: ProjectTool[] } }>(`/buyers/projects/${projectId}/tools`),
+      ]);
+
       if (projectRes.success) {
         setProject(projectRes.data?.project || projectRes.data as Project);
       }
 
-      const materialsRes = await api.get<{ materials?: ProjectMaterial[]; data?: { materials?: ProjectMaterial[] } }>(`/buyers/projects/${projectId}/materials`);
       if (materialsRes.success) {
         const mats = materialsRes.data?.materials || materialsRes.data?.data?.materials || [];
         setMaterials(Array.isArray(mats) ? mats : []);
       }
+
+      if (toolsRes.success) {
+        const toolsList = toolsRes.data?.tools || toolsRes.data?.data?.tools || [];
+        setTools(Array.isArray(toolsList) ? toolsList : []);
+      }
     } catch (err) {
-      console.error('Failed to fetch project materials:', err);
+      console.error('Failed to fetch project data:', err);
       setError(t('common.errorFetchingData', 'Failed to load data'));
     } finally {
       setLoading(false);
@@ -210,6 +272,31 @@ export const ProjectMaterials: React.FC = () => {
     return Object.values(orderMap);
   }, [materials]);
 
+  // Group tools by selected supplier into orders
+  const supplierToolOrders = useMemo((): SupplierToolOrder[] => {
+    const orderMap: Record<string, SupplierToolOrder> = {};
+
+    tools.forEach(tool => {
+      if ((tool.status === 'need_to_buy' || tool.status === 'rfq_sent') && tool.supplier_id) {
+        if (!orderMap[tool.supplier_id]) {
+          const supplierInfo = tool.available_suppliers.find(s => s.supplier_id === tool.supplier_id);
+          orderMap[tool.supplier_id] = {
+            supplier_id: tool.supplier_id,
+            supplier_name: tool.supplier_name || supplierInfo?.supplier_name || 'Unknown',
+            location: supplierInfo?.location || null,
+            direct_booking_available: supplierInfo?.direct_booking_available ?? false,
+            tools: [],
+            total: 0,
+          };
+        }
+        orderMap[tool.supplier_id].tools.push(tool);
+        orderMap[tool.supplier_id].total += tool.estimated_total || 0;
+      }
+    });
+
+    return Object.values(orderMap);
+  }, [tools]);
+
   // Create direct order or RFQ
   const handleCreateOrder = async (order: SupplierOrder, type: 'direct' | 'rfq') => {
     setCreatingOrder(order.supplier_id);
@@ -257,7 +344,7 @@ export const ProjectMaterials: React.FC = () => {
     }
   };
 
-  // Calculate totals
+  // Calculate material totals
   const totals = useMemo(() => {
     return materials.reduce(
       (acc, m) => {
@@ -277,6 +364,116 @@ export const ProjectMaterials: React.FC = () => {
       { totalItems: 0, totalEstimate: 0, needToBuy: 0, withSupplier: 0, alreadyHave: 0, rfqSent: 0, ordered: 0 }
     );
   }, [materials]);
+
+  // Calculate tool totals
+  const toolTotals = useMemo(() => {
+    return tools.reduce(
+      (acc, t) => {
+        if (t.status !== 'already_have') {
+          acc.totalItems++;
+          acc.totalEstimate += t.estimated_total || 0;
+        }
+        if (t.status === 'need_to_buy') {
+          acc.needToRent++;
+          if (t.supplier_id) acc.withSupplier++;
+        }
+        if (t.status === 'already_have') acc.alreadyHave++;
+        if (t.status === 'rfq_sent') acc.rfqSent++;
+        if (t.status === 'ordered' || t.status === 'delivered') acc.booked++;
+        return acc;
+      },
+      { totalItems: 0, totalEstimate: 0, needToRent: 0, withSupplier: 0, alreadyHave: 0, rfqSent: 0, booked: 0 }
+    );
+  }, [tools]);
+
+  // Update tool supplier
+  const updateToolSupplier = async (toolId: string, supplier: ToolSupplier) => {
+    const tool = tools.find(t => t.id === toolId);
+    if (!tool) return;
+
+    // Optimistic update
+    setTools(prev => prev.map(t => {
+      if (t.id === toolId) {
+        return {
+          ...t,
+          supplier_id: supplier.supplier_id,
+          supplier_name: supplier.supplier_name,
+          rental_tool_id: supplier.rental_tool_id,
+          daily_rate_estimate: supplier.day_rate,
+          estimated_total: t.rental_duration_days * supplier.day_rate,
+        };
+      }
+      return t;
+    }));
+
+    // Save in background
+    setSavingIds(prev => new Set(prev).add(toolId));
+    try {
+      await api.put(`/buyers/projects/${projectId}/tools/${toolId}`, {
+        supplier_id: supplier.supplier_id,
+        supplier_name: supplier.supplier_name,
+      });
+    } catch (err) {
+      console.error('Failed to update tool supplier:', err);
+      // Revert on error
+      setTools(prev => prev.map(t => {
+        if (t.id === toolId) {
+          return { ...tool };
+        }
+        return t;
+      }));
+    } finally {
+      setSavingIds(prev => {
+        const next = new Set(prev);
+        next.delete(toolId);
+        return next;
+      });
+    }
+  };
+
+  // Handle tool order (rental RFQ or direct booking)
+  const handleCreateToolOrder = async (order: SupplierToolOrder, type: 'direct' | 'rfq') => {
+    setCreatingOrder(order.supplier_id);
+    try {
+      if (type === 'direct') {
+        // Navigate to direct rental booking
+        navigate('/rentals/book', {
+          state: {
+            tools: order.tools.map(t => ({
+              project_tool_id: t.id,
+              rental_tool_id: t.rental_tool_id,
+              name: t.name,
+              duration_days: t.rental_duration_days,
+              daily_rate: t.daily_rate_estimate,
+            })),
+            project_id: projectId,
+            supplier_id: order.supplier_id,
+          },
+        });
+      } else {
+        // Navigate to rental RFQ creation
+        const rfqData = {
+          project_id: projectId,
+          supplier_id: order.supplier_id,
+          tools: order.tools.map(t => ({
+            project_tool_id: t.id,
+            rental_tool_id: t.rental_tool_id,
+            name: t.name,
+            category: t.category,
+            duration_days: t.rental_duration_days,
+          })),
+        };
+
+        sessionStorage.setItem('rental_rfq_prefill', JSON.stringify(rfqData));
+        navigate('/rentals/rfq/create');
+      }
+    } catch (err) {
+      console.error('Failed to create tool order:', err);
+      alert(t('common.error', 'An error occurred'));
+    } finally {
+      setCreatingOrder(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -444,65 +641,220 @@ export const ProjectMaterials: React.FC = () => {
         )}
       </div>
 
-      {/* Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: spacing[3], marginBottom: spacing[6] }}>
-        <SummaryCard label={t('project.needToBuy', 'Need to Buy')} value={totals.needToBuy} color={colors.warning[600] || '#EAB308'} bgColor={colors.warning[50] || '#FEF9C3'} />
-        <SummaryCard label={t('project.withSupplier', 'With Supplier')} value={totals.withSupplier} color={colors.primary[600]} bgColor={colors.primary[50]} />
-        <SummaryCard label={t('project.alreadyHave', 'Already Have')} value={totals.alreadyHave} color={colors.neutral[600]} bgColor={colors.neutral[100]} />
-        <SummaryCard label={t('project.rfqSent', 'RFQ Sent')} value={totals.rfqSent} color={colors.info?.[600] || '#0891B2'} bgColor={colors.info?.[50] || '#ECFEFF'} />
-      </div>
+      {/* Tab Selector - only show if there are tools */}
+      {tools.length > 0 && (
+        <div style={{
+          display: 'flex',
+          backgroundColor: colors.neutral[100],
+          borderRadius: borderRadius.lg,
+          padding: '4px',
+          marginBottom: spacing[6],
+        }}>
+          <button
+            onClick={() => setActiveTab('materials')}
+            style={{
+              flex: 1,
+              padding: `${spacing[3]} ${spacing[4]}`,
+              fontSize: typography.fontSize.base,
+              fontWeight: typography.fontWeight.medium,
+              color: activeTab === 'materials' ? colors.text.inverse : colors.text.secondary,
+              backgroundColor: activeTab === 'materials' ? colors.primary[600] : 'transparent',
+              border: 'none',
+              borderRadius: borderRadius.md,
+              cursor: 'pointer',
+              transition: 'all 200ms ease',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: spacing[2],
+            }}
+          >
+            <Icons.Package size={18} />
+            {t('project.materials', 'Materials')}
+            <span style={{
+              backgroundColor: activeTab === 'materials' ? 'rgba(255,255,255,0.2)' : colors.neutral[200],
+              padding: `${spacing[1]} ${spacing[2]}`,
+              borderRadius: borderRadius.full,
+              fontSize: typography.fontSize.xs,
+              fontWeight: typography.fontWeight.semibold,
+            }}>
+              {materials.length}
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveTab('tools')}
+            style={{
+              flex: 1,
+              padding: `${spacing[3]} ${spacing[4]}`,
+              fontSize: typography.fontSize.base,
+              fontWeight: typography.fontWeight.medium,
+              color: activeTab === 'tools' ? colors.text.inverse : colors.text.secondary,
+              backgroundColor: activeTab === 'tools' ? colors.primary[600] : 'transparent',
+              border: 'none',
+              borderRadius: borderRadius.md,
+              cursor: 'pointer',
+              transition: 'all 200ms ease',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: spacing[2],
+            }}
+          >
+            <Icons.Wrench size={18} />
+            {t('project.tools', 'Tool Rentals')}
+            <span style={{
+              backgroundColor: activeTab === 'tools' ? 'rgba(255,255,255,0.2)' : colors.neutral[200],
+              padding: `${spacing[1]} ${spacing[2]}`,
+              borderRadius: borderRadius.full,
+              fontSize: typography.fontSize.xs,
+              fontWeight: typography.fontWeight.semibold,
+            }}>
+              {tools.length}
+            </span>
+          </button>
+        </div>
+      )}
 
-      {materials.length === 0 ? (
-        <EmptyState navigate={navigate} t={t} />
+      {/* Summary Cards - show based on active tab */}
+      {activeTab === 'materials' ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: spacing[3], marginBottom: spacing[6] }}>
+          <SummaryCard label={t('project.needToBuy', 'Need to Buy')} value={totals.needToBuy} color={colors.warning[600] || '#EAB308'} bgColor={colors.warning[50] || '#FEF9C3'} />
+          <SummaryCard label={t('project.withSupplier', 'With Supplier')} value={totals.withSupplier} color={colors.primary[600]} bgColor={colors.primary[50]} />
+          <SummaryCard label={t('project.alreadyHave', 'Already Have')} value={totals.alreadyHave} color={colors.neutral[600]} bgColor={colors.neutral[100]} />
+          <SummaryCard label={t('project.rfqSent', 'RFQ Sent')} value={totals.rfqSent} color={colors.info?.[600] || '#0891B2'} bgColor={colors.info?.[50] || '#ECFEFF'} />
+        </div>
       ) : (
-        <>
-          {/* Materials Section */}
-          <div style={{ marginBottom: spacing[8] }}>
-            <h2 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, marginBottom: spacing[4], display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-              <Icons.Package size={20} />
-              {t('project.materialsList', 'Materials List')}
-            </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: spacing[3], marginBottom: spacing[6] }}>
+          <SummaryCard label={t('project.needToRent', 'Need to Rent')} value={toolTotals.needToRent} color={colors.warning[600] || '#EAB308'} bgColor={colors.warning[50] || '#FEF9C3'} />
+          <SummaryCard label={t('project.withSupplier', 'With Supplier')} value={toolTotals.withSupplier} color={colors.primary[600]} bgColor={colors.primary[50]} />
+          <SummaryCard label={t('project.alreadyHave', 'Already Have')} value={toolTotals.alreadyHave} color={colors.neutral[600]} bgColor={colors.neutral[100]} />
+          <SummaryCard label={t('project.rfqSent', 'RFQ Sent')} value={toolTotals.rfqSent} color={colors.info?.[600] || '#0891B2'} bgColor={colors.info?.[50] || '#ECFEFF'} />
+        </div>
+      )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
-              {materials.map(material => (
-                <MaterialCard
-                  key={material.id}
-                  material={material}
-                  onSupplierSelect={(supplier) => updateSupplier(material.id, supplier)}
-                  onMarkAsHave={() => markAsHave(material.id)}
-                  isSaving={savingIds.has(material.id)}
-                  t={t}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Orders Section */}
-          {supplierOrders.length > 0 && (
-            <div>
+      {/* Materials Tab Content */}
+      {activeTab === 'materials' && (
+        materials.length === 0 ? (
+          <EmptyState navigate={navigate} t={t} />
+        ) : (
+          <>
+            {/* Materials Section */}
+            <div style={{ marginBottom: spacing[8] }}>
               <h2 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, marginBottom: spacing[4], display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-                <Icons.ShoppingCart size={20} />
-                {t('project.yourOrders', 'Your Orders')}
-                <span style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.normal, color: colors.text.secondary }}>
-                  ({supplierOrders.length} {t('project.suppliers', 'suppliers')})
-                </span>
+                <Icons.Package size={20} />
+                {t('project.materialsList', 'Materials List')}
               </h2>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4] }}>
-                {supplierOrders.map(order => (
-                  <OrderCard
-                    key={order.supplier_id}
-                    order={order}
-                    onDirectOrder={() => handleCreateOrder(order, 'direct')}
-                    onSendRFQ={() => handleCreateOrder(order, 'rfq')}
-                    isCreating={creatingOrder === order.supplier_id}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+                {materials.map(material => (
+                  <MaterialCard
+                    key={material.id}
+                    material={material}
+                    onSupplierSelect={(supplier) => updateSupplier(material.id, supplier)}
+                    onMarkAsHave={() => markAsHave(material.id)}
+                    isSaving={savingIds.has(material.id)}
                     t={t}
                   />
                 ))}
               </div>
             </div>
-          )}
-        </>
+
+            {/* Orders Section */}
+            {supplierOrders.length > 0 && (
+              <div>
+                <h2 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, marginBottom: spacing[4], display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                  <Icons.ShoppingCart size={20} />
+                  {t('project.yourOrders', 'Your Orders')}
+                  <span style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.normal, color: colors.text.secondary }}>
+                    ({supplierOrders.length} {t('project.suppliers', 'suppliers')})
+                  </span>
+                </h2>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4] }}>
+                  {supplierOrders.map(order => (
+                    <OrderCard
+                      key={order.supplier_id}
+                      order={order}
+                      onDirectOrder={() => handleCreateOrder(order, 'direct')}
+                      onSendRFQ={() => handleCreateOrder(order, 'rfq')}
+                      isCreating={creatingOrder === order.supplier_id}
+                      t={t}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )
+      )}
+
+      {/* Tools Tab Content */}
+      {activeTab === 'tools' && (
+        tools.length === 0 ? (
+          <div style={{
+            padding: spacing[8],
+            textAlign: 'center',
+            backgroundColor: colors.neutral[50],
+            borderRadius: borderRadius.lg,
+            border: `1px dashed ${colors.border.default}`,
+          }}>
+            <Icons.Wrench size={48} color={colors.text.tertiary} />
+            <h3 style={{ fontSize: typography.fontSize.lg, color: colors.text.secondary, marginTop: spacing[4], marginBottom: spacing[2] }}>
+              {t('project.noTools', 'No tools added yet')}
+            </h3>
+            <p style={{ color: colors.text.tertiary, margin: 0 }}>
+              {t('project.addToolsFromTemplate', 'Tools will be added when you save a calculation from a template')}
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Tools Section */}
+            <div style={{ marginBottom: spacing[8] }}>
+              <h2 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, marginBottom: spacing[4], display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                <Icons.Wrench size={20} />
+                {t('project.toolsList', 'Tools to Rent')}
+              </h2>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+                {tools.map(tool => (
+                  <ToolCard
+                    key={tool.id}
+                    tool={tool}
+                    onSupplierSelect={(supplier) => updateToolSupplier(tool.id, supplier)}
+                    isSaving={savingIds.has(tool.id)}
+                    t={t}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Tool Orders Section */}
+            {supplierToolOrders.length > 0 && (
+              <div>
+                <h2 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, marginBottom: spacing[4], display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                  <Icons.Calendar size={20} />
+                  {t('project.yourToolRentals', 'Your Tool Rentals')}
+                  <span style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.normal, color: colors.text.secondary }}>
+                    ({supplierToolOrders.length} {t('project.suppliers', 'suppliers')})
+                  </span>
+                </h2>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4] }}>
+                  {supplierToolOrders.map(order => (
+                    <ToolOrderCard
+                      key={order.supplier_id}
+                      order={order}
+                      onDirectBook={() => handleCreateToolOrder(order, 'direct')}
+                      onSendRFQ={() => handleCreateToolOrder(order, 'rfq')}
+                      isCreating={creatingOrder === order.supplier_id}
+                      t={t}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )
       )}
     </div>
   );
@@ -742,6 +1094,235 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onDirectOrder, onSendRFQ, 
       >
         <Icons.Send size={18} />
         {isCreating ? t('common.creating', 'Creating...') : t('project.sendRFQ', 'Send RFQ')}
+      </button>
+    </div>
+  </div>
+);
+
+// Tool Card Component
+interface ToolCardProps {
+  tool: ProjectTool;
+  onSupplierSelect: (supplier: ToolSupplier) => void;
+  isSaving: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: any;
+}
+
+const ToolCard: React.FC<ToolCardProps> = ({ tool, onSupplierSelect, isSaving, t }) => {
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const statusColors: Record<string, { bg: string; text: string }> = {
+    need_to_buy: { bg: colors.warning[100] || '#FEF3C7', text: colors.warning[700] || '#A16207' },
+    already_have: { bg: colors.neutral[100], text: colors.neutral[600] },
+    rfq_sent: { bg: colors.info?.[100] || '#CFFAFE', text: colors.info?.[700] || '#0E7490' },
+    ordered: { bg: colors.success[100] || '#DCFCE7', text: colors.success[700] || '#15803D' },
+    delivered: { bg: colors.success[50] || '#F0FDF4', text: colors.success[800] || '#166534' },
+  };
+
+  const statusInfo = statusColors[tool.status] || statusColors.need_to_buy;
+
+  return (
+    <div style={{ backgroundColor: colors.neutral[0], borderRadius: borderRadius.lg, border: `1px solid ${tool.supplier_id ? colors.primary[200] : colors.border.light}`, padding: spacing[4], boxShadow: shadows.sm, transition: 'border-color 150ms' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: spacing[2] }}>
+        <div style={{ flex: 1, minWidth: '200px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+            <Icons.Wrench size={18} color={colors.primary[600]} />
+            <h3 style={{ fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, margin: 0 }}>{tool.name}</h3>
+            {isSaving && <div style={{ width: '14px', height: '14px', border: `2px solid ${colors.primary[200]}`, borderTopColor: colors.primary[600], borderRadius: '50%', animation: 'spin 1s linear infinite' }} />}
+          </div>
+          <div style={{ display: 'flex', gap: spacing[4], marginTop: spacing[2], fontSize: typography.fontSize.sm, color: colors.text.secondary, flexWrap: 'wrap' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: spacing[1] }}>
+              <Icons.Calendar size={14} />
+              {tool.rental_duration_days} {t('project.days', 'days')}
+            </span>
+            {tool.daily_rate_estimate && (
+              <span>{tool.daily_rate_estimate.toLocaleString()} ₾/{t('project.day', 'day')}</span>
+            )}
+            {tool.estimated_total && (
+              <span style={{ fontWeight: typography.fontWeight.semibold, color: colors.primary[600] }}>
+                = {tool.estimated_total.toLocaleString()} ₾
+              </span>
+            )}
+          </div>
+          {tool.category && (
+            <div style={{ marginTop: spacing[1], fontSize: typography.fontSize.xs, color: colors.text.tertiary }}>
+              {tool.category}
+            </div>
+          )}
+        </div>
+
+        <span style={{ padding: `${spacing[1]} ${spacing[2]}`, backgroundColor: statusInfo.bg, color: statusInfo.text, fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, borderRadius: borderRadius.full }}>
+          {t(`project.status.${tool.status}`, tool.status)}
+        </span>
+      </div>
+
+      {tool.status === 'need_to_buy' && (
+        <div style={{ marginTop: spacing[3] }}>
+          {/* Supplier Selection */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowDropdown(!showDropdown)}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: spacing[3],
+                backgroundColor: tool.supplier_id ? colors.success[50] || '#F0FDF4' : colors.warning[50] || '#FFFBEB',
+                border: `1px solid ${tool.supplier_id ? colors.success[300] || '#86EFAC' : colors.warning[300] || '#FCD34D'}`,
+                borderRadius: borderRadius.md, cursor: 'pointer', textAlign: 'left',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                {tool.supplier_id ? (
+                  <>
+                    <Icons.CheckCircle size={16} color={colors.success[600] || '#16A34A'} />
+                    <span style={{ fontWeight: typography.fontWeight.medium }}>{tool.supplier_name}</span>
+                  </>
+                ) : (
+                  <>
+                    <Icons.AlertCircle size={16} color={colors.warning[600] || '#CA8A04'} />
+                    <span>{t('project.selectRentalSupplier', 'Select Rental Provider')}</span>
+                  </>
+                )}
+              </div>
+              <Icons.ChevronDown size={16} style={{ transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 150ms' }} />
+            </button>
+
+            {/* Dropdown */}
+            {showDropdown && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, marginTop: spacing[1], backgroundColor: colors.neutral[0], border: `1px solid ${colors.border.light}`, borderRadius: borderRadius.md, boxShadow: shadows.lg, maxHeight: '300px', overflowY: 'auto' }}>
+                {tool.available_suppliers.length === 0 ? (
+                  <div style={{ padding: spacing[4], textAlign: 'center', color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+                    {t('project.noRentalSuppliersAvailable', 'No rental providers available')}
+                  </div>
+                ) : (
+                  tool.available_suppliers.map(supplier => (
+                    <button
+                      key={supplier.supplier_id}
+                      onClick={() => { onSupplierSelect(supplier); setShowDropdown(false); }}
+                      style={{
+                        display: 'block', width: '100%', padding: spacing[3], border: 'none', borderBottom: `1px solid ${colors.border.light}`,
+                        backgroundColor: tool.supplier_id === supplier.supplier_id ? colors.primary[50] : colors.neutral[0],
+                        cursor: 'pointer', textAlign: 'left',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[1] }}>
+                            <span style={{ fontWeight: typography.fontWeight.medium }}>{supplier.supplier_name}</span>
+                            {supplier.is_verified && <Icons.CheckCircle size={14} color={colors.primary[600]} />}
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: spacing[2], fontSize: typography.fontSize.xs, color: colors.text.secondary }}>
+                            {supplier.location && (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                <Icons.MapPin size={12} /> {supplier.location}
+                              </span>
+                            )}
+                            {supplier.trust_score && (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                <Icons.Star size={12} /> {supplier.trust_score}%
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ marginTop: spacing[1], fontSize: typography.fontSize.xs }}>
+                            {supplier.direct_booking_available ? (
+                              <span style={{ color: colors.success[600] || '#16A34A' }}>{t('project.directBookingAvailable', 'Direct booking available')}</span>
+                            ) : (
+                              <span style={{ color: colors.warning[600] || '#CA8A04' }}>{t('project.rfqOnly', 'RFQ only')}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, color: colors.primary[600] }}>
+                            {supplier.day_rate.toLocaleString()} ₾
+                          </div>
+                          <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>/{t('project.day', 'day')}</div>
+                        </div>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Tool Order Card Component
+interface ToolOrderCardProps {
+  order: SupplierToolOrder;
+  onDirectBook: () => void;
+  onSendRFQ: () => void;
+  isCreating: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: any;
+}
+
+const ToolOrderCard: React.FC<ToolOrderCardProps> = ({ order, onDirectBook, onSendRFQ, isCreating, t }) => (
+  <div style={{ backgroundColor: colors.neutral[0], borderRadius: borderRadius.lg, border: `2px solid ${colors.primary[200]}`, overflow: 'hidden', boxShadow: shadows.md }}>
+    {/* Header */}
+    <div style={{ padding: spacing[4], backgroundColor: colors.primary[50], borderBottom: `1px solid ${colors.primary[200]}` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: spacing[2] }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold }}>{order.supplier_name}</h3>
+          {order.location && (
+            <p style={{ margin: 0, marginTop: spacing[1], fontSize: typography.fontSize.sm, color: colors.text.secondary, display: 'flex', alignItems: 'center', gap: spacing[1] }}>
+              <Icons.MapPin size={14} /> {order.location}
+            </p>
+          )}
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>{order.tools.length} {t('project.tools', 'tools')}</div>
+          <div style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.bold, color: colors.primary[600] }}>{order.total.toLocaleString()} ₾</div>
+        </div>
+      </div>
+    </div>
+
+    {/* Tools List */}
+    <div style={{ padding: spacing[3], maxHeight: '200px', overflowY: 'auto' }}>
+      {order.tools.map(tool => (
+        <div key={tool.id} style={{ display: 'flex', justifyContent: 'space-between', padding: `${spacing[2]} 0`, borderBottom: `1px solid ${colors.border.light}` }}>
+          <div>
+            <span style={{ fontSize: typography.fontSize.sm }}>{tool.name}</span>
+            <span style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, marginLeft: spacing[2] }}>
+              {tool.rental_duration_days} {t('project.days', 'days')}
+            </span>
+          </div>
+          <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+            {tool.daily_rate_estimate?.toLocaleString()} ₾/{t('project.day', 'day')}
+          </span>
+        </div>
+      ))}
+    </div>
+
+    {/* Actions */}
+    <div style={{ padding: spacing[4], borderTop: `1px solid ${colors.border.light}`, display: 'flex', gap: spacing[3] }}>
+      {order.direct_booking_available ? (
+        <button
+          onClick={onDirectBook}
+          disabled={isCreating}
+          style={{
+            flex: 1, padding: spacing[3], backgroundColor: colors.primary[600], color: colors.text.inverse, border: 'none',
+            borderRadius: borderRadius.md, cursor: isCreating ? 'not-allowed' : 'pointer', fontWeight: typography.fontWeight.semibold,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: spacing[2], opacity: isCreating ? 0.7 : 1,
+          }}
+        >
+          <Icons.Calendar size={18} />
+          {isCreating ? t('common.creating', 'Creating...') : t('project.bookNow', 'Book Now')}
+        </button>
+      ) : null}
+      <button
+        onClick={onSendRFQ}
+        disabled={isCreating}
+        style={{
+          flex: 1, padding: spacing[3], backgroundColor: order.direct_booking_available ? colors.neutral[100] : colors.primary[600],
+          color: order.direct_booking_available ? colors.text.primary : colors.text.inverse, border: 'none',
+          borderRadius: borderRadius.md, cursor: isCreating ? 'not-allowed' : 'pointer', fontWeight: typography.fontWeight.medium,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: spacing[2], opacity: isCreating ? 0.7 : 1,
+        }}
+      >
+        <Icons.Send size={18} />
+        {isCreating ? t('common.creating', 'Creating...') : t('project.sendRentalRFQ', 'Request Quote')}
       </button>
     </div>
   </div>

@@ -30,10 +30,23 @@ interface BOMItem {
   category?: string;
 }
 
+interface ToolItem {
+  id: string;
+  name: string;
+  name_ka?: string;
+  name_en?: string;
+  category: string;
+  rental_duration_days: number;
+  daily_rate_estimate: number;
+  estimated_total: number;
+  notes?: string;
+}
+
 interface SaveToProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
   bom: BOMItem[];
+  tools?: ToolItem[];
   templateSlug: string;
   templateInputs: Record<string, any>;
   totalPrice?: number;
@@ -43,6 +56,7 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
   isOpen,
   onClose,
   bom,
+  tools = [],
   templateSlug,
   templateInputs,
   totalPrice,
@@ -102,18 +116,33 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
     }));
   };
 
+  // Transform tools to project tools format
+  const transformToolsToProjectTools = () => {
+    return tools.map((tool, index) => ({
+      name: isGeorgian ? (tool.name_ka || tool.name) : (tool.name_en || tool.name),
+      category: tool.category,
+      description: tool.notes || null,
+      rental_duration_days: tool.rental_duration_days,
+      daily_rate_estimate: tool.daily_rate_estimate,
+      estimated_total: tool.estimated_total,
+      status: 'need_to_buy',
+      sort_order: index,
+    }));
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setError(null);
 
     try {
-      // If creating new project, redirect to project form with materials data
+      // If creating new project, redirect to project form with materials and tools data
       if (isCreatingNew) {
         onClose();
         navigate('/projects/new', {
           state: {
             pendingMaterials: {
               materials: transformBomToMaterials(),
+              tools: transformToolsToProjectTools(),
               template_slug: templateSlug,
               template_inputs: templateInputs,
             },
@@ -131,13 +160,21 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
       }
 
       // Add materials to existing project
-      const addResponse = await api.post(`/buyers/projects/${projectId}/materials`, {
+      const addMaterialsResponse = await api.post(`/buyers/projects/${projectId}/materials`, {
         materials: transformBomToMaterials(),
         template_slug: templateSlug,
         template_inputs: templateInputs,
       });
 
-      if (addResponse.success) {
+      // Add tools to existing project (if any)
+      if (tools.length > 0) {
+        await api.post(`/buyers/projects/${projectId}/tools`, {
+          tools: transformToolsToProjectTools(),
+          template_slug: templateSlug,
+        });
+      }
+
+      if (addMaterialsResponse.success) {
         onClose();
         // Navigate to the project materials page
         navigate(`/projects/${projectId}/materials`);
@@ -227,6 +264,7 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
                 }}
               >
                 {bom.length} {t('project.materialsCount', 'materials')}
+                {tools.length > 0 && `, ${tools.length} ${t('project.toolsCount', 'tools')}`}
               </p>
             </div>
           </div>
@@ -494,14 +532,27 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
                     alignItems: 'center',
                   }}
                 >
-                  <span
-                    style={{
-                      fontSize: typography.fontSize.base,
-                      color: colors.text.primary,
-                    }}
-                  >
-                    {bom.length} {t('project.items', 'items')}
-                  </span>
+                  <div>
+                    <span
+                      style={{
+                        fontSize: typography.fontSize.base,
+                        color: colors.text.primary,
+                      }}
+                    >
+                      {bom.length} {t('project.materials', 'materials')}
+                    </span>
+                    {tools.length > 0 && (
+                      <span
+                        style={{
+                          fontSize: typography.fontSize.base,
+                          color: colors.text.secondary,
+                          marginLeft: spacing[2],
+                        }}
+                      >
+                        + {tools.length} {t('project.tools', 'tools')}
+                      </span>
+                    )}
+                  </div>
                   {totalPrice !== undefined && (
                     <span
                       style={{

@@ -42,6 +42,13 @@ import {
   getAvailableSuppliersForMaterial,
 } from '../../controllers/projectMaterialsController';
 import {
+  getProjectTools,
+  addProjectTools,
+  updateProjectTool,
+  deleteProjectTool,
+  bulkUpdateProjectTools,
+} from '../../controllers/projectToolsController';
+import {
   getCart,
   getCartCount,
   addToCart,
@@ -141,6 +148,40 @@ router.put('/projects/:projectId/materials/bulk-status', asyncHandler(bulkUpdate
  * Get available suppliers for a material
  */
 router.get('/materials/:materialId/suppliers', asyncHandler(getAvailableSuppliersForMaterial));
+
+// =============================================================================
+// PROJECT TOOLS ROUTES (Tool Rentals for Projects)
+// =============================================================================
+
+/**
+ * GET /api/buyers/projects/:projectId/tools
+ * Get all tools for a project
+ */
+router.get('/projects/:projectId/tools', asyncHandler(getProjectTools));
+
+/**
+ * POST /api/buyers/projects/:projectId/tools
+ * Add tools to a project (from template or manual)
+ */
+router.post('/projects/:projectId/tools', asyncHandler(addProjectTools));
+
+/**
+ * PUT /api/buyers/projects/:projectId/tools/:toolId
+ * Update a project tool
+ */
+router.put('/projects/:projectId/tools/:toolId', asyncHandler(updateProjectTool));
+
+/**
+ * DELETE /api/buyers/projects/:projectId/tools/:toolId
+ * Delete a project tool
+ */
+router.delete('/projects/:projectId/tools/:toolId', asyncHandler(deleteProjectTool));
+
+/**
+ * PUT /api/buyers/projects/:projectId/tools/bulk
+ * Bulk update tools (e.g., select supplier for multiple)
+ */
+router.put('/projects/:projectId/tools/bulk', asyncHandler(bulkUpdateProjectTools));
 
 // =============================================================================
 // CART ROUTES
