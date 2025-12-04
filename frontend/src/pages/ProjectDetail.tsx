@@ -559,7 +559,7 @@ function OrdersTab({ orders, navigate }: { orders: ProjectDetailType['orders']; 
       {orders.map((order, index) => (
         <div
           key={order.id}
-          onClick={() => navigate(`/orders/${order.id}`)}
+          onClick={() => navigate(`/orders/${order.order_number}`)}
           style={{
             backgroundColor: colors.neutral[0],
             borderRadius: borderRadius.lg,
