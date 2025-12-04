@@ -214,7 +214,13 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
       });
     }
 
-    const availableSuppliers = Array.from(matchingSuppliers.values()).map(sku => ({
+    // Only include top 5 suppliers per material, sorted by price (cheapest first)
+    // Exclude images to reduce response size - they can be fetched separately if needed
+    const sortedSuppliers = Array.from(matchingSuppliers.values())
+      .sort((a, b) => (a.unit_price || Infinity) - (b.unit_price || Infinity))
+      .slice(0, 5);
+
+    const availableSuppliers = sortedSuppliers.map(sku => ({
       supplier_id: sku.supplier_id,
       supplier_name: sku.supplier_name,
       logo_url: sku.logo_url,
@@ -225,7 +231,8 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
       sku_id: sku.sku_id,
       unit_price: sku.unit_price,
       unit: sku.unit,
-      images: sku.images,
+      // images omitted to reduce payload - first image only if needed
+      images: sku.images?.length ? [sku.images[0]] : null,
       products_available: 0, // Will be filled below
       total_products_needed: 0,
     }));
