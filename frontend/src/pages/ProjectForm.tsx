@@ -23,6 +23,16 @@ interface PendingMaterials {
     status: string;
     sort_order: number;
   }>;
+  tools?: Array<{
+    name: string;
+    category: string;
+    description: string | null;
+    rental_duration_days: number;
+    daily_rate_estimate: number;
+    estimated_total: number;
+    status: string;
+    sort_order: number;
+  }>;
   template_slug: string;
   template_inputs: Record<string, any>;
 }
@@ -112,15 +122,25 @@ export default function ProjectForm() {
         // If we have pending materials from calculator, save them
         if (pendingMaterials && projectId) {
           try {
+            // Save materials
             await api.post(`/buyers/projects/${projectId}/materials`, {
               materials: pendingMaterials.materials,
               template_slug: pendingMaterials.template_slug,
               template_inputs: pendingMaterials.template_inputs,
             });
+
+            // Save tools if any
+            if (pendingMaterials.tools && pendingMaterials.tools.length > 0) {
+              await api.post(`/buyers/projects/${projectId}/tools`, {
+                tools: pendingMaterials.tools,
+                template_slug: pendingMaterials.template_slug,
+              });
+            }
+
             // Navigate to materials page
             navigate(`/projects/${projectId}/materials`);
           } catch (materialErr) {
-            console.error('Failed to save materials:', materialErr);
+            console.error('Failed to save materials/tools:', materialErr);
             // Still navigate to project, materials save failed
             navigate(`/projects/${projectId}`);
           }
@@ -260,6 +280,9 @@ export default function ProjectForm() {
                 margin: 0,
               }}>
                 {t('projects.form.materialsCount', '{{count}} materials from calculator will be saved to this project', { count: pendingMaterials.materials.length })}
+                {pendingMaterials.tools && pendingMaterials.tools.length > 0 && (
+                  <span> + {pendingMaterials.tools.length} {t('projects.form.tools', 'tools')}</span>
+                )}
               </p>
             </div>
           </div>
