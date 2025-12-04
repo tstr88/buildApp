@@ -48,7 +48,8 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
       pm.updated_at,
       s.name_en as sku_name_en,
       s.name_ka as sku_name_ka,
-      s.unit as sku_unit,
+      s.unit_en as sku_unit_en,
+      s.unit_ka as sku_unit_ka,
       s.images as sku_images,
       COALESCE(sup.business_name_en, sup.business_name_ka) as supplier_name
     FROM project_materials pm
@@ -66,7 +67,7 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
     name: row.custom_name || row.sku_name_en || row.sku_name_ka,
     description: row.description,
     quantity: parseFloat(row.quantity),
-    unit: row.material_unit || row.sku_unit,
+    unit: row.material_unit || row.sku_unit_en || row.sku_unit_ka,
     status: row.status,
     supplier_id: row.supplier_id,
     supplier_name: row.supplier_name,
