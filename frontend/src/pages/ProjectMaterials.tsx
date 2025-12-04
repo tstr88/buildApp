@@ -1,10 +1,10 @@
 /**
  * ProjectMaterials Page
  * Displays and manages materials for a specific project
- * Allows supplier selection, status changes, and adding to cart
+ * Allows supplier selection, status changes, and creating orders
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../services/api';
@@ -14,8 +14,18 @@ import { colors, spacing, typography, borderRadius, shadows } from '../theme/tok
 interface Supplier {
   supplier_id: string;
   supplier_name: string;
-  unit_price: number;
+  logo_url: string | null;
+  location: string | null;
+  is_verified: boolean;
+  direct_order_available: boolean;
+  trust_score: number | null;
   sku_id: string;
+  sku_name: string;
+  unit_price: number;
+  unit: string;
+  images: string[] | null;
+  products_available: number;
+  total_products_needed: number;
 }
 
 interface ProjectMaterial {
@@ -46,14 +56,14 @@ interface Project {
   site_address?: string;
 }
 
-const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  need_to_buy: { bg: colors.warning[100] || '#FFF3CD', text: colors.warning[700] || '#856404', label: 'Need to Buy' },
-  already_have: { bg: colors.neutral[100], text: colors.neutral[600], label: 'Already Have' },
-  in_cart: { bg: colors.primary[100], text: colors.primary[700], label: 'In Cart' },
-  rfq_sent: { bg: colors.info?.[100] || '#D1ECF1', text: colors.info?.[700] || '#0C5460', label: 'RFQ Sent' },
-  ordered: { bg: colors.success[100] || '#D4EDDA', text: colors.success[700] || '#155724', label: 'Ordered' },
-  delivered: { bg: colors.success[50] || '#D4EDDA', text: colors.success[800] || '#155724', label: 'Delivered' },
-};
+interface SupplierOrder {
+  supplier_id: string;
+  supplier_name: string;
+  location: string | null;
+  direct_order_available: boolean;
+  materials: ProjectMaterial[];
+  total: number;
+}
 
 export const ProjectMaterials: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -64,8 +74,8 @@ export const ProjectMaterials: React.FC = () => {
   const [materials, setMaterials] = useState<ProjectMaterial[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [addingToCart, setAddingToCart] = useState(false);
+  const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
+  const [creatingOrder, setCreatingOrder] = useState<string | null>(null);
 
   // Fetch project and materials
   const fetchData = useCallback(async () => {
@@ -75,13 +85,11 @@ export const ProjectMaterials: React.FC = () => {
     setError(null);
 
     try {
-      // Fetch project details
       const projectRes = await api.get<{ project?: Project; data?: Project }>(`/buyers/projects/${projectId}`);
       if (projectRes.success) {
         setProject(projectRes.data?.project || projectRes.data as Project);
       }
 
-      // Fetch materials
       const materialsRes = await api.get<{ materials?: ProjectMaterial[]; data?: { materials?: ProjectMaterial[] } }>(`/buyers/projects/${projectId}/materials`);
       if (materialsRes.success) {
         const mats = materialsRes.data?.materials || materialsRes.data?.data?.materials || [];
@@ -99,125 +107,189 @@ export const ProjectMaterials: React.FC = () => {
     fetchData();
   }, [fetchData]);
 
-  // Toggle selection
-  const toggleSelect = (id: string) => {
-    setSelectedIds(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
+  // Update material supplier - optimistic update
+  const updateSupplier = async (materialId: string, supplier: Supplier) => {
+    const material = materials.find(m => m.id === materialId);
+    if (!material) return;
+
+    // Optimistic update
+    setMaterials(prev => prev.map(m => {
+      if (m.id === materialId) {
+        return {
+          ...m,
+          supplier_id: supplier.supplier_id,
+          supplier_name: supplier.supplier_name,
+          sku_id: supplier.sku_id,
+          unit_price: supplier.unit_price,
+          estimated_total: m.quantity * supplier.unit_price,
+        };
       }
-      return newSet;
-    });
-  };
+      return m;
+    }));
 
-  // Select all
-  const selectAll = () => {
-    const buyableMaterials = materials.filter(m => m.status === 'need_to_buy' && m.supplier_id);
-    if (selectedIds.size === buyableMaterials.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(buyableMaterials.map(m => m.id)));
-    }
-  };
-
-  // Update material supplier
-  const updateSupplier = async (materialId: string, supplierId: string, unitPrice: number, skuId: string) => {
+    // Save in background
+    setSavingIds(prev => new Set(prev).add(materialId));
     try {
       await api.put(`/buyers/projects/${projectId}/materials/${materialId}`, {
-        supplier_id: supplierId,
-        unit_price: unitPrice,
-        sku_id: skuId,
+        supplier_id: supplier.supplier_id,
+        unit_price: supplier.unit_price,
+        sku_id: supplier.sku_id,
       });
-      await fetchData();
     } catch (err) {
       console.error('Failed to update supplier:', err);
+      // Revert on error
+      setMaterials(prev => prev.map(m => {
+        if (m.id === materialId) {
+          return { ...material };
+        }
+        return m;
+      }));
+    } finally {
+      setSavingIds(prev => {
+        const next = new Set(prev);
+        next.delete(materialId);
+        return next;
+      });
     }
   };
 
-  // Mark as already have
+  // Mark as already have - optimistic update
   const markAsHave = async (materialId: string) => {
+    const material = materials.find(m => m.id === materialId);
+    if (!material) return;
+
+    // Optimistic update
+    setMaterials(prev => prev.map(m => {
+      if (m.id === materialId) {
+        return { ...m, status: 'already_have' as const, supplier_id: null, supplier_name: null };
+      }
+      return m;
+    }));
+
     try {
       await api.put(`/buyers/projects/${projectId}/materials/${materialId}`, {
         status: 'already_have',
+        supplier_id: null,
       });
-      await fetchData();
     } catch (err) {
       console.error('Failed to update status:', err);
+      setMaterials(prev => prev.map(m => {
+        if (m.id === materialId) {
+          return { ...material };
+        }
+        return m;
+      }));
     }
   };
 
-  // Add selected to cart
-  const addSelectedToCart = async () => {
-    const selectedMaterials = materials.filter(m => selectedIds.has(m.id));
-    const itemsWithSuppliers = selectedMaterials.filter(m => m.supplier_id);
+  // Group materials by selected supplier into orders
+  const supplierOrders = useMemo((): SupplierOrder[] => {
+    const orderMap: Record<string, SupplierOrder> = {};
 
-    if (itemsWithSuppliers.length === 0) {
-      alert(t('project.selectSupplierFirst', 'Please select suppliers for items first'));
-      return;
-    }
+    materials.forEach(m => {
+      if (m.status === 'need_to_buy' && m.supplier_id) {
+        if (!orderMap[m.supplier_id]) {
+          // Find supplier info from available_suppliers
+          const supplierInfo = m.available_suppliers.find(s => s.supplier_id === m.supplier_id);
+          orderMap[m.supplier_id] = {
+            supplier_id: m.supplier_id,
+            supplier_name: m.supplier_name || supplierInfo?.supplier_name || 'Unknown',
+            location: supplierInfo?.location || null,
+            direct_order_available: supplierInfo?.direct_order_available ?? true,
+            materials: [],
+            total: 0,
+          };
+        }
+        orderMap[m.supplier_id].materials.push(m);
+        orderMap[m.supplier_id].total += m.estimated_total || 0;
+      }
+    });
 
-    setAddingToCart(true);
+    return Object.values(orderMap);
+  }, [materials]);
+
+  // Create direct order or RFQ
+  const handleCreateOrder = async (order: SupplierOrder, type: 'direct' | 'rfq') => {
+    setCreatingOrder(order.supplier_id);
     try {
-      const items = itemsWithSuppliers.map(m => ({
-        project_material_id: m.id,
-        project_id: projectId,
-        sku_id: m.sku_id,
-        supplier_id: m.supplier_id,
-        name: m.name,
-        description: m.description,
-        quantity: m.quantity,
-        unit: m.unit,
-        unit_price: m.unit_price || 0,
-        action_type: 'direct_order',
-      }));
+      if (type === 'direct') {
+        // Add items to cart
+        const items = order.materials.map(m => ({
+          project_material_id: m.id,
+          project_id: projectId,
+          sku_id: m.sku_id,
+          supplier_id: m.supplier_id,
+          name: m.name,
+          description: m.description,
+          quantity: m.quantity,
+          unit: m.unit,
+          unit_price: m.unit_price || 0,
+          action_type: 'direct_order',
+        }));
 
-      await api.post('/buyers/cart/bulk', { items });
-      setSelectedIds(new Set());
-      await fetchData();
+        await api.post('/buyers/cart/bulk', { items });
+        navigate('/cart');
+      } else {
+        // Create RFQ
+        const rfqData = {
+          supplier_id: order.supplier_id,
+          project_id: projectId,
+          items: order.materials.map(m => ({
+            project_material_id: m.id,
+            name: m.name,
+            description: m.description,
+            quantity: m.quantity,
+            unit: m.unit,
+            sku_id: m.sku_id,
+          })),
+          delivery_type: 'delivery',
+          notes: '',
+        };
+
+        const result = await api.post('/buyers/rfqs', rfqData);
+        if (result.success) {
+          // Update material statuses
+          setMaterials(prev => prev.map(m => {
+            if (order.materials.find(om => om.id === m.id)) {
+              return { ...m, status: 'rfq_sent' as const };
+            }
+            return m;
+          }));
+        }
+      }
     } catch (err) {
-      console.error('Failed to add to cart:', err);
+      console.error('Failed to create order:', err);
       alert(t('common.error', 'An error occurred'));
     } finally {
-      setAddingToCart(false);
+      setCreatingOrder(null);
     }
   };
 
   // Calculate totals
-  const totals = materials.reduce(
-    (acc, m) => {
-      if (m.status !== 'already_have') {
-        acc.totalItems++;
-        acc.totalEstimate += m.estimated_total || 0;
-      }
-      if (m.status === 'need_to_buy') {
-        acc.needToBuy++;
-      }
-      if (m.status === 'in_cart') {
-        acc.inCart++;
-      }
-      if (m.status === 'ordered' || m.status === 'delivered') {
-        acc.ordered++;
-      }
-      return acc;
-    },
-    { totalItems: 0, totalEstimate: 0, needToBuy: 0, inCart: 0, ordered: 0 }
-  );
+  const totals = useMemo(() => {
+    return materials.reduce(
+      (acc, m) => {
+        if (m.status !== 'already_have') {
+          acc.totalItems++;
+          acc.totalEstimate += m.estimated_total || 0;
+        }
+        if (m.status === 'need_to_buy') {
+          acc.needToBuy++;
+          if (m.supplier_id) acc.withSupplier++;
+        }
+        if (m.status === 'already_have') acc.alreadyHave++;
+        if (m.status === 'rfq_sent') acc.rfqSent++;
+        if (m.status === 'ordered' || m.status === 'delivered') acc.ordered++;
+        return acc;
+      },
+      { totalItems: 0, totalEstimate: 0, needToBuy: 0, withSupplier: 0, alreadyHave: 0, rfqSent: 0, ordered: 0 }
+    );
+  }, [materials]);
 
   if (loading) {
     return (
       <div style={{ padding: spacing[6], display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <div
-          style={{
-            width: '32px',
-            height: '32px',
-            border: `3px solid ${colors.primary[200]}`,
-            borderTopColor: colors.primary[600],
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-          }}
-        />
+        <div style={{ width: '32px', height: '32px', border: `3px solid ${colors.primary[200]}`, borderTopColor: colors.primary[600], borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
@@ -228,18 +300,7 @@ export const ProjectMaterials: React.FC = () => {
       <div style={{ padding: spacing[6], textAlign: 'center' }}>
         <Icons.AlertCircle size={48} color={colors.error[500] || colors.error} />
         <p style={{ color: colors.text.secondary, marginTop: spacing[4] }}>{error}</p>
-        <button
-          onClick={fetchData}
-          style={{
-            marginTop: spacing[4],
-            padding: `${spacing[2]} ${spacing[4]}`,
-            backgroundColor: colors.primary[600],
-            color: colors.text.inverse,
-            border: 'none',
-            borderRadius: borderRadius.md,
-            cursor: 'pointer',
-          }}
-        >
+        <button onClick={fetchData} style={{ marginTop: spacing[4], padding: `${spacing[2]} ${spacing[4]}`, backgroundColor: colors.primary[600], color: colors.text.inverse, border: 'none', borderRadius: borderRadius.md, cursor: 'pointer' }}>
           {t('common.retry', 'Retry')}
         </button>
       </div>
@@ -247,450 +308,326 @@ export const ProjectMaterials: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: spacing[4], maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ padding: spacing[4], maxWidth: '1200px', margin: '0 auto', paddingBottom: spacing[20] }}>
       {/* Header */}
       <div style={{ marginBottom: spacing[6] }}>
-        <button
-          onClick={() => navigate('/projects')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: spacing[2],
-            color: colors.text.secondary,
-            backgroundColor: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            padding: 0,
-            marginBottom: spacing[3],
-          }}
-        >
+        <button onClick={() => navigate('/projects')} style={{ display: 'flex', alignItems: 'center', gap: spacing[2], color: colors.text.secondary, backgroundColor: 'transparent', border: 'none', cursor: 'pointer', padding: 0, marginBottom: spacing[3] }}>
           <Icons.ArrowLeft size={20} />
           {t('common.back', 'Back to Projects')}
         </button>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: spacing[4] }}>
-          <div>
-            <h1 style={{ fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, margin: 0 }}>
-              {project?.name || t('project.materials', 'Project Materials')}
-            </h1>
-            {project?.site_address && (
-              <p style={{ color: colors.text.secondary, margin: 0, marginTop: spacing[1] }}>
-                <Icons.MapPin size={14} style={{ marginRight: spacing[1] }} />
-                {project.site_address}
-              </p>
-            )}
-          </div>
-
-          <button
-            onClick={() => navigate('/cart')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: spacing[2],
-              padding: `${spacing[3]} ${spacing[4]}`,
-              backgroundColor: colors.primary[600],
-              color: colors.text.inverse,
-              border: 'none',
-              borderRadius: borderRadius.md,
-              cursor: 'pointer',
-              fontWeight: typography.fontWeight.medium,
-            }}
-          >
-            <Icons.ShoppingCart size={18} />
-            {t('cart.viewCart', 'View Cart')}
-          </button>
-        </div>
+        <h1 style={{ fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, margin: 0 }}>
+          {project?.name || t('project.materials', 'Project Materials')}
+        </h1>
+        {project?.site_address && (
+          <p style={{ color: colors.text.secondary, margin: 0, marginTop: spacing[1], display: 'flex', alignItems: 'center', gap: spacing[1] }}>
+            <Icons.MapPin size={14} />
+            {project.site_address}
+          </p>
+        )}
       </div>
 
       {/* Summary Cards */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-          gap: spacing[3],
-          marginBottom: spacing[6],
-        }}
-      >
-        <div style={{ padding: spacing[4], backgroundColor: colors.neutral[0], borderRadius: borderRadius.lg, border: `1px solid ${colors.border.light}` }}>
-          <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>{t('project.totalItems', 'Total Items')}</div>
-          <div style={{ fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold }}>{totals.totalItems}</div>
-        </div>
-        <div style={{ padding: spacing[4], backgroundColor: colors.warning[50] || '#FFF3CD', borderRadius: borderRadius.lg, border: `1px solid ${colors.warning[200] || '#FFE69C'}` }}>
-          <div style={{ fontSize: typography.fontSize.sm, color: colors.warning[700] || '#856404' }}>{t('project.needToBuy', 'Need to Buy')}</div>
-          <div style={{ fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, color: colors.warning[700] || '#856404' }}>{totals.needToBuy}</div>
-        </div>
-        <div style={{ padding: spacing[4], backgroundColor: colors.primary[50], borderRadius: borderRadius.lg, border: `1px solid ${colors.primary[200]}` }}>
-          <div style={{ fontSize: typography.fontSize.sm, color: colors.primary[700] }}>{t('project.inCart', 'In Cart')}</div>
-          <div style={{ fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, color: colors.primary[700] }}>{totals.inCart}</div>
-        </div>
-        <div style={{ padding: spacing[4], backgroundColor: colors.success[50] || '#D4EDDA', borderRadius: borderRadius.lg, border: `1px solid ${colors.success[200] || '#C3E6CB'}` }}>
-          <div style={{ fontSize: typography.fontSize.sm, color: colors.success[700] || '#155724' }}>{t('project.ordered', 'Ordered')}</div>
-          <div style={{ fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, color: colors.success[700] || '#155724' }}>{totals.ordered}</div>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: spacing[3], marginBottom: spacing[6] }}>
+        <SummaryCard label={t('project.needToBuy', 'Need to Buy')} value={totals.needToBuy} color={colors.warning[600] || '#EAB308'} bgColor={colors.warning[50] || '#FEF9C3'} />
+        <SummaryCard label={t('project.withSupplier', 'With Supplier')} value={totals.withSupplier} color={colors.primary[600]} bgColor={colors.primary[50]} />
+        <SummaryCard label={t('project.alreadyHave', 'Already Have')} value={totals.alreadyHave} color={colors.neutral[600]} bgColor={colors.neutral[100]} />
+        <SummaryCard label={t('project.rfqSent', 'RFQ Sent')} value={totals.rfqSent} color={colors.info?.[600] || '#0891B2'} bgColor={colors.info?.[50] || '#ECFEFF'} />
       </div>
 
-      {/* Bulk Actions */}
-      {selectedIds.size > 0 && (
-        <div
-          style={{
-            position: 'sticky',
-            top: spacing[4],
-            zIndex: 10,
-            backgroundColor: colors.primary[600],
-            color: colors.text.inverse,
-            padding: spacing[4],
-            borderRadius: borderRadius.lg,
-            marginBottom: spacing[4],
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: spacing[3],
-            boxShadow: shadows.lg,
-          }}
-        >
-          <span style={{ fontWeight: typography.fontWeight.medium }}>
-            {selectedIds.size} {t('common.selected', 'selected')}
-          </span>
-          <div style={{ display: 'flex', gap: spacing[2] }}>
-            <button
-              onClick={() => setSelectedIds(new Set())}
-              style={{
-                padding: `${spacing[2]} ${spacing[3]}`,
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                color: colors.text.inverse,
-                border: 'none',
-                borderRadius: borderRadius.md,
-                cursor: 'pointer',
-              }}
-            >
-              {t('common.cancel', 'Cancel')}
-            </button>
-            <button
-              onClick={addSelectedToCart}
-              disabled={addingToCart}
-              style={{
-                padding: `${spacing[2]} ${spacing[3]}`,
-                backgroundColor: colors.neutral[0],
-                color: colors.primary[600],
-                border: 'none',
-                borderRadius: borderRadius.md,
-                cursor: addingToCart ? 'not-allowed' : 'pointer',
-                fontWeight: typography.fontWeight.medium,
-                display: 'flex',
-                alignItems: 'center',
-                gap: spacing[2],
-              }}
-            >
-              <Icons.ShoppingCart size={16} />
-              {addingToCart ? t('common.adding', 'Adding...') : t('cart.addToCart', 'Add to Cart')}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Materials List */}
       {materials.length === 0 ? (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: spacing[8],
-            backgroundColor: colors.neutral[50],
-            borderRadius: borderRadius.lg,
-          }}
-        >
-          <Icons.Package size={48} color={colors.text.secondary} />
-          <p style={{ color: colors.text.secondary, marginTop: spacing[4] }}>
-            {t('project.noMaterials', 'No materials in this project yet')}
-          </p>
-          <button
-            onClick={() => navigate('/templates')}
-            style={{
-              marginTop: spacing[4],
-              padding: `${spacing[3]} ${spacing[4]}`,
-              backgroundColor: colors.primary[600],
-              color: colors.text.inverse,
-              border: 'none',
-              borderRadius: borderRadius.md,
-              cursor: 'pointer',
-            }}
-          >
-            {t('project.useCalculator', 'Use a Calculator')}
-          </button>
-        </div>
+        <EmptyState navigate={navigate} t={t} />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
-          {/* Select All */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], marginBottom: spacing[2] }}>
-            <button
-              onClick={selectAll}
-              style={{
-                padding: `${spacing[2]} ${spacing[3]}`,
-                backgroundColor: colors.neutral[100],
-                color: colors.text.primary,
-                border: 'none',
-                borderRadius: borderRadius.md,
-                cursor: 'pointer',
-                fontSize: typography.fontSize.sm,
-              }}
-            >
-              {selectedIds.size === materials.filter(m => m.status === 'need_to_buy' && m.supplier_id).length
-                ? t('common.deselectAll', 'Deselect All')
-                : t('common.selectAll', 'Select All Ready')}
-            </button>
-            <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-              {t('project.estimatedTotal', 'Estimated Total')}: <strong>{totals.totalEstimate.toLocaleString()} ₾</strong>
-            </span>
+        <>
+          {/* Materials Section */}
+          <div style={{ marginBottom: spacing[8] }}>
+            <h2 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, marginBottom: spacing[4], display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+              <Icons.Package size={20} />
+              {t('project.materialsList', 'Materials List')}
+            </h2>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+              {materials.map(material => (
+                <MaterialCard
+                  key={material.id}
+                  material={material}
+                  onSupplierSelect={(supplier) => updateSupplier(material.id, supplier)}
+                  onMarkAsHave={() => markAsHave(material.id)}
+                  isSaving={savingIds.has(material.id)}
+                  t={t}
+                />
+              ))}
+            </div>
           </div>
 
-          {/* Material Cards */}
-          {materials.map((material) => (
-            <MaterialCard
-              key={material.id}
-              material={material}
-              isSelected={selectedIds.has(material.id)}
-              onSelect={() => toggleSelect(material.id)}
-              onSupplierChange={(supplierId, unitPrice, skuId) => updateSupplier(material.id, supplierId, unitPrice, skuId)}
-              onMarkAsHave={() => markAsHave(material.id)}
-            />
-          ))}
-        </div>
+          {/* Orders Section */}
+          {supplierOrders.length > 0 && (
+            <div>
+              <h2 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, marginBottom: spacing[4], display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                <Icons.ShoppingCart size={20} />
+                {t('project.yourOrders', 'Your Orders')}
+                <span style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.normal, color: colors.text.secondary }}>
+                  ({supplierOrders.length} {t('project.suppliers', 'suppliers')})
+                </span>
+              </h2>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4] }}>
+                {supplierOrders.map(order => (
+                  <OrderCard
+                    key={order.supplier_id}
+                    order={order}
+                    onDirectOrder={() => handleCreateOrder(order, 'direct')}
+                    onSendRFQ={() => handleCreateOrder(order, 'rfq')}
+                    isCreating={creatingOrder === order.supplier_id}
+                    t={t}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
 };
+
+// Summary Card Component
+const SummaryCard: React.FC<{ label: string; value: number; color: string; bgColor: string }> = ({ label, value, color, bgColor }) => (
+  <div style={{ padding: spacing[4], backgroundColor: bgColor, borderRadius: borderRadius.lg, border: `1px solid ${color}20` }}>
+    <div style={{ fontSize: typography.fontSize.sm, color }}>{label}</div>
+    <div style={{ fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, color }}>{value}</div>
+  </div>
+);
+
+// Empty State Component
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const EmptyState: React.FC<{ navigate: (path: string) => void; t: any }> = ({ navigate, t }) => (
+  <div style={{ textAlign: 'center', padding: spacing[8], backgroundColor: colors.neutral[50], borderRadius: borderRadius.lg }}>
+    <Icons.Package size={48} color={colors.text.secondary} />
+    <p style={{ color: colors.text.secondary, marginTop: spacing[4] }}>{t('project.noMaterials', 'No materials in this project yet')}</p>
+    <button onClick={() => navigate('/templates')} style={{ marginTop: spacing[4], padding: `${spacing[3]} ${spacing[4]}`, backgroundColor: colors.primary[600], color: colors.text.inverse, border: 'none', borderRadius: borderRadius.md, cursor: 'pointer' }}>
+      {t('project.useCalculator', 'Use a Calculator')}
+    </button>
+  </div>
+);
 
 // Material Card Component
 interface MaterialCardProps {
   material: ProjectMaterial;
-  isSelected: boolean;
-  onSelect: () => void;
-  onSupplierChange: (supplierId: string, unitPrice: number, skuId: string) => void;
+  onSupplierSelect: (supplier: Supplier) => void;
   onMarkAsHave: () => void;
+  isSaving: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: any;
 }
 
-const MaterialCard: React.FC<MaterialCardProps> = ({
-  material,
-  isSelected,
-  onSelect,
-  onSupplierChange,
-  onMarkAsHave,
-}) => {
-  const { t } = useTranslation();
-  const [showSuppliers, setShowSuppliers] = useState(false);
-  const statusInfo = STATUS_COLORS[material.status] || STATUS_COLORS.need_to_buy;
-  const canSelect = material.status === 'need_to_buy' && material.supplier_id;
+const MaterialCard: React.FC<MaterialCardProps> = ({ material, onSupplierSelect, onMarkAsHave, isSaving, t }) => {
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const statusColors: Record<string, { bg: string; text: string }> = {
+    need_to_buy: { bg: colors.warning[100] || '#FEF3C7', text: colors.warning[700] || '#A16207' },
+    already_have: { bg: colors.neutral[100], text: colors.neutral[600] },
+    rfq_sent: { bg: colors.info?.[100] || '#CFFAFE', text: colors.info?.[700] || '#0E7490' },
+    ordered: { bg: colors.success[100] || '#DCFCE7', text: colors.success[700] || '#15803D' },
+    delivered: { bg: colors.success[50] || '#F0FDF4', text: colors.success[800] || '#166534' },
+  };
+
+  const statusInfo = statusColors[material.status] || statusColors.need_to_buy;
 
   return (
-    <div
-      style={{
-        backgroundColor: colors.neutral[0],
-        borderRadius: borderRadius.lg,
-        border: `1px solid ${isSelected ? colors.primary[400] : colors.border.light}`,
-        padding: spacing[4],
-        boxShadow: isSelected ? `0 0 0 2px ${colors.primary[200]}` : shadows.sm,
-        transition: 'all 150ms ease',
-      }}
-    >
-      <div style={{ display: 'flex', gap: spacing[3], alignItems: 'start' }}>
-        {/* Checkbox */}
-        {canSelect && (
-          <button
-            onClick={onSelect}
-            style={{
-              width: '24px',
-              height: '24px',
-              minWidth: '24px',
-              borderRadius: borderRadius.md,
-              border: `2px solid ${isSelected ? colors.primary[600] : colors.border.default}`,
-              backgroundColor: isSelected ? colors.primary[600] : 'transparent',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginTop: '2px',
-            }}
-          >
-            {isSelected && <Icons.Check size={14} color={colors.neutral[0]} />}
-          </button>
-        )}
+    <div style={{ backgroundColor: colors.neutral[0], borderRadius: borderRadius.lg, border: `1px solid ${material.supplier_id ? colors.primary[200] : colors.border.light}`, padding: spacing[4], boxShadow: shadows.sm, transition: 'border-color 150ms' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: spacing[2] }}>
+        <div style={{ flex: 1, minWidth: '200px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+            <h3 style={{ fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, margin: 0 }}>{material.name}</h3>
+            {isSaving && <div style={{ width: '14px', height: '14px', border: `2px solid ${colors.primary[200]}`, borderTopColor: colors.primary[600], borderRadius: '50%', animation: 'spin 1s linear infinite' }} />}
+          </div>
+          <div style={{ display: 'flex', gap: spacing[4], marginTop: spacing[2], fontSize: typography.fontSize.sm, color: colors.text.secondary, flexWrap: 'wrap' }}>
+            <span>{material.quantity} {material.unit}</span>
+            {material.unit_price && <span>{material.unit_price.toLocaleString()} ₾/{material.unit}</span>}
+            {material.estimated_total && <span style={{ fontWeight: typography.fontWeight.semibold, color: colors.primary[600] }}>= {material.estimated_total.toLocaleString()} ₾</span>}
+          </div>
+        </div>
 
-        {/* Content */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: spacing[2] }}>
-            <div>
-              <h3 style={{ fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, margin: 0 }}>
-                {material.name}
-              </h3>
-              {material.description && (
-                <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, margin: 0, marginTop: spacing[1] }}>
-                  {material.description}
-                </p>
-              )}
-            </div>
+        <span style={{ padding: `${spacing[1]} ${spacing[2]}`, backgroundColor: statusInfo.bg, color: statusInfo.text, fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, borderRadius: borderRadius.full }}>
+          {t(`project.status.${material.status}`, material.status)}
+        </span>
+      </div>
 
-            {/* Status Badge */}
-            <span
+      {material.status === 'need_to_buy' && (
+        <div style={{ marginTop: spacing[3] }}>
+          {/* Supplier Selection */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowDropdown(!showDropdown)}
               style={{
-                padding: `${spacing[1]} ${spacing[2]}`,
-                backgroundColor: statusInfo.bg,
-                color: statusInfo.text,
-                fontSize: typography.fontSize.xs,
-                fontWeight: typography.fontWeight.medium,
-                borderRadius: borderRadius.full,
-                whiteSpace: 'nowrap',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: spacing[3],
+                backgroundColor: material.supplier_id ? colors.success[50] || '#F0FDF4' : colors.warning[50] || '#FFFBEB',
+                border: `1px solid ${material.supplier_id ? colors.success[300] || '#86EFAC' : colors.warning[300] || '#FCD34D'}`,
+                borderRadius: borderRadius.md, cursor: 'pointer', textAlign: 'left',
               }}
             >
-              {t(`project.status.${material.status}`, statusInfo.label)}
-            </span>
-          </div>
-
-          {/* Quantity & Price */}
-          <div style={{ display: 'flex', gap: spacing[4], marginTop: spacing[3], flexWrap: 'wrap' }}>
-            <div>
-              <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>{t('common.quantity', 'Quantity')}: </span>
-              <span style={{ fontWeight: typography.fontWeight.medium }}>{material.quantity} {material.unit}</span>
-            </div>
-            {material.unit_price && (
-              <div>
-                <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>{t('common.unitPrice', 'Unit Price')}: </span>
-                <span style={{ fontWeight: typography.fontWeight.medium }}>{material.unit_price.toLocaleString()} ₾</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                {material.supplier_id ? (
+                  <>
+                    <Icons.CheckCircle size={16} color={colors.success[600] || '#16A34A'} />
+                    <span style={{ fontWeight: typography.fontWeight.medium }}>{material.supplier_name}</span>
+                  </>
+                ) : (
+                  <>
+                    <Icons.AlertCircle size={16} color={colors.warning[600] || '#CA8A04'} />
+                    <span>{t('project.selectSupplier', 'Select Supplier')}</span>
+                  </>
+                )}
               </div>
-            )}
-            {material.estimated_total && (
-              <div>
-                <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>{t('common.total', 'Total')}: </span>
-                <span style={{ fontWeight: typography.fontWeight.bold, color: colors.primary[600] }}>{material.estimated_total.toLocaleString()} ₾</span>
-              </div>
-            )}
-          </div>
+              <Icons.ChevronDown size={16} style={{ transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 150ms' }} />
+            </button>
 
-          {/* Supplier Selection */}
-          {material.status === 'need_to_buy' && (
-            <div style={{ marginTop: spacing[3] }}>
-              {material.supplier_id ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-                  <Icons.CheckCircle size={16} color={colors.success[600] || colors.success} />
-                  <span style={{ fontSize: typography.fontSize.sm, color: colors.success[700] || colors.success }}>
-                    {material.supplier_name}
-                  </span>
-                  <button
-                    onClick={() => setShowSuppliers(!showSuppliers)}
-                    style={{
-                      fontSize: typography.fontSize.sm,
-                      color: colors.primary[600],
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      cursor: 'pointer',
-                      textDecoration: 'underline',
-                    }}
-                  >
-                    {t('common.change', 'Change')}
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowSuppliers(!showSuppliers)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: spacing[2],
-                    padding: `${spacing[2]} ${spacing[3]}`,
-                    backgroundColor: colors.warning[100] || '#FFF3CD',
-                    color: colors.warning[700] || '#856404',
-                    border: `1px solid ${colors.warning[300] || '#FFDA6A'}`,
-                    borderRadius: borderRadius.md,
-                    cursor: 'pointer',
-                    fontSize: typography.fontSize.sm,
-                  }}
-                >
-                  <Icons.AlertCircle size={16} />
-                  {t('project.selectSupplier', 'Select Supplier')}
-                  <Icons.ChevronDown size={16} />
-                </button>
-              )}
-
-              {/* Supplier Options */}
-              {showSuppliers && material.available_suppliers && material.available_suppliers.length > 0 && (
-                <div
-                  style={{
-                    marginTop: spacing[2],
-                    padding: spacing[3],
-                    backgroundColor: colors.neutral[50],
-                    borderRadius: borderRadius.md,
-                    border: `1px solid ${colors.border.light}`,
-                  }}
-                >
-                  {material.available_suppliers.map((supplier) => (
+            {/* Dropdown */}
+            {showDropdown && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, marginTop: spacing[1], backgroundColor: colors.neutral[0], border: `1px solid ${colors.border.light}`, borderRadius: borderRadius.md, boxShadow: shadows.lg, maxHeight: '300px', overflowY: 'auto' }}>
+                {material.available_suppliers.length === 0 ? (
+                  <div style={{ padding: spacing[4], textAlign: 'center', color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+                    {t('project.noSuppliersAvailable', 'No suppliers available')}
+                  </div>
+                ) : (
+                  material.available_suppliers.map(supplier => (
                     <button
                       key={supplier.supplier_id}
-                      onClick={() => {
-                        onSupplierChange(supplier.supplier_id, supplier.unit_price, supplier.sku_id);
-                        setShowSuppliers(false);
-                      }}
+                      onClick={() => { onSupplierSelect(supplier); setShowDropdown(false); }}
                       style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        width: '100%',
-                        padding: spacing[3],
+                        display: 'block', width: '100%', padding: spacing[3], border: 'none', borderBottom: `1px solid ${colors.border.light}`,
                         backgroundColor: material.supplier_id === supplier.supplier_id ? colors.primary[50] : colors.neutral[0],
-                        border: `1px solid ${material.supplier_id === supplier.supplier_id ? colors.primary[300] : colors.border.light}`,
-                        borderRadius: borderRadius.md,
-                        cursor: 'pointer',
-                        marginBottom: spacing[2],
-                        textAlign: 'left',
+                        cursor: 'pointer', textAlign: 'left',
                       }}
                     >
-                      <span style={{ fontWeight: typography.fontWeight.medium }}>{supplier.supplier_name}</span>
-                      <span style={{ color: colors.primary[600], fontWeight: typography.fontWeight.bold }}>
-                        {supplier.unit_price.toLocaleString()} ₾/{material.unit}
-                      </span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[1] }}>
+                            <span style={{ fontWeight: typography.fontWeight.medium }}>{supplier.supplier_name}</span>
+                            {supplier.is_verified && <Icons.CheckCircle size={14} color={colors.primary[600]} />}
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: spacing[2], fontSize: typography.fontSize.xs, color: colors.text.secondary }}>
+                            {supplier.location && (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                <Icons.MapPin size={12} /> {supplier.location}
+                              </span>
+                            )}
+                            {supplier.trust_score && (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                <Icons.Star size={12} /> {supplier.trust_score}%
+                              </span>
+                            )}
+                            <span style={{ color: colors.primary[600], fontWeight: typography.fontWeight.medium }}>
+                              {supplier.products_available}/{supplier.total_products_needed} {t('project.products', 'products')}
+                            </span>
+                          </div>
+                          <div style={{ marginTop: spacing[1], fontSize: typography.fontSize.xs }}>
+                            {supplier.direct_order_available ? (
+                              <span style={{ color: colors.success[600] || '#16A34A' }}>{t('project.directOrderAvailable', 'Direct order available')}</span>
+                            ) : (
+                              <span style={{ color: colors.warning[600] || '#CA8A04' }}>{t('project.rfqOnly', 'RFQ only')}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, color: colors.primary[600] }}>
+                            {supplier.unit_price.toLocaleString()} ₾
+                          </div>
+                          <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>/{material.unit}</div>
+                        </div>
+                      </div>
                     </button>
-                  ))}
-                </div>
-              )}
-
-              {showSuppliers && (!material.available_suppliers || material.available_suppliers.length === 0) && (
-                <div
-                  style={{
-                    marginTop: spacing[2],
-                    padding: spacing[3],
-                    backgroundColor: colors.neutral[50],
-                    borderRadius: borderRadius.md,
-                    textAlign: 'center',
-                    color: colors.text.secondary,
-                    fontSize: typography.fontSize.sm,
-                  }}
-                >
-                  {t('project.noSuppliersAvailable', 'No suppliers available for this item')}
-                </div>
-              )}
-            </div>
-          )}
+                  ))
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Mark as have button */}
-          {material.status === 'need_to_buy' && (
-            <button
-              onClick={onMarkAsHave}
-              style={{
-                marginTop: spacing[3],
-                padding: `${spacing[1]} ${spacing[2]}`,
-                backgroundColor: 'transparent',
-                color: colors.text.secondary,
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: typography.fontSize.sm,
-                textDecoration: 'underline',
-              }}
-            >
-              {t('project.markAsHave', 'I already have this')}
-            </button>
-          )}
+          <button
+            onClick={onMarkAsHave}
+            style={{ marginTop: spacing[2], padding: `${spacing[1]} ${spacing[2]}`, backgroundColor: 'transparent', color: colors.text.secondary, border: 'none', cursor: 'pointer', fontSize: typography.fontSize.sm }}
+          >
+            {t('project.markAsHave', 'I already have this')}
+          </button>
         </div>
-      </div>
+      )}
     </div>
   );
 };
+
+// Order Card Component
+interface OrderCardProps {
+  order: SupplierOrder;
+  onDirectOrder: () => void;
+  onSendRFQ: () => void;
+  isCreating: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: any;
+}
+
+const OrderCard: React.FC<OrderCardProps> = ({ order, onDirectOrder, onSendRFQ, isCreating, t }) => (
+  <div style={{ backgroundColor: colors.neutral[0], borderRadius: borderRadius.lg, border: `2px solid ${colors.primary[200]}`, overflow: 'hidden', boxShadow: shadows.md }}>
+    {/* Header */}
+    <div style={{ padding: spacing[4], backgroundColor: colors.primary[50], borderBottom: `1px solid ${colors.primary[200]}` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: spacing[2] }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold }}>{order.supplier_name}</h3>
+          {order.location && (
+            <p style={{ margin: 0, marginTop: spacing[1], fontSize: typography.fontSize.sm, color: colors.text.secondary, display: 'flex', alignItems: 'center', gap: spacing[1] }}>
+              <Icons.MapPin size={14} /> {order.location}
+            </p>
+          )}
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>{order.materials.length} {t('project.items', 'items')}</div>
+          <div style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.bold, color: colors.primary[600] }}>{order.total.toLocaleString()} ₾</div>
+        </div>
+      </div>
+    </div>
+
+    {/* Materials List */}
+    <div style={{ padding: spacing[3], maxHeight: '200px', overflowY: 'auto' }}>
+      {order.materials.map(m => (
+        <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', padding: `${spacing[2]} 0`, borderBottom: `1px solid ${colors.border.light}` }}>
+          <span style={{ fontSize: typography.fontSize.sm }}>{m.name}</span>
+          <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>{m.quantity} {m.unit} × {m.unit_price?.toLocaleString()} ₾</span>
+        </div>
+      ))}
+    </div>
+
+    {/* Actions */}
+    <div style={{ padding: spacing[4], borderTop: `1px solid ${colors.border.light}`, display: 'flex', gap: spacing[3] }}>
+      {order.direct_order_available ? (
+        <button
+          onClick={onDirectOrder}
+          disabled={isCreating}
+          style={{
+            flex: 1, padding: spacing[3], backgroundColor: colors.primary[600], color: colors.text.inverse, border: 'none',
+            borderRadius: borderRadius.md, cursor: isCreating ? 'not-allowed' : 'pointer', fontWeight: typography.fontWeight.semibold,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: spacing[2], opacity: isCreating ? 0.7 : 1,
+          }}
+        >
+          <Icons.ShoppingCart size={18} />
+          {isCreating ? t('common.creating', 'Creating...') : t('project.directOrder', 'Direct Order')}
+        </button>
+      ) : null}
+      <button
+        onClick={onSendRFQ}
+        disabled={isCreating}
+        style={{
+          flex: 1, padding: spacing[3], backgroundColor: order.direct_order_available ? colors.neutral[100] : colors.primary[600],
+          color: order.direct_order_available ? colors.text.primary : colors.text.inverse, border: 'none',
+          borderRadius: borderRadius.md, cursor: isCreating ? 'not-allowed' : 'pointer', fontWeight: typography.fontWeight.medium,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: spacing[2], opacity: isCreating ? 0.7 : 1,
+        }}
+      >
+        <Icons.Send size={18} />
+        {isCreating ? t('common.creating', 'Creating...') : t('project.sendRFQ', 'Send RFQ')}
+      </button>
+    </div>
+  </div>
+);
 
 export default ProjectMaterials;

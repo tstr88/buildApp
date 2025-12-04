@@ -64,30 +64,99 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
   const materials = await Promise.all(result.rows.map(async (row) => {
     const materialName = row.custom_name || row.sku_name_en || row.sku_name_ka || '';
 
-    // Extract key terms from material name for matching (e.g., "M300", "ბეტონი", "concrete")
-    // Search for SKUs that contain any significant part of the material name
+    // Extract key terms from material name for matching
+    // Common patterns: "M300", "M200", numbers, dimensions like "60x60", "2m", etc.
+    const keyTerms: string[] = [];
+
+    // Extract grade codes like M300, M200
+    const gradeMatch = materialName.match(/M\d+/gi);
+    if (gradeMatch) keyTerms.push(...gradeMatch);
+
+    // Extract dimensions like 60x60, 40x20, 100x100
+    const dimMatch = materialName.match(/\d+[xX×]\d+/g);
+    if (dimMatch) keyTerms.push(...dimMatch.map((d: string) => d.replace(/[X×]/gi, 'x')));
+
+    // Extract diameter/thickness like Ø4, Ø12, 2mm, 4mm
+    const thicknessMatch = materialName.match(/[Ø]?\d+მ?მ?/g);
+    if (thicknessMatch) keyTerms.push(...thicknessMatch);
+
+    // Build search conditions
+    let searchConditions = `
+      LOWER(COALESCE(s2.name_en, '')) ILIKE $1
+      OR LOWER(COALESCE(s2.name_ka, '')) ILIKE $1
+      OR LOWER($2) ILIKE '%' || LOWER(COALESCE(s2.name_en, '')) || '%'
+      OR LOWER($2) ILIKE '%' || LOWER(COALESCE(s2.name_ka, '')) || '%'
+    `;
+
+    const queryParams: string[] = [`%${materialName}%`, materialName];
+
+    // Add key term matching - if material has M300, find SKUs with M300
+    if (keyTerms.length > 0) {
+      keyTerms.forEach((term) => {
+        const paramIdx = queryParams.length + 1;
+        searchConditions += `
+          OR LOWER(COALESCE(s2.name_en, '')) ILIKE $${paramIdx}
+          OR LOWER(COALESCE(s2.name_ka, '')) ILIKE $${paramIdx}
+          OR LOWER(COALESCE(s2.spec_string_en, '')) ILIKE $${paramIdx}
+          OR LOWER(COALESCE(s2.spec_string_ka, '')) ILIKE $${paramIdx}
+        `;
+        queryParams.push(`%${term}%`);
+      });
+    }
+
+    // Also check for category/type matches via keyword translation
+    // Georgian to English material type mapping
+    const materialMappings: Record<string, string[]> = {
+      'ბეტონი': ['concrete'],
+      'ხრეში': ['gravel'],
+      'ქვიშა': ['sand'],
+      'არმატურა': ['rebar', 'reinforcement'],
+      'ბადე': ['mesh', 'reinforcement'],
+      'ფურცელი': ['sheet', 'metal'],
+      'სვეტი': ['post', 'profile'],
+      'ბოძი': ['post', 'profile'],
+      'დაფა': ['board', 'lumber', 'formwork'],
+      'ხე-ტყე': ['lumber', 'wood', 'formwork'],
+      'რელსი': ['rail', 'profile'],
+      'ცემენტი': ['cement'],
+    };
+
+    Object.entries(materialMappings).forEach(([georgian, englishTerms]) => {
+      if (materialName.includes(georgian)) {
+        englishTerms.forEach(term => {
+          const paramIdx = queryParams.length + 1;
+          searchConditions += `
+            OR LOWER(COALESCE(s2.name_en, '')) ILIKE $${paramIdx}
+            OR LOWER(COALESCE(s2.category_en, '')) ILIKE $${paramIdx}
+          `;
+          queryParams.push(`%${term}%`);
+        });
+      }
+    });
+
     const availableSuppliersResult = await pool.query(
       `SELECT DISTINCT ON (sup2.id)
         sup2.id as supplier_id,
         COALESCE(sup2.business_name_en, sup2.business_name_ka) as supplier_name,
         sup2.logo_url,
+        sup2.depot_address,
+        sup2.is_verified,
         s2.id as sku_id,
         COALESCE(s2.name_en, s2.name_ka) as sku_name,
         s2.base_price as unit_price,
         COALESCE(s2.unit_en, s2.unit_ka) as unit,
-        s2.images
+        s2.images,
+        s2.direct_order_available,
+        tm.on_time_pct,
+        tm.spec_reliability_pct
       FROM skus s2
       JOIN suppliers sup2 ON s2.supplier_id = sup2.id
+      LEFT JOIN trust_metrics tm ON tm.supplier_id = sup2.id
       WHERE s2.is_active = true
         AND sup2.is_active = true
-        AND (
-          LOWER(COALESCE(s2.name_en, '')) ILIKE $1
-          OR LOWER(COALESCE(s2.name_ka, '')) ILIKE $1
-          OR LOWER($2) ILIKE '%' || LOWER(COALESCE(s2.name_en, '')) || '%'
-          OR LOWER($2) ILIKE '%' || LOWER(COALESCE(s2.name_ka, '')) || '%'
-        )
+        AND (${searchConditions})
       ORDER BY sup2.id, s2.base_price ASC`,
-      [`%${materialName}%`, materialName]
+      queryParams
     );
 
     return {
@@ -113,6 +182,12 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
         supplier_id: s.supplier_id,
         supplier_name: s.supplier_name,
         logo_url: s.logo_url,
+        location: s.depot_address || null,
+        is_verified: s.is_verified,
+        direct_order_available: s.direct_order_available,
+        trust_score: s.on_time_pct && s.spec_reliability_pct
+          ? Math.round((parseFloat(s.on_time_pct) + parseFloat(s.spec_reliability_pct)) / 2)
+          : null,
         sku_id: s.sku_id,
         sku_name: s.sku_name,
         unit_price: s.unit_price ? parseFloat(s.unit_price) : null,
@@ -125,7 +200,32 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
     };
   }));
 
-  return success(res, { materials }, 'Project materials retrieved successfully');
+  // Calculate how many materials each supplier can provide
+  const supplierProductCounts: Record<string, { count: number; name: string }> = {};
+  const totalMaterialsCount = materials.filter(m => m.status === 'need_to_buy').length;
+
+  materials.forEach(m => {
+    if (m.status === 'need_to_buy') {
+      m.available_suppliers.forEach((s: any) => {
+        if (!supplierProductCounts[s.supplier_id]) {
+          supplierProductCounts[s.supplier_id] = { count: 0, name: s.supplier_name };
+        }
+        supplierProductCounts[s.supplier_id].count++;
+      });
+    }
+  });
+
+  // Add product count info to each supplier in materials
+  const materialsWithCounts = materials.map(m => ({
+    ...m,
+    available_suppliers: m.available_suppliers.map((s: any) => ({
+      ...s,
+      products_available: supplierProductCounts[s.supplier_id]?.count || 0,
+      total_products_needed: totalMaterialsCount,
+    })),
+  }));
+
+  return success(res, { materials: materialsWithCounts }, 'Project materials retrieved successfully');
 };
 
 /**
