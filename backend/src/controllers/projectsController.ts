@@ -137,14 +137,57 @@ export async function getProjectById(req: Request, res: Response): Promise<void>
       [projectId]
     );
 
-    // TODO: Get orders (direct orders) for this project (feature not implemented yet)
-    const ordersResult = { rows: [] };
+    // Get orders for this project
+    const ordersResult = await pool.query(
+      `SELECT
+        o.id,
+        o.order_number,
+        o.status,
+        o.grand_total,
+        o.created_at,
+        COALESCE(s.business_name_en, s.business_name_ka) as supplier_name
+      FROM orders o
+      LEFT JOIN suppliers s ON o.supplier_id = s.id
+      WHERE o.project_id = $1
+      ORDER BY o.created_at DESC`,
+      [projectId]
+    );
 
-    // TODO: Get deliveries for this project (feature not implemented yet)
-    const deliveriesResult = { rows: [] };
+    // Get deliveries for this project
+    const deliveriesResult = await pool.query(
+      `SELECT
+        de.id,
+        de.delivered_at,
+        de.notes,
+        o.order_number,
+        COALESCE(s.business_name_en, s.business_name_ka) as supplier_name,
+        u.full_name as delivered_by_name
+      FROM delivery_events de
+      JOIN orders o ON de.order_id = o.id
+      LEFT JOIN suppliers s ON o.supplier_id = s.id
+      LEFT JOIN users u ON de.delivered_by_user_id = u.id
+      WHERE o.project_id = $1
+      ORDER BY de.delivered_at DESC`,
+      [projectId]
+    );
 
-    // TODO: Get rental bookings for this project (feature not implemented yet)
-    const rentalsResult = { rows: [] };
+    // Get rental bookings for this project
+    const rentalsResult = await pool.query(
+      `SELECT
+        rb.id,
+        rb.status,
+        rb.start_date,
+        rb.end_date,
+        rb.total_cost,
+        rt.name_en as tool_name,
+        COALESCE(s.business_name_en, s.business_name_ka) as supplier_name
+      FROM rental_bookings rb
+      LEFT JOIN rental_tools rt ON rb.rental_tool_id = rt.id
+      LEFT JOIN suppliers s ON rb.supplier_id = s.id
+      WHERE rb.project_id = $1
+      ORDER BY rb.created_at DESC`,
+      [projectId]
+    );
 
     res.json({
       success: true,

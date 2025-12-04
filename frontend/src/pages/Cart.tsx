@@ -721,47 +721,56 @@ export const Cart: React.FC = () => {
             </div>
 
             {/* Timeslot Selection */}
-            {(deliveryOption === 'delivery' ? timeslots.delivery : timeslots.pickup).length > 0 && (
-              <div style={{ marginBottom: spacing[4] }}>
-                <div style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.text.secondary, marginBottom: spacing[2] }}>
-                  <Icons.Clock size={14} style={{ marginRight: spacing[1], verticalAlign: 'middle' }} />
-                  {deliveryOption === 'delivery'
-                    ? t('cart.deliveryTime', 'Delivery Time')
-                    : t('cart.pickupTime', 'Pickup Time')}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[2], maxHeight: '200px', overflowY: 'auto' }}>
-                  {(deliveryOption === 'delivery' ? timeslots.delivery : timeslots.pickup).map((slot) => (
-                    <button
-                      key={slot.id}
-                      onClick={() => setSelectedTimeslot(slot.id)}
-                      style={{
-                        padding: spacing[3],
-                        backgroundColor: selectedTimeslot === slot.id ? colors.primary[50] : colors.neutral[50],
-                        border: `2px solid ${selectedTimeslot === slot.id ? colors.primary[600] : colors.border.light}`,
-                        borderRadius: borderRadius.md,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        textAlign: 'left',
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontWeight: typography.fontWeight.medium, color: selectedTimeslot === slot.id ? colors.primary[600] : colors.text.primary }}>
-                          {slot.label}
+            {(deliveryOption === 'delivery' ? timeslots.delivery : timeslots.pickup).length > 0 && (() => {
+              const slots = deliveryOption === 'delivery' ? timeslots.delivery : timeslots.pickup;
+              // Group slots by date
+              const groupedSlots: Record<string, typeof slots> = {};
+              slots.forEach(slot => {
+                if (!groupedSlots[slot.date]) groupedSlots[slot.date] = [];
+                groupedSlots[slot.date].push(slot);
+              });
+              const dates = Object.keys(groupedSlots);
+
+              return (
+                <div style={{ marginBottom: spacing[4] }}>
+                  <div style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.text.secondary, marginBottom: spacing[2] }}>
+                    <Icons.Clock size={14} style={{ marginRight: spacing[1], verticalAlign: 'middle' }} />
+                    {deliveryOption === 'delivery'
+                      ? t('cart.deliveryTime', 'Delivery Time')
+                      : t('cart.pickupTime', 'Pickup Time')}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+                    {dates.map(date => (
+                      <div key={date}>
+                        <div style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.text.primary, marginBottom: spacing[2] }}>
+                          {groupedSlots[date][0].label}
                         </div>
-                        <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-                          {slot.time}
+                        <div style={{ display: 'flex', gap: spacing[2], flexWrap: 'wrap' }}>
+                          {groupedSlots[date].map(slot => (
+                            <button
+                              key={slot.id}
+                              onClick={() => setSelectedTimeslot(slot.id)}
+                              style={{
+                                padding: `${spacing[2]} ${spacing[3]}`,
+                                backgroundColor: selectedTimeslot === slot.id ? colors.primary[50] : colors.neutral[50],
+                                border: `2px solid ${selectedTimeslot === slot.id ? colors.primary[600] : colors.border.light}`,
+                                borderRadius: borderRadius.md,
+                                cursor: 'pointer',
+                                fontSize: typography.fontSize.sm,
+                                fontWeight: selectedTimeslot === slot.id ? typography.fontWeight.medium : typography.fontWeight.normal,
+                                color: selectedTimeslot === slot.id ? colors.primary[600] : colors.text.primary,
+                              }}
+                            >
+                              {slot.time}
+                            </button>
+                          ))}
                         </div>
                       </div>
-                      {selectedTimeslot === slot.id && (
-                        <Icons.CheckCircle size={20} color={colors.primary[600]} />
-                      )}
-                    </button>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Payment Option */}
             <div>
