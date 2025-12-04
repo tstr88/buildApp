@@ -1220,6 +1220,9 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onSupplierSelect, isSaving, t
                                 <Icons.Star size={12} /> {supplier.trust_score}%
                               </span>
                             )}
+                            <span style={{ color: colors.primary[600], fontWeight: typography.fontWeight.medium }}>
+                              {supplier.tools_available}/{supplier.total_tools_needed} {t('project.tools', 'tools')}
+                            </span>
                           </div>
                           <div style={{ marginTop: spacing[1], fontSize: typography.fontSize.xs }}>
                             {supplier.direct_booking_available ? (
