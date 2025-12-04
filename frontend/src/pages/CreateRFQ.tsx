@@ -126,6 +126,7 @@ export const CreateRFQ: React.FC = () => {
           const newProducts: RFQProduct[] = data.lines.map((line: any, index: number) => ({
             id: `product-${Date.now()}-${index}`,
             sku_id: line.sku_id || undefined,
+            project_material_id: line.project_material_id || undefined,
             description: line.description || '',
             quantity: line.quantity || 1,
             unit: line.unit || 'm3',
@@ -387,6 +388,8 @@ export const CreateRFQ: React.FC = () => {
         project_id: selectedProjectId || undefined,
         title: title || undefined,
         lines: lines.map((line) => ({
+          sku_id: line.sku_id,
+          project_material_id: line.project_material_id,
           description: line.description,
           quantity: line.quantity,
           unit: line.unit,

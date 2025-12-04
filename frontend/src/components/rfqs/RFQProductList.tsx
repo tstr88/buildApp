@@ -10,6 +10,7 @@ import { colors, spacing, typography, borderRadius, shadows } from '../../theme/
 export interface RFQProduct {
   id: string;
   sku_id?: string;
+  project_material_id?: string;
   description: string;
   quantity: number;
   unit: string;
