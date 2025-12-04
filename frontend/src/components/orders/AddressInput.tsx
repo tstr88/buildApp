@@ -491,7 +491,7 @@ export const AddressInput: React.FC<AddressInputProps> = ({
         >
           <Icons.CheckCircle size={16} color={colors.success[600]} />
           <span style={{ fontSize: typography.fontSize.xs, color: colors.success[700] }}>
-            Location set: {mapCoords.lat.toFixed(5)}, {mapCoords.lng.toFixed(5)}
+            Location set: {Number(mapCoords.lat).toFixed(5)}, {Number(mapCoords.lng).toFixed(5)}
           </span>
         </div>
       )}

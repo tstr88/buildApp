@@ -167,8 +167,8 @@ export const CreateRFQ: React.FC = () => {
 
         const description = sku.name_en || sku.name_ka || sku.name || 'Product';
 
-        const newLine: RFQLine = {
-          id: `line-${Date.now()}`,
+        const newLine: RFQProduct = {
+          id: `product-${Date.now()}`,
           sku_id: sku.id,
           description: description,
           quantity: 1,
@@ -747,6 +747,59 @@ export const CreateRFQ: React.FC = () => {
                   )}
                 </div>
               </div>
+
+              {/* Pre-selected Supplier Indicator */}
+              {preselectedSupplierId && selectedSuppliers.length > 0 && (
+                <div
+                  style={{
+                    backgroundColor: colors.success[50],
+                    borderRadius: borderRadius.lg,
+                    border: `1px solid ${colors.success[200]}`,
+                    padding: spacing[4],
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3] }}>
+                    <div
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: borderRadius.md,
+                        backgroundColor: colors.success[100],
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Icons.Building2 size={20} color={colors.success[600]} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <p
+                        style={{
+                          fontSize: typography.fontSize.xs,
+                          color: colors.success[700],
+                          margin: 0,
+                          marginBottom: spacing[1],
+                          textTransform: 'uppercase',
+                          fontWeight: typography.fontWeight.medium,
+                        }}
+                      >
+                        RFQ will be sent to
+                      </p>
+                      <p
+                        style={{
+                          fontSize: typography.fontSize.base,
+                          fontWeight: typography.fontWeight.semibold,
+                          color: colors.text.primary,
+                          margin: 0,
+                        }}
+                      >
+                        {selectedSuppliers[0]?.business_name_en || selectedSuppliers[0]?.business_name_ka || selectedSuppliers[0]?.business_name || 'Supplier'}
+                      </p>
+                    </div>
+                    <Icons.CheckCircle size={24} color={colors.success[600]} />
+                  </div>
+                </div>
+              )}
 
               {/* Related Products */}
               {!loadingPreselected && relatedSKUs.length > 0 && (
@@ -1945,6 +1998,60 @@ export const CreateRFQ: React.FC = () => {
                       </p>
                     )}
                   </>
+                )}
+
+                {/* Pre-selected Supplier Indicator - Desktop */}
+                {preselectedSupplierId && selectedSuppliers.length > 0 && (
+                  <div
+                    style={{
+                      marginTop: spacing[4],
+                      backgroundColor: colors.success[50],
+                      borderRadius: borderRadius.lg,
+                      border: `1px solid ${colors.success[200]}`,
+                      padding: spacing[4],
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3] }}>
+                      <div
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: borderRadius.md,
+                          backgroundColor: colors.success[100],
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Icons.Building2 size={20} color={colors.success[600]} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <p
+                          style={{
+                            fontSize: typography.fontSize.xs,
+                            color: colors.success[700],
+                            margin: 0,
+                            marginBottom: spacing[1],
+                            textTransform: 'uppercase',
+                            fontWeight: typography.fontWeight.medium,
+                          }}
+                        >
+                          RFQ will be sent to
+                        </p>
+                        <p
+                          style={{
+                            fontSize: typography.fontSize.base,
+                            fontWeight: typography.fontWeight.semibold,
+                            color: colors.text.primary,
+                            margin: 0,
+                          }}
+                        >
+                          {selectedSuppliers[0]?.business_name_en || selectedSuppliers[0]?.business_name_ka || selectedSuppliers[0]?.business_name || 'Supplier'}
+                        </p>
+                      </div>
+                      <Icons.CheckCircle size={24} color={colors.success[600]} />
+                    </div>
+                  </div>
                 )}
 
                 {/* Related Products */}
