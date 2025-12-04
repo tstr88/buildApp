@@ -177,8 +177,8 @@ export async function getProjectById(req: Request, res: Response): Promise<void>
         rb.status,
         rb.start_date,
         rb.end_date,
-        rb.total_cost,
-        rt.name_en as tool_name,
+        rb.total_rental_amount as total_cost,
+        COALESCE(rt.name_en, rt.name_ka) as tool_name,
         COALESCE(s.business_name_en, s.business_name_ka) as supplier_name
       FROM rental_bookings rb
       LEFT JOIN rental_tools rt ON rb.rental_tool_id = rt.id
