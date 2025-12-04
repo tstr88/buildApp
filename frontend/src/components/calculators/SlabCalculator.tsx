@@ -210,11 +210,6 @@ export const SlabCalculator: React.FC<SlabCalculatorProps> = ({ onCalculate }) =
       warnings.push(t('slab.warnings.engineeringRequired'));
     }
 
-    // Note about pump
-    if (pumpRecommended) {
-      notes.push(t('slab.notes.pumpRecommended'));
-    }
-
     const bom: any[] = [
       {
         id: '1',
