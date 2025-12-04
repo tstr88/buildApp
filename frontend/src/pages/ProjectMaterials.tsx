@@ -232,29 +232,31 @@ export const ProjectMaterials: React.FC = () => {
       } else {
         // Create RFQ
         const rfqData = {
-          supplier_id: order.supplier_id,
+          supplier_ids: [order.supplier_id],
           project_id: projectId,
-          items: order.materials.map(m => ({
-            project_material_id: m.id,
-            name: m.name,
-            description: m.description,
+          title: `Materials for project`,
+          lines: order.materials.map(m => ({
+            description: m.name + (m.description ? ` - ${m.description}` : ''),
             quantity: m.quantity,
             unit: m.unit,
             sku_id: m.sku_id,
           })),
-          delivery_type: 'delivery',
-          notes: '',
+          delivery_preference: 'delivery',
+          additional_notes: '',
         };
 
-        const result = await api.post('/buyers/rfqs', rfqData);
-        if (result.success) {
+        const result = await api.post<{ id: string }>('/buyers/rfqs', rfqData);
+        if (result.success && result.data) {
+          const rfqId = result.data.id;
           // Update material statuses
           setMaterials(prev => prev.map(m => {
             if (order.materials.find(om => om.id === m.id)) {
-              return { ...m, status: 'rfq_sent' as const };
+              return { ...m, status: 'rfq_sent' as const, rfq_id: rfqId };
             }
             return m;
           }));
+          // Navigate to the RFQ detail page
+          navigate(`/rfqs/${rfqId}`);
         }
       }
     } catch (err) {
