@@ -183,11 +183,13 @@ export const ProjectMaterials: React.FC = () => {
   };
 
   // Group materials by selected supplier into orders
+  // Include both 'need_to_buy' and 'rfq_sent' so users can re-send RFQs if needed
   const supplierOrders = useMemo((): SupplierOrder[] => {
     const orderMap: Record<string, SupplierOrder> = {};
 
     materials.forEach(m => {
-      if (m.status === 'need_to_buy' && m.supplier_id) {
+      // Allow materials that need to buy OR have RFQ sent (to allow re-sending)
+      if ((m.status === 'need_to_buy' || m.status === 'rfq_sent') && m.supplier_id) {
         if (!orderMap[m.supplier_id]) {
           // Find supplier info from available_suppliers
           const supplierInfo = m.available_suppliers.find(s => s.supplier_id === m.supplier_id);
