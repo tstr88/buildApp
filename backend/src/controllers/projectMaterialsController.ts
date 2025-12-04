@@ -60,29 +60,69 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
     [projectId]
   );
 
-  const materials = result.rows.map(row => ({
-    id: row.id,
-    project_id: row.project_id,
-    sku_id: row.sku_id,
-    name: row.custom_name || row.sku_name_en || row.sku_name_ka,
-    description: row.description,
-    quantity: parseFloat(row.quantity),
-    unit: row.material_unit || row.sku_unit_en || row.sku_unit_ka,
-    status: row.status,
-    supplier_id: row.supplier_id,
-    supplier_name: row.supplier_name,
-    unit_price: row.unit_price ? parseFloat(row.unit_price) : null,
-    estimated_total: row.estimated_total ? parseFloat(row.estimated_total) : null,
-    template_slug: row.template_slug,
-    template_calculation_id: row.template_calculation_id,
-    rfq_id: row.rfq_id,
-    order_id: row.order_id,
-    cart_item_id: row.cart_item_id,
-    images: row.sku_images,
-    available_suppliers: [],
-    sort_order: row.sort_order,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
+  // For each material, find available suppliers with matching SKUs
+  const materials = await Promise.all(result.rows.map(async (row) => {
+    const materialName = row.custom_name || row.sku_name_en || row.sku_name_ka || '';
+
+    // Extract key terms from material name for matching (e.g., "M300", "ბეტონი", "concrete")
+    // Search for SKUs that contain any significant part of the material name
+    const availableSuppliersResult = await pool.query(
+      `SELECT DISTINCT ON (sup2.id)
+        sup2.id as supplier_id,
+        COALESCE(sup2.business_name_en, sup2.business_name_ka) as supplier_name,
+        sup2.logo_url,
+        s2.id as sku_id,
+        COALESCE(s2.name_en, s2.name_ka) as sku_name,
+        s2.base_price as unit_price,
+        COALESCE(s2.unit_en, s2.unit_ka) as unit,
+        s2.images
+      FROM skus s2
+      JOIN suppliers sup2 ON s2.supplier_id = sup2.id
+      WHERE s2.is_active = true
+        AND sup2.is_active = true
+        AND (
+          LOWER(COALESCE(s2.name_en, '')) ILIKE $1
+          OR LOWER(COALESCE(s2.name_ka, '')) ILIKE $1
+          OR LOWER($2) ILIKE '%' || LOWER(COALESCE(s2.name_en, '')) || '%'
+          OR LOWER($2) ILIKE '%' || LOWER(COALESCE(s2.name_ka, '')) || '%'
+        )
+      ORDER BY sup2.id, s2.base_price ASC`,
+      [`%${materialName}%`, materialName]
+    );
+
+    return {
+      id: row.id,
+      project_id: row.project_id,
+      sku_id: row.sku_id,
+      name: materialName,
+      description: row.description,
+      quantity: parseFloat(row.quantity),
+      unit: row.material_unit || row.sku_unit_en || row.sku_unit_ka,
+      status: row.status,
+      supplier_id: row.supplier_id,
+      supplier_name: row.supplier_name,
+      unit_price: row.unit_price ? parseFloat(row.unit_price) : null,
+      estimated_total: row.estimated_total ? parseFloat(row.estimated_total) : null,
+      template_slug: row.template_slug,
+      template_calculation_id: row.template_calculation_id,
+      rfq_id: row.rfq_id,
+      order_id: row.order_id,
+      cart_item_id: row.cart_item_id,
+      images: row.sku_images,
+      available_suppliers: availableSuppliersResult.rows.map(s => ({
+        supplier_id: s.supplier_id,
+        supplier_name: s.supplier_name,
+        logo_url: s.logo_url,
+        sku_id: s.sku_id,
+        sku_name: s.sku_name,
+        unit_price: s.unit_price ? parseFloat(s.unit_price) : null,
+        unit: s.unit,
+        images: s.images
+      })),
+      sort_order: row.sort_order,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+    };
   }));
 
   return success(res, { materials }, 'Project materials retrieved successfully');
