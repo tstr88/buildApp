@@ -354,6 +354,20 @@ export async function createRFQ(req: Request, res: Response): Promise<void> {
       `INSERT INTO rfq_recipients (rfq_id, supplier_id) VALUES ${recipientValues}`
     );
 
+    // Update project materials status to 'rfq_sent' if they were linked
+    const projectMaterialIds = lines
+      .filter((line: any) => line.project_material_id)
+      .map((line: any) => line.project_material_id);
+
+    if (projectMaterialIds.length > 0) {
+      await pool.query(
+        `UPDATE project_materials
+         SET status = 'rfq_sent', rfq_id = $1, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ANY($2)`,
+        [rfq.id, projectMaterialIds]
+      );
+    }
+
     // Get user_ids for the suppliers to send WebSocket notifications
     const supplierUsersResult = await pool.query(
       `SELECT user_id FROM suppliers WHERE id = ANY($1)`,

@@ -129,8 +129,13 @@ export async function getProjectById(req: Request, res: Response): Promise<void>
         r.title,
         r.status,
         r.created_at,
-        r.expires_at,
-        (SELECT COUNT(*) FROM offers WHERE rfq_id = r.id) as offer_count
+        r.expires_at as deadline,
+        COALESCE(
+          (SELECT string_agg(line->>'description', ', ')
+           FROM jsonb_array_elements(r.lines) AS line),
+          ''
+        ) as description,
+        (SELECT COUNT(*) FROM offers WHERE rfq_id = r.id)::int as offer_count
       FROM rfqs r
       WHERE r.project_id = $1
       ORDER BY r.created_at DESC`,

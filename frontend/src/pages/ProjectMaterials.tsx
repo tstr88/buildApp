@@ -235,6 +235,7 @@ export const ProjectMaterials: React.FC = () => {
           project_id: projectId,
           supplier_id: order.supplier_id,
           lines: order.materials.map(m => ({
+            project_material_id: m.id,
             description: m.name + (m.description ? ` - ${m.description}` : ''),
             quantity: m.quantity,
             unit: m.unit,
