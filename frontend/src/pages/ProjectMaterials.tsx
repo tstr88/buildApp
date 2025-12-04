@@ -123,11 +123,12 @@ export const ProjectMaterials: React.FC = () => {
   };
 
   // Update material supplier
-  const updateSupplier = async (materialId: string, supplierId: string, unitPrice: number) => {
+  const updateSupplier = async (materialId: string, supplierId: string, unitPrice: number, skuId: string) => {
     try {
       await api.put(`/buyers/projects/${projectId}/materials/${materialId}`, {
         supplier_id: supplierId,
         unit_price: unitPrice,
+        sku_id: skuId,
       });
       await fetchData();
     } catch (err) {
@@ -449,7 +450,7 @@ export const ProjectMaterials: React.FC = () => {
               material={material}
               isSelected={selectedIds.has(material.id)}
               onSelect={() => toggleSelect(material.id)}
-              onSupplierChange={(supplierId, unitPrice) => updateSupplier(material.id, supplierId, unitPrice)}
+              onSupplierChange={(supplierId, unitPrice, skuId) => updateSupplier(material.id, supplierId, unitPrice, skuId)}
               onMarkAsHave={() => markAsHave(material.id)}
             />
           ))}
@@ -464,7 +465,7 @@ interface MaterialCardProps {
   material: ProjectMaterial;
   isSelected: boolean;
   onSelect: () => void;
-  onSupplierChange: (supplierId: string, unitPrice: number) => void;
+  onSupplierChange: (supplierId: string, unitPrice: number, skuId: string) => void;
   onMarkAsHave: () => void;
 }
 
@@ -624,7 +625,7 @@ const MaterialCard: React.FC<MaterialCardProps> = ({
                     <button
                       key={supplier.supplier_id}
                       onClick={() => {
-                        onSupplierChange(supplier.supplier_id, supplier.unit_price);
+                        onSupplierChange(supplier.supplier_id, supplier.unit_price, supplier.sku_id);
                         setShowSuppliers(false);
                       }}
                       style={{

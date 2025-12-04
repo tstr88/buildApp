@@ -240,7 +240,7 @@ export const updateProjectMaterial = async (req: Request, res: Response) => {
   }
 
   // Build dynamic update query
-  const allowedFields = ['status', 'supplier_id', 'quantity', 'unit_price', 'custom_name', 'description', 'sort_order'];
+  const allowedFields = ['status', 'supplier_id', 'sku_id', 'quantity', 'unit_price', 'custom_name', 'description', 'sort_order'];
   const setClauses: string[] = [];
   const values: any[] = [];
   let paramCount = 1;
