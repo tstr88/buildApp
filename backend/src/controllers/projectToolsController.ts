@@ -46,9 +46,9 @@ async function getRentalToolsFromCache(): Promise<CachedRentalTool[]> {
       sup.logo_url,
       sup.depot_address,
       sup.is_verified,
-      rt.name as tool_name,
-      rt.category,
-      LOWER(rt.name || ' ' || COALESCE(rt.spec_string, '') || ' ' || rt.category) as search_text,
+      COALESCE(rt.name_en, rt.name_ka) as tool_name,
+      COALESCE(rt.category_en, rt.category_ka) as category,
+      LOWER(COALESCE(rt.name_en, rt.name_ka) || ' ' || COALESCE(rt.spec_string_en, rt.spec_string_ka, '') || ' ' || COALESCE(rt.category_en, rt.category_ka)) as search_text,
       rt.day_rate,
       rt.week_rate,
       rt.deposit_amount,
@@ -165,7 +165,9 @@ export const getProjectTools = async (req: Request, res: Response) => {
         pt.status, pt.supplier_id, pt.supplier_name as stored_supplier_name,
         pt.rental_rfq_id, pt.booking_id, pt.template_slug, pt.template_calculation_id,
         pt.sort_order, pt.created_at, pt.updated_at,
-        rt.name as tool_name, rt.category as tool_category, rt.day_rate, rt.week_rate,
+        COALESCE(rt.name_en, rt.name_ka) as tool_name,
+        COALESCE(rt.category_en, rt.category_ka) as tool_category,
+        rt.day_rate, rt.week_rate,
         rt.direct_booking_available, rt.delivery_option,
         COALESCE(sup.business_name_en, sup.business_name_ka) as supplier_name_from_db
       FROM project_tools pt
