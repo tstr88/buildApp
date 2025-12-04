@@ -335,7 +335,7 @@ export const addProjectTools = async (req: Request, res: Response) => {
 export const updateProjectTool = async (req: Request, res: Response) => {
   const userId = req.user?.id;
   const { projectId, toolId } = req.params;
-  const { status, supplier_id, supplier_name, rental_duration_days, rental_rfq_id, booking_id } = req.body;
+  const { status, supplier_id, supplier_name, rental_tool_id, daily_rate_estimate, rental_duration_days, rental_rfq_id, booking_id } = req.body;
 
   // Verify project belongs to user
   const projectCheck = await pool.query(
@@ -364,12 +364,23 @@ export const updateProjectTool = async (req: Request, res: Response) => {
     updates.push(`supplier_name = $${paramIndex++}`);
     values.push(supplier_name);
   }
+  if (rental_tool_id !== undefined) {
+    updates.push(`rental_tool_id = $${paramIndex++}`);
+    values.push(rental_tool_id || null);
+  }
+  if (daily_rate_estimate !== undefined) {
+    updates.push(`daily_rate_estimate = $${paramIndex++}`);
+    values.push(daily_rate_estimate);
+  }
   if (rental_duration_days !== undefined) {
     updates.push(`rental_duration_days = $${paramIndex++}`);
     values.push(rental_duration_days);
-    // Recalculate estimated_total
-    updates.push(`estimated_total = daily_rate_estimate * $${paramIndex++}`);
-    values.push(rental_duration_days);
+  }
+  // Recalculate estimated_total if we have the needed values
+  if (daily_rate_estimate !== undefined || rental_duration_days !== undefined) {
+    updates.push(`estimated_total = COALESCE($${paramIndex}, daily_rate_estimate) * COALESCE($${paramIndex + 1}, rental_duration_days)`);
+    values.push(daily_rate_estimate || null, rental_duration_days || null);
+    paramIndex += 2;
   }
   if (rental_rfq_id !== undefined) {
     updates.push(`rental_rfq_id = $${paramIndex++}`);

@@ -295,13 +295,8 @@ export const ProjectMaterials: React.FC = () => {
       }
     });
 
-    // Check if all tools in each order have rental_tool_id for direct booking
-    return Object.values(orderMap).map(order => ({
-      ...order,
-      // Disable direct booking if any tool doesn't have a rental_tool_id
-      direct_booking_available: order.direct_booking_available &&
-        order.tools.every(t => t.rental_tool_id != null && t.rental_tool_id !== ''),
-    }));
+    // Tools now have rental_tool_id set when supplier is selected
+    return Object.values(orderMap);
   }, [tools]);
 
   // Create direct order or RFQ
@@ -419,6 +414,8 @@ export const ProjectMaterials: React.FC = () => {
       await api.put(`/buyers/projects/${projectId}/tools/${toolId}`, {
         supplier_id: supplier.supplier_id,
         supplier_name: supplier.supplier_name,
+        rental_tool_id: supplier.rental_tool_id,
+        daily_rate_estimate: supplier.day_rate,
       });
     } catch (err) {
       console.error('Failed to update tool supplier:', err);
@@ -442,16 +439,36 @@ export const ProjectMaterials: React.FC = () => {
   const handleCreateToolOrder = async (order: SupplierToolOrder, type: 'direct' | 'rfq') => {
     setCreatingOrder(order.supplier_id);
     try {
-      if (type === 'direct' && order.tools.length === 1 && order.tools[0].rental_tool_id) {
-        // Single tool with rental_tool_id - navigate to direct booking page
-        navigate(`/rentals/book/${order.tools[0].rental_tool_id}`, {
-          state: {
+      // Check if all tools have rental_tool_id for direct booking
+      const allToolsHaveRentalId = order.tools.every(t => t.rental_tool_id != null && t.rental_tool_id !== '');
+
+      if (type === 'direct' && allToolsHaveRentalId) {
+        if (order.tools.length === 1) {
+          // Single tool - navigate to direct booking page
+          navigate(`/rentals/book/${order.tools[0].rental_tool_id}`, {
+            state: {
+              project_id: projectId,
+              duration_days: order.tools[0].rental_duration_days,
+            },
+          });
+        } else {
+          // Multiple tools - use RFQ flow with rental_tool_ids
+          const rfqData = {
             project_id: projectId,
-            duration_days: order.tools[0].rental_duration_days,
-          },
-        });
+            supplier_id: order.supplier_id,
+            tools: order.tools.map(t => ({
+              project_tool_id: t.id,
+              rental_tool_id: t.rental_tool_id,
+              name: t.name,
+              category: t.category,
+              duration_days: t.rental_duration_days,
+            })),
+          };
+          sessionStorage.setItem('rental_rfq_prefill', JSON.stringify(rfqData));
+          navigate('/rentals/rfq/create');
+        }
       } else {
-        // Multiple tools or no rental_tool_id - use RFQ flow
+        // RFQ flow
         const rfqData = {
           project_id: projectId,
           supplier_id: order.supplier_id,
