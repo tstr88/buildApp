@@ -393,7 +393,7 @@ export const RFQDetail: React.FC = () => {
           </div>
         )}
 
-        {/* Line Items - Mobile-friendly card layout */}
+        {/* Products - Mobile-friendly card layout */}
         <div
           style={{
             backgroundColor: colors.neutral[0],
@@ -412,7 +412,7 @@ export const RFQDetail: React.FC = () => {
               marginBottom: spacing[3],
             }}
           >
-            Line Items ({rfq.lines.length})
+            Products ({rfq.lines.length})
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
             {rfq.lines.map((line, index) => (

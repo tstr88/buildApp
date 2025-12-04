@@ -1,6 +1,6 @@
 /**
- * RFQ Line Editor Component
- * Allows adding/editing/removing line items with SKU autocomplete
+ * RFQ Product Editor Component
+ * Allows adding/editing/removing products for RFQ requests
  */
 
 import React, { useState } from 'react';
@@ -26,9 +26,9 @@ export const RFQLineEditor: React.FC<RFQLineEditorProps> = ({ lines, onChange })
   const [editingLine, setEditingLine] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const addNewLine = () => {
+  const addNewProduct = () => {
     const newLine: RFQLine = {
-      id: `line-${Date.now()}`,
+      id: `product-${Date.now()}`,
       description: '',
       quantity: 1,
       unit: 'm3',
@@ -46,7 +46,7 @@ export const RFQLineEditor: React.FC<RFQLineEditorProps> = ({ lines, onChange })
     );
   };
 
-  const removeLine = (lineId: string) => {
+  const removeProduct = (lineId: string) => {
     onChange(lines.filter((line) => line.id !== lineId));
   };
 
@@ -72,7 +72,7 @@ export const RFQLineEditor: React.FC<RFQLineEditorProps> = ({ lines, onChange })
               margin: 0,
             }}
           >
-            Line Items
+            Products
           </h3>
           <p
             style={{
@@ -86,7 +86,7 @@ export const RFQLineEditor: React.FC<RFQLineEditorProps> = ({ lines, onChange })
           </p>
         </div>
         <button
-          onClick={addNewLine}
+          onClick={addNewProduct}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -108,7 +108,7 @@ export const RFQLineEditor: React.FC<RFQLineEditorProps> = ({ lines, onChange })
           }}
         >
           <Icons.Plus size={16} />
-          Add Line
+          Add Product
         </button>
       </div>
 
@@ -134,7 +134,7 @@ export const RFQLineEditor: React.FC<RFQLineEditorProps> = ({ lines, onChange })
               marginBottom: spacing[2],
             }}
           >
-            No items added yet
+            No products added yet
           </p>
           <p
             style={{
@@ -143,7 +143,7 @@ export const RFQLineEditor: React.FC<RFQLineEditorProps> = ({ lines, onChange })
               margin: 0,
             }}
           >
-            Click "Add Line" to add materials to your RFQ
+            Click "Add Product" to add materials to your RFQ
           </p>
         </div>
       ) : window.innerWidth >= 768 ? (
@@ -170,7 +170,7 @@ export const RFQLineEditor: React.FC<RFQLineEditorProps> = ({ lines, onChange })
                     letterSpacing: '0.05em',
                   }}
                 >
-                  Description / Spec
+                  Product / Spec
                 </th>
                 <th
                   style={{
@@ -327,7 +327,7 @@ export const RFQLineEditor: React.FC<RFQLineEditorProps> = ({ lines, onChange })
                   </td>
                   <td style={{ padding: spacing[3], textAlign: 'center' }}>
                     <button
-                      onClick={() => removeLine(line.id)}
+                      onClick={() => removeProduct(line.id)}
                       style={{
                         padding: spacing[2],
                         border: 'none',
@@ -385,10 +385,10 @@ export const RFQLineEditor: React.FC<RFQLineEditorProps> = ({ lines, onChange })
                     letterSpacing: '0.05em',
                   }}
                 >
-                  Item {index + 1}
+                  Product {index + 1}
                 </span>
                 <button
-                  onClick={() => removeLine(line.id)}
+                  onClick={() => removeProduct(line.id)}
                   style={{
                     padding: spacing[2],
                     border: 'none',
@@ -594,7 +594,7 @@ export const RFQLineEditor: React.FC<RFQLineEditorProps> = ({ lines, onChange })
               margin: 0,
             }}
           >
-            {lines.length} {lines.length === 1 ? 'item' : 'items'} added
+            {lines.length} {lines.length === 1 ? 'product' : 'products'} added
           </p>
           {lines.length >= 50 && (
             <p
@@ -604,7 +604,7 @@ export const RFQLineEditor: React.FC<RFQLineEditorProps> = ({ lines, onChange })
                 margin: 0,
               }}
             >
-              Maximum 50 items per RFQ
+              Maximum 50 products per RFQ
             </p>
           )}
         </div>

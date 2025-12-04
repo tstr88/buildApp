@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows, heights } from '../theme/tokens';
-import { RFQLineEditor, type RFQLine } from '../components/rfqs/RFQLineEditor';
+import { RFQProductList, type RFQProduct } from '../components/rfqs/RFQProductList';
 import { ProjectSelector } from '../components/rfqs/ProjectSelector';
 import { SupplierCheckboxList } from '../components/rfqs/SupplierCheckboxList';
 import { WindowPicker } from '../components/rfqs/WindowPicker';
@@ -53,7 +53,7 @@ export const CreateRFQ: React.FC = () => {
 
   // Form state
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [lines, setLines] = useState<RFQLine[]>([]);
+  const [lines, setLines] = useState<RFQProduct[]>([]);
   const [deliveryWindow, setDeliveryWindow] = useState<DeliveryWindow | null>(null);
   const [selectedSupplierIds, setSelectedSupplierIds] = useState<string[]>([]);
   const [additionalNotes, setAdditionalNotes] = useState('');
@@ -121,17 +121,17 @@ export const CreateRFQ: React.FC = () => {
           setSelectedSupplierIds([data.supplier_id]);
         }
 
-        // Set lines
+        // Set products
         if (data.lines && data.lines.length > 0) {
-          const newLines: RFQLine[] = data.lines.map((line: any, index: number) => ({
-            id: `line-${Date.now()}-${index}`,
+          const newProducts: RFQProduct[] = data.lines.map((line: any, index: number) => ({
+            id: `product-${Date.now()}-${index}`,
             sku_id: line.sku_id || undefined,
             description: line.description || '',
             quantity: line.quantity || 1,
             unit: line.unit || 'm3',
             spec_notes: '',
           }));
-          setLines(newLines);
+          setLines(newProducts);
         }
       } catch (error) {
         console.error('Failed to parse prefill data:', error);
@@ -209,8 +209,8 @@ export const CreateRFQ: React.FC = () => {
   };
 
   const handleAddRelatedSKU = (sku: any) => {
-    const newLine: RFQLine = {
-      id: `line-${Date.now()}-${Math.random()}`,
+    const newProduct: RFQProduct = {
+      id: `product-${Date.now()}-${Math.random()}`,
       sku_id: sku.id,
       description: sku.name_en || sku.name_ka || sku.name || 'Product',
       quantity: 1,
@@ -218,8 +218,27 @@ export const CreateRFQ: React.FC = () => {
       spec_notes: sku.spec_string || '',
       base_price: sku.base_price || undefined,
     };
-    setLines([...lines, newLine]);
+    setLines([...lines, newProduct]);
     setRelatedSKUs(relatedSKUs.filter((s) => s.id !== sku.id));
+  };
+
+  const handleAddProduct = () => {
+    const newProduct: RFQProduct = {
+      id: `product-${Date.now()}`,
+      description: '',
+      quantity: 1,
+      unit: 'm3',
+      spec_notes: '',
+    };
+    setLines([...lines, newProduct]);
+  };
+
+  const handleUpdateProduct = (id: string, updates: Partial<RFQProduct>) => {
+    setLines(lines.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+  };
+
+  const handleRemoveProduct = (id: string) => {
+    setLines(lines.filter((p) => p.id !== id));
   };
 
   const fetchProjectLocation = async (projectId: string) => {
@@ -319,13 +338,13 @@ export const CreateRFQ: React.FC = () => {
 
   const steps = showSuppliersStep
     ? [
-        { id: 1, label: 'Items', icon: Icons.Package },
+        { id: 1, label: 'Products', icon: Icons.Package },
         { id: 2, label: 'Delivery', icon: Icons.Truck },
         { id: 3, label: 'Suppliers', icon: Icons.Users },
         { id: 4, label: 'Review', icon: Icons.CheckCircle },
       ]
     : [
-        { id: 1, label: 'Items', icon: Icons.Package },
+        { id: 1, label: 'Products', icon: Icons.Package },
         { id: 2, label: 'Delivery', icon: Icons.Truck },
         { id: 3, label: 'Review', icon: Icons.CheckCircle },
       ];
@@ -334,11 +353,11 @@ export const CreateRFQ: React.FC = () => {
     const newErrors: Record<string, string> = {};
 
     if (lines.length === 0) {
-      newErrors.lines = 'Please add at least one line item';
+      newErrors.lines = 'Please add at least one product';
     } else {
       const invalidLines = lines.filter((line) => !line.description || line.quantity <= 0);
       if (invalidLines.length > 0) {
-        newErrors.lines = 'All lines must have a description and quantity greater than 0';
+        newErrors.lines = 'All products must have a description and quantity greater than 0';
       }
     }
 
@@ -589,7 +608,7 @@ export const CreateRFQ: React.FC = () => {
 
         {/* Content */}
         <div style={{ padding: spacing[4] }}>
-          {/* Step 1: Items */}
+          {/* Step 1: Products */}
           {currentStep === 1 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4] }}>
               {/* Project Selector */}
@@ -643,7 +662,7 @@ export const CreateRFQ: React.FC = () => {
                 </div>
               </div>
 
-              {/* Line Items */}
+              {/* Products */}
               <div
                 style={{
                   backgroundColor: colors.neutral[0],
@@ -683,7 +702,7 @@ export const CreateRFQ: React.FC = () => {
                         margin: 0,
                       }}
                     >
-                      Items to Request
+                      Products to Request
                     </h3>
                     <p
                       style={{
@@ -692,7 +711,7 @@ export const CreateRFQ: React.FC = () => {
                         margin: 0,
                       }}
                     >
-                      {lines.length} {lines.length === 1 ? 'item' : 'items'}
+                      {lines.length} {lines.length === 1 ? 'product' : 'products'}
                     </p>
                   </div>
                 </div>
@@ -706,7 +725,13 @@ export const CreateRFQ: React.FC = () => {
                     </div>
                   ) : (
                     <>
-                      <RFQLineEditor lines={lines} onChange={setLines} />
+                      <RFQProductList
+                        products={lines}
+                        onUpdateProduct={handleUpdateProduct}
+                        onRemoveProduct={handleRemoveProduct}
+                        onAddProduct={handleAddProduct}
+                        isMobile={isMobile}
+                      />
                       {errors.lines && (
                         <p
                           style={{
@@ -763,7 +788,7 @@ export const CreateRFQ: React.FC = () => {
                         margin: 0,
                       }}
                     >
-                      Add More Items
+                      Add More Products
                     </h3>
                   </div>
                   <div
@@ -1223,7 +1248,7 @@ export const CreateRFQ: React.FC = () => {
               >
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: spacing[3], textAlign: 'center' }}>
                   <div>
-                    <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0 }}>Items</p>
+                    <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0 }}>Products</p>
                     <p style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.bold, color: colors.primary[700], margin: 0 }}>
                       {lines.length}
                     </p>
@@ -1243,7 +1268,7 @@ export const CreateRFQ: React.FC = () => {
                 </div>
               </div>
 
-              {/* Items List */}
+              {/* Products List */}
               <div
                 style={{
                   backgroundColor: colors.neutral[0],
@@ -1282,7 +1307,7 @@ export const CreateRFQ: React.FC = () => {
                       margin: 0,
                     }}
                   >
-                    Requested Items
+                    Requested Products
                   </h3>
                 </div>
                 <div style={{ padding: spacing[4] }}>
@@ -1859,7 +1884,7 @@ export const CreateRFQ: React.FC = () => {
               minHeight: '500px',
             }}
           >
-            {/* Step 1: Items */}
+            {/* Step 1: Products */}
             {currentStep === 1 && (
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], marginBottom: spacing[4] }}>
@@ -1884,7 +1909,7 @@ export const CreateRFQ: React.FC = () => {
                       margin: 0,
                     }}
                   >
-                    Items & Project
+                    Products & Project
                   </h3>
                 </div>
 
@@ -1897,7 +1922,7 @@ export const CreateRFQ: React.FC = () => {
                   />
                 </div>
 
-                {/* Line Items */}
+                {/* Products */}
                 {loadingPreselected ? (
                   <div style={{ textAlign: 'center', padding: spacing[12] }}>
                     <Icons.Loader size={48} color={colors.text.tertiary} style={{ animation: 'spin 1s linear infinite' }} />
@@ -1907,7 +1932,13 @@ export const CreateRFQ: React.FC = () => {
                   </div>
                 ) : (
                   <>
-                    <RFQLineEditor lines={lines} onChange={setLines} />
+                    <RFQProductList
+                      products={lines}
+                      onUpdateProduct={handleUpdateProduct}
+                      onRemoveProduct={handleRemoveProduct}
+                      onAddProduct={handleAddProduct}
+                      isMobile={false}
+                    />
                     {errors.lines && (
                       <p style={{ fontSize: typography.fontSize.sm, color: colors.error[600], marginTop: spacing[3] }}>
                         {errors.lines}
@@ -2156,7 +2187,7 @@ export const CreateRFQ: React.FC = () => {
                 <div style={{ padding: spacing[4], backgroundColor: colors.primary[50], borderRadius: borderRadius.lg, border: `1px solid ${colors.primary[200]}`, marginBottom: spacing[4] }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: spacing[4] }}>
                     <div>
-                      <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0 }}>Items</p>
+                      <p style={{ fontSize: typography.fontSize.xs, color: colors.text.tertiary, margin: 0 }}>Products</p>
                       <p style={{ fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, color: colors.primary[700], margin: 0 }}>{lines.length}</p>
                     </div>
                     <div>
@@ -2170,10 +2201,10 @@ export const CreateRFQ: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Items Table */}
+                {/* Products Table */}
                 <div style={{ backgroundColor: colors.neutral[0], border: `1px solid ${colors.border.light}`, borderRadius: borderRadius.lg, overflow: 'hidden', marginBottom: spacing[4] }}>
                   <div style={{ padding: spacing[3], backgroundColor: colors.neutral[50], borderBottom: `1px solid ${colors.border.light}` }}>
-                    <h4 style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold, color: colors.text.primary, margin: 0 }}>Requested Items</h4>
+                    <h4 style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold, color: colors.text.primary, margin: 0 }}>Requested Products</h4>
                   </div>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>

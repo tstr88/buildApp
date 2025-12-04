@@ -1018,7 +1018,7 @@ export function SupplierRFQDetail() {
             </span>
           </div>
 
-          {/* Offer Line Items */}
+          {/* Offer Products */}
           <div style={{ marginBottom: spacing[4] }}>
             <h3
               style={{
