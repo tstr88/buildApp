@@ -11,6 +11,7 @@ import { PillSelector } from '../forms/PillSelector';
 import type { PillOption } from '../forms/PillSelector';
 import { Toggle } from '../forms/Toggle';
 import { BOMTable } from '../bom/BOMTable';
+import { ToolsBOMTable } from '../bom/ToolsBOMTable';
 import { SafetyNoticeCard } from '../common/SafetyNoticeCard';
 import type { SafetyNotice } from '../common/SafetyNoticeCard';
 import { SaveToProjectModal } from '../modals/SaveToProjectModal';
@@ -725,165 +726,17 @@ export const SlabCalculator: React.FC<SlabCalculatorProps> = ({ onCalculate }) =
                   color: colors.text.primary,
                   margin: 0,
                   marginBottom: spacing[4],
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: spacing[2],
                 }}
               >
-                <ToolsIcon size={24} />
-                {t('slab.tools.title', 'Recommended Tools')}
+                {t('tools.title', 'Required Tools')}
               </h2>
 
-              <div
-                style={{
-                  backgroundColor: colors.neutral[0],
-                  borderRadius: borderRadius.lg,
-                  border: `1px solid ${colors.border.default}`,
-                  overflow: 'hidden',
-                }}
-              >
-                {/* Tools Table Header */}
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: isMobile ? '1fr auto' : '2fr 1fr 1fr 1fr',
-                    gap: spacing[2],
-                    padding: spacing[3],
-                    backgroundColor: colors.neutral[50],
-                    borderBottom: `1px solid ${colors.border.default}`,
-                    fontSize: typography.fontSize.sm,
-                    fontWeight: typography.fontWeight.semibold,
-                    color: colors.text.secondary,
-                  }}
-                >
-                  <div>{t('slab.tools.equipment', 'Equipment')}</div>
-                  {!isMobile && <div>{t('slab.tools.category', 'Category')}</div>}
-                  {!isMobile && <div style={{ textAlign: 'center' }}>{t('slab.tools.days', 'Days')}</div>}
-                  <div style={{ textAlign: 'right' }}>{t('slab.tools.estimate', 'Est. Cost')}</div>
-                </div>
-
-                {/* Tools List */}
-                {calculationResult.tools.map((tool, index) => (
-                  <div
-                    key={tool.id}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: isMobile ? '1fr auto' : '2fr 1fr 1fr 1fr',
-                      gap: spacing[2],
-                      padding: spacing[3],
-                      borderBottom: index < calculationResult.tools.length - 1 ? `1px solid ${colors.border.light}` : 'none',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <div>
-                      <div
-                        style={{
-                          fontSize: typography.fontSize.base,
-                          fontWeight: typography.fontWeight.medium,
-                          color: colors.text.primary,
-                        }}
-                      >
-                        {tool.name_ka}
-                      </div>
-                      {tool.notes && (
-                        <div
-                          style={{
-                            fontSize: typography.fontSize.sm,
-                            color: colors.text.tertiary,
-                            marginTop: spacing[1],
-                          }}
-                        >
-                          {tool.notes}
-                        </div>
-                      )}
-                      {isMobile && (
-                        <div
-                          style={{
-                            fontSize: typography.fontSize.xs,
-                            color: colors.text.secondary,
-                            marginTop: spacing[1],
-                          }}
-                        >
-                          {tool.category} • {tool.rental_duration_days} {t('slab.tools.daysShort', 'day(s)')}
-                        </div>
-                      )}
-                    </div>
-                    {!isMobile && (
-                      <div
-                        style={{
-                          fontSize: typography.fontSize.sm,
-                          color: colors.text.secondary,
-                        }}
-                      >
-                        {tool.category}
-                      </div>
-                    )}
-                    {!isMobile && (
-                      <div
-                        style={{
-                          fontSize: typography.fontSize.sm,
-                          color: colors.text.secondary,
-                          textAlign: 'center',
-                        }}
-                      >
-                        {tool.rental_duration_days}
-                      </div>
-                    )}
-                    <div
-                      style={{
-                        fontSize: typography.fontSize.base,
-                        fontWeight: typography.fontWeight.medium,
-                        color: colors.text.primary,
-                        textAlign: 'right',
-                      }}
-                    >
-                      ~₾{tool.estimated_total}
-                    </div>
-                  </div>
-                ))}
-
-                {/* Tools Total */}
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: spacing[4],
-                    backgroundColor: colors.neutral[50],
-                    borderTop: `1px solid ${colors.border.default}`,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: typography.fontSize.base,
-                      fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
-                    }}
-                  >
-                    {t('slab.tools.totalRental', 'Estimated Tool Rental')}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: typography.fontSize.lg,
-                      fontWeight: typography.fontWeight.bold,
-                      color: colors.primary[600],
-                    }}
-                  >
-                    ~₾{calculationResult.totalToolPrice}
-                  </div>
-                </div>
-              </div>
-
-              <p
-                style={{
-                  fontSize: typography.fontSize.sm,
-                  color: colors.text.tertiary,
-                  margin: 0,
-                  marginTop: spacing[2],
-                }}
-              >
-                {t('slab.tools.disclaimer', 'Tool rental prices are estimates. Actual prices may vary by supplier.')}
-              </p>
+              <ToolsBOMTable
+                items={calculationResult.tools}
+                currency="₾"
+                showTotal={true}
+                disclaimer={t('tools.disclaimer', 'Tool rental prices are estimates. Actual prices may vary by supplier.')}
+              />
             </div>
           )}
 
