@@ -20,7 +20,7 @@ interface CachedSku {
   searchText: string; // Pre-computed lowercase searchable text
   unit_price: number | null;
   unit: string | null;
-  images: string[] | null;
+  // NOTE: images removed - they can be 30MB+ base64 and cause slow loading
   direct_order_available: boolean;
   trust_score: number | null;
 }
@@ -51,7 +51,6 @@ async function getSupplierSkusFromCache(): Promise<CachedSku[]> {
             COALESCE(s.category_en, '')) as search_text,
       s.base_price as unit_price,
       COALESCE(s.unit_en, s.unit_ka) as unit,
-      s.images,
       s.direct_order_available,
       tm.on_time_pct,
       tm.spec_reliability_pct
@@ -72,7 +71,7 @@ async function getSupplierSkusFromCache(): Promise<CachedSku[]> {
     searchText: row.search_text,
     unit_price: row.unit_price ? parseFloat(row.unit_price) : null,
     unit: row.unit,
-    images: row.images,
+    // IMPORTANT: DO NOT include images - they can be 30MB+ base64 strings
     direct_order_available: row.direct_order_available,
     trust_score: row.on_time_pct && row.spec_reliability_pct
       ? Math.round((parseFloat(row.on_time_pct) + parseFloat(row.spec_reliability_pct)) / 2)
@@ -181,7 +180,7 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
         pm.order_id, pm.template_slug, pm.template_calculation_id,
         pm.sort_order, pm.created_at, pm.updated_at,
         s.name_en as sku_name_en, s.name_ka as sku_name_ka,
-        s.unit_en as sku_unit_en, s.unit_ka as sku_unit_ka, s.images as sku_images,
+        s.unit_en as sku_unit_en, s.unit_ka as sku_unit_ka,
         COALESCE(sup.business_name_en, sup.business_name_ka) as supplier_name
       FROM project_materials pm
       LEFT JOIN skus s ON pm.sku_id = s.id
@@ -231,8 +230,7 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
       sku_id: sku.sku_id,
       unit_price: sku.unit_price,
       unit: sku.unit,
-      // images omitted to reduce payload - first image only if needed
-      images: sku.images?.length ? [sku.images[0]] : null,
+      // images completely removed - they can be 30MB+ base64 strings
       products_available: 0, // Will be filled below
       total_products_needed: 0,
     }));
@@ -255,7 +253,6 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
       rfq_id: row.rfq_id,
       order_id: row.order_id,
       cart_item_id: row.cart_item_id,
-      images: row.sku_images,
       available_suppliers: availableSuppliers,
       sort_order: row.sort_order,
       created_at: row.created_at,
@@ -529,7 +526,6 @@ export const getAvailableSuppliersForMaterial = async (req: Request, res: Respon
       sku_id: s.sku_id,
       unit_price: s.unit_price,
       unit: s.unit,
-      images: s.images,
       trust_metrics: {
         trust_score: s.trust_score
       }
