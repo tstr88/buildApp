@@ -284,7 +284,11 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
                 }}
               >
                 <button
-                  onClick={() => setIsCreatingNew(false)}
+                  onClick={() => {
+                    if (projects.length > 0) {
+                      setIsCreatingNew(false);
+                    }
+                  }}
                   disabled={projects.length === 0}
                   style={{
                     flex: 1,
