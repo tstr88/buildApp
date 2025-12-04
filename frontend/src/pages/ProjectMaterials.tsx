@@ -288,9 +288,134 @@ export const ProjectMaterials: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: spacing[6], display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <div style={{ width: '32px', height: '32px', border: `3px solid ${colors.primary[200]}`, borderTopColor: colors.primary[600], borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div style={{
+        padding: spacing[6],
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '400px',
+        gap: spacing[6],
+      }}>
+        {/* Animated search icon with pulse */}
+        <div style={{ position: 'relative' }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            borderRadius: '50%',
+            backgroundColor: colors.primary[100],
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            animation: 'pulse 2s ease-in-out infinite',
+          }}>
+            <Icons.Search size={36} color={colors.primary[600]} style={{ animation: 'bounce 1s ease-in-out infinite' }} />
+          </div>
+          {/* Orbiting dots */}
+          <div style={{
+            position: 'absolute',
+            top: '-10px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '12px',
+            height: '12px',
+            borderRadius: '50%',
+            backgroundColor: colors.primary[400],
+            animation: 'orbit 2s linear infinite',
+          }} />
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            right: '-10px',
+            transform: 'translateY(-50%)',
+            width: '10px',
+            height: '10px',
+            borderRadius: '50%',
+            backgroundColor: colors.primary[300],
+            animation: 'orbit 2s linear infinite 0.5s',
+          }} />
+          <div style={{
+            position: 'absolute',
+            bottom: '-10px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            backgroundColor: colors.primary[200],
+            animation: 'orbit 2s linear infinite 1s',
+          }} />
+        </div>
+
+        {/* Animated text */}
+        <div style={{ textAlign: 'center' }}>
+          <h2 style={{
+            fontSize: typography.fontSize.xl,
+            fontWeight: typography.fontWeight.semibold,
+            color: colors.text.primary,
+            margin: 0,
+            marginBottom: spacing[2],
+          }}>
+            {t('project.findingSuppliers', 'Finding Best Suppliers')}
+          </h2>
+          <p style={{
+            fontSize: typography.fontSize.base,
+            color: colors.text.secondary,
+            margin: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: spacing[1],
+          }}>
+            {t('project.searchingSuppliers', 'Searching for the best prices for your materials')}
+            <span style={{ animation: 'dots 1.5s steps(4, end) infinite' }}>...</span>
+          </p>
+        </div>
+
+        {/* Progress indicator */}
+        <div style={{
+          width: '200px',
+          height: '4px',
+          backgroundColor: colors.primary[100],
+          borderRadius: borderRadius.full,
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            width: '40%',
+            height: '100%',
+            backgroundColor: colors.primary[600],
+            borderRadius: borderRadius.full,
+            animation: 'progress 1.5s ease-in-out infinite',
+          }} />
+        </div>
+
+        <style>{`
+          @keyframes spin { to { transform: rotate(360deg); } }
+          @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+          }
+          @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+          }
+          @keyframes orbit {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0.3; transform: scale(0.8); }
+          }
+          @keyframes progress {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(150%); }
+            100% { transform: translateX(250%); }
+          }
+          @keyframes dots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+          }
+        `}</style>
       </div>
     );
   }

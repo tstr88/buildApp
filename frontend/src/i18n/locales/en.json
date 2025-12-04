@@ -269,7 +269,9 @@
     "needToBuy": "Need to Buy",
     "withSupplier": "With Supplier",
     "alreadyHave": "Already Have",
-    "rfqSent": "RFQ Sent"
+    "rfqSent": "RFQ Sent",
+    "findingSuppliers": "Finding Best Suppliers",
+    "searchingSuppliers": "Searching for the best prices for your materials"
   },
   "projects": {
     "title": "Projects",

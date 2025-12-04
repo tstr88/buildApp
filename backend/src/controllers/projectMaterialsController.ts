@@ -1,153 +1,44 @@
 /**
  * Project Materials Controller
  * Handles CRUD operations for project materials and template calculations
+ * OPTIMIZED: Uses in-memory caching and parallel queries
  */
 
 import { Request, Response } from 'express';
 import pool from '../config/database';
 import { success } from '../utils/responseHelpers';
 
-// Georgian to English material type mapping for matching
-const materialMappings: Record<string, string[]> = {
-  'ბეტონი': ['concrete', 'beton'],
-  'ხრეში': ['gravel', 'crushed'],
-  'ქვიშა': ['sand'],
-  'არმატურა': ['rebar', 'reinforcement', 'armatura'],
-  'ბადე': ['mesh', 'reinforcement', 'net'],
-  'ფურცელი': ['sheet', 'metal', 'plate'],
-  'სვეტი': ['post', 'profile', 'column'],
-  'ბოძი': ['post', 'profile', 'pole'],
-  'დაფა': ['board', 'lumber', 'formwork', 'plank'],
-  'ხე-ტყე': ['lumber', 'wood', 'formwork', 'timber'],
-  'რელსი': ['rail', 'profile'],
-  'ცემენტი': ['cement'],
-  'აგური': ['brick'],
-  'ბლოკი': ['block'],
-  'თუნუქი': ['sheet', 'tin'],
-};
-
-/**
- * Extract searchable terms from material name
- */
-function extractSearchTerms(materialName: string): string[] {
-  const terms: string[] = [];
-  const lowerName = materialName.toLowerCase();
-
-  // Add the full name
-  terms.push(lowerName);
-
-  // Extract grade codes like M300, M200, C25
-  const gradeMatch = materialName.match(/[MCmc]\d+/gi);
-  if (gradeMatch) terms.push(...gradeMatch.map(g => g.toLowerCase()));
-
-  // Extract dimensions like 60x60, 40x20, 100x100
-  const dimMatch = materialName.match(/\d+[xX×]\d+/g);
-  if (dimMatch) terms.push(...dimMatch.map(d => d.replace(/[X×]/gi, 'x').toLowerCase()));
-
-  // Extract diameter/thickness like Ø4, Ø12, d4, d12
-  const diameterMatch = materialName.match(/[Øød]\d+/gi);
-  if (diameterMatch) terms.push(...diameterMatch.map(d => d.toLowerCase()));
-
-  // Extract mm measurements
-  const mmMatch = materialName.match(/\d+\s?მ?მ/g);
-  if (mmMatch) terms.push(...mmMatch.map(m => m.replace(/\s/g, '')));
-
-  // Add Georgian to English translations
-  Object.entries(materialMappings).forEach(([georgian, englishTerms]) => {
-    if (materialName.includes(georgian)) {
-      terms.push(...englishTerms);
-    }
-  });
-
-  // Split name into words and add significant words (>2 chars)
-  const words = materialName.split(/[\s,.-]+/).filter(w => w.length > 2);
-  terms.push(...words.map(w => w.toLowerCase()));
-
-  return [...new Set(terms)]; // Remove duplicates
+// ==================== SUPPLIER SKU CACHE ====================
+// Cache all supplier SKUs in memory - refreshed every 5 minutes
+interface CachedSku {
+  supplier_id: string;
+  supplier_name: string;
+  logo_url: string | null;
+  depot_address: string | null;
+  is_verified: boolean;
+  sku_id: string;
+  searchText: string; // Pre-computed lowercase searchable text
+  unit_price: number | null;
+  unit: string | null;
+  images: string[] | null;
+  direct_order_available: boolean;
+  trust_score: number | null;
 }
 
-/**
- * Check if a supplier SKU matches a material based on terms
- */
-function skuMatchesMaterial(
-  skuNameEn: string | null,
-  skuNameKa: string | null,
-  specStringEn: string | null,
-  specStringKa: string | null,
-  categoryEn: string | null,
-  searchTerms: string[]
-): boolean {
-  const skuText = [skuNameEn, skuNameKa, specStringEn, specStringKa, categoryEn]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
+let cachedSupplierSkus: CachedSku[] = [];
+let cacheTimestamp = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-  // Check if any search term matches
-  return searchTerms.some(term => {
-    // For short terms (grades, dimensions), require exact word boundary or contained
-    if (term.length <= 4) {
-      return skuText.includes(term);
-    }
-    // For longer terms, use substring matching
-    return skuText.includes(term) || term.includes(skuText.substring(0, Math.min(skuText.length, 10)));
-  });
-}
+async function getSupplierSkusFromCache(): Promise<CachedSku[]> {
+  const now = Date.now();
 
-/**
- * Get all materials for a project - OPTIMIZED VERSION
- */
-export const getProjectMaterials = async (req: Request, res: Response) => {
-  const userId = req.user?.id;
-  const { projectId } = req.params;
-
-  // Verify project belongs to user
-  const projectCheck = await pool.query(
-    'SELECT id FROM projects WHERE id = $1 AND user_id = $2',
-    [projectId, userId]
-  );
-
-  if (projectCheck.rows.length === 0) {
-    return res.status(404).json({ success: false, message: 'Project not found' });
+  // Return cached data if still valid
+  if (cachedSupplierSkus.length > 0 && (now - cacheTimestamp) < CACHE_TTL) {
+    return cachedSupplierSkus;
   }
 
-  // Get materials with supplier and SKU info - SINGLE QUERY
-  const materialsResult = await pool.query(
-    `SELECT
-      pm.id,
-      pm.project_id,
-      pm.sku_id,
-      pm.custom_name,
-      pm.description,
-      pm.quantity,
-      pm.unit as material_unit,
-      pm.status,
-      pm.supplier_id,
-      pm.unit_price,
-      pm.estimated_total,
-      pm.cart_item_id,
-      pm.rfq_id,
-      pm.order_id,
-      pm.template_slug,
-      pm.template_calculation_id,
-      pm.sort_order,
-      pm.created_at,
-      pm.updated_at,
-      s.name_en as sku_name_en,
-      s.name_ka as sku_name_ka,
-      s.unit_en as sku_unit_en,
-      s.unit_ka as sku_unit_ka,
-      s.images as sku_images,
-      COALESCE(sup.business_name_en, sup.business_name_ka) as supplier_name
-    FROM project_materials pm
-    LEFT JOIN skus s ON pm.sku_id = s.id
-    LEFT JOIN suppliers sup ON pm.supplier_id = sup.id
-    WHERE pm.project_id = $1
-    ORDER BY pm.sort_order, pm.created_at`,
-    [projectId]
-  );
-
-  // Get ALL active suppliers with their SKUs in ONE query
-  const suppliersResult = await pool.query(
+  // Refresh cache
+  const result = await pool.query(
     `SELECT
       sup.id as supplier_id,
       COALESCE(sup.business_name_en, sup.business_name_ka) as supplier_name,
@@ -155,11 +46,9 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
       sup.depot_address,
       sup.is_verified,
       s.id as sku_id,
-      s.name_en as sku_name_en,
-      s.name_ka as sku_name_ka,
-      s.spec_string_en,
-      s.spec_string_ka,
-      s.category_en,
+      LOWER(COALESCE(s.name_en, '') || ' ' || COALESCE(s.name_ka, '') || ' ' ||
+            COALESCE(s.spec_string_en, '') || ' ' || COALESCE(s.spec_string_ka, '') || ' ' ||
+            COALESCE(s.category_en, '')) as search_text,
       s.base_price as unit_price,
       COALESCE(s.unit_en, s.unit_ka) as unit,
       s.images,
@@ -173,49 +62,173 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
     ORDER BY sup.id, s.base_price ASC`
   );
 
-  // Build a map of supplier SKUs for fast lookup
-  const supplierSkus = suppliersResult.rows;
+  cachedSupplierSkus = result.rows.map(row => ({
+    supplier_id: row.supplier_id,
+    supplier_name: row.supplier_name,
+    logo_url: row.logo_url,
+    depot_address: row.depot_address,
+    is_verified: row.is_verified,
+    sku_id: row.sku_id,
+    searchText: row.search_text,
+    unit_price: row.unit_price ? parseFloat(row.unit_price) : null,
+    unit: row.unit,
+    images: row.images,
+    direct_order_available: row.direct_order_available,
+    trust_score: row.on_time_pct && row.spec_reliability_pct
+      ? Math.round((parseFloat(row.on_time_pct) + parseFloat(row.spec_reliability_pct)) / 2)
+      : null,
+  }));
 
-  // Process each material and find matching suppliers IN MEMORY
+  cacheTimestamp = now;
+  console.log(`[Cache] Refreshed supplier SKUs cache: ${cachedSupplierSkus.length} items`);
+
+  return cachedSupplierSkus;
+}
+
+// ==================== MATERIAL MATCHING ====================
+// Georgian to English material type mapping
+const materialMappings: Record<string, string[]> = {
+  'ბეტონი': ['concrete', 'beton'],
+  'ხრეში': ['gravel', 'crushed'],
+  'ქვიშა': ['sand'],
+  'არმატურა': ['rebar', 'reinforcement', 'armatura'],
+  'ბადე': ['mesh', 'net'],
+  'ფურცელი': ['sheet', 'plate'],
+  'სვეტი': ['post', 'profile', 'column'],
+  'ბოძი': ['post', 'pole'],
+  'დაფა': ['board', 'lumber', 'plank'],
+  'ხე-ტყე': ['lumber', 'wood', 'timber'],
+  'რელსი': ['rail'],
+  'ცემენტი': ['cement'],
+  'აგური': ['brick'],
+  'ბლოკი': ['block'],
+  'თუნუქი': ['tin'],
+};
+
+/**
+ * Fast search term extraction - optimized for speed
+ */
+function extractSearchTerms(materialName: string): string[] {
+  const terms: string[] = [];
+  const lowerName = materialName.toLowerCase();
+
+  // Add full name words (3+ chars)
+  lowerName.split(/[\s,.\-\/]+/).forEach(word => {
+    if (word.length >= 3) terms.push(word);
+  });
+
+  // Extract key patterns
+  // Grades: M300, C25, etc.
+  const grades = materialName.match(/[MCmc]\d+/gi);
+  if (grades) terms.push(...grades.map(g => g.toLowerCase()));
+
+  // Dimensions: 60x60, 100x50
+  const dims = materialName.match(/\d+x\d+/gi);
+  if (dims) terms.push(...dims.map(d => d.toLowerCase()));
+
+  // Georgian translations
+  for (const [georgian, english] of Object.entries(materialMappings)) {
+    if (materialName.includes(georgian)) {
+      terms.push(...english);
+    }
+  }
+
+  return [...new Set(terms)];
+}
+
+/**
+ * Fast SKU matching - optimized for speed
+ */
+function findMatchingSuppliers(
+  searchTerms: string[],
+  supplierSkus: CachedSku[]
+): Map<string, CachedSku> {
+  const matches = new Map<string, CachedSku>();
+
+  for (const sku of supplierSkus) {
+    // Skip if we already have this supplier (we want lowest price first)
+    if (matches.has(sku.supplier_id)) continue;
+
+    // Check if any term matches
+    for (const term of searchTerms) {
+      if (sku.searchText.includes(term)) {
+        matches.set(sku.supplier_id, sku);
+        break;
+      }
+    }
+  }
+
+  return matches;
+}
+
+// ==================== API HANDLERS ====================
+
+/**
+ * Get all materials for a project - ULTRA OPTIMIZED
+ */
+export const getProjectMaterials = async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const { projectId } = req.params;
+
+  // Run queries in parallel
+  const [projectCheck, materialsResult, supplierSkus] = await Promise.all([
+    pool.query('SELECT id FROM projects WHERE id = $1 AND user_id = $2', [projectId, userId]),
+    pool.query(
+      `SELECT
+        pm.id, pm.project_id, pm.sku_id, pm.custom_name, pm.description,
+        pm.quantity, pm.unit as material_unit, pm.status, pm.supplier_id,
+        pm.unit_price, pm.estimated_total, pm.cart_item_id, pm.rfq_id,
+        pm.order_id, pm.template_slug, pm.template_calculation_id,
+        pm.sort_order, pm.created_at, pm.updated_at,
+        s.name_en as sku_name_en, s.name_ka as sku_name_ka,
+        s.unit_en as sku_unit_en, s.unit_ka as sku_unit_ka, s.images as sku_images,
+        COALESCE(sup.business_name_en, sup.business_name_ka) as supplier_name
+      FROM project_materials pm
+      LEFT JOIN skus s ON pm.sku_id = s.id
+      LEFT JOIN suppliers sup ON pm.supplier_id = sup.id
+      WHERE pm.project_id = $1
+      ORDER BY pm.sort_order, pm.created_at`,
+      [projectId]
+    ),
+    getSupplierSkusFromCache()
+  ]);
+
+  if (projectCheck.rows.length === 0) {
+    return res.status(404).json({ success: false, message: 'Project not found' });
+  }
+
+  // Process materials and find matching suppliers
+  const supplierProductCounts: Record<string, number> = {};
+  let totalMaterialsCount = 0;
+
   const materials = materialsResult.rows.map(row => {
     const materialName = row.custom_name || row.sku_name_en || row.sku_name_ka || '';
     const searchTerms = extractSearchTerms(materialName);
+    const matchingSuppliers = findMatchingSuppliers(searchTerms, supplierSkus);
 
-    // Find matching suppliers - group by supplier, pick lowest price SKU per supplier
-    const matchingSupplierMap: Record<string, any> = {};
-
-    for (const sku of supplierSkus) {
-      if (skuMatchesMaterial(
-        sku.sku_name_en,
-        sku.sku_name_ka,
-        sku.spec_string_en,
-        sku.spec_string_ka,
-        sku.category_en,
-        searchTerms
-      )) {
-        // Only keep the first (lowest price) SKU per supplier
-        if (!matchingSupplierMap[sku.supplier_id]) {
-          matchingSupplierMap[sku.supplier_id] = {
-            supplier_id: sku.supplier_id,
-            supplier_name: sku.supplier_name,
-            logo_url: sku.logo_url,
-            location: sku.depot_address || null,
-            is_verified: sku.is_verified,
-            direct_order_available: sku.direct_order_available,
-            trust_score: sku.on_time_pct && sku.spec_reliability_pct
-              ? Math.round((parseFloat(sku.on_time_pct) + parseFloat(sku.spec_reliability_pct)) / 2)
-              : null,
-            sku_id: sku.sku_id,
-            sku_name: sku.sku_name_en || sku.sku_name_ka,
-            unit_price: sku.unit_price ? parseFloat(sku.unit_price) : null,
-            unit: sku.unit,
-            images: sku.images
-          };
-        }
-      }
+    // Count suppliers for "need_to_buy" materials
+    if (row.status === 'need_to_buy') {
+      totalMaterialsCount++;
+      matchingSuppliers.forEach((_, supplierId) => {
+        supplierProductCounts[supplierId] = (supplierProductCounts[supplierId] || 0) + 1;
+      });
     }
 
-    const availableSuppliers = Object.values(matchingSupplierMap);
+    const availableSuppliers = Array.from(matchingSuppliers.values()).map(sku => ({
+      supplier_id: sku.supplier_id,
+      supplier_name: sku.supplier_name,
+      logo_url: sku.logo_url,
+      location: sku.depot_address,
+      is_verified: sku.is_verified,
+      direct_order_available: sku.direct_order_available,
+      trust_score: sku.trust_score,
+      sku_id: sku.sku_id,
+      unit_price: sku.unit_price,
+      unit: sku.unit,
+      images: sku.images,
+      products_available: 0, // Will be filled below
+      total_products_needed: 0,
+    }));
 
     return {
       id: row.id,
@@ -243,27 +256,12 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
     };
   });
 
-  // Calculate how many materials each supplier can provide
-  const supplierProductCounts: Record<string, { count: number; name: string }> = {};
-  const totalMaterialsCount = materials.filter(m => m.status === 'need_to_buy').length;
-
-  materials.forEach(m => {
-    if (m.status === 'need_to_buy') {
-      m.available_suppliers.forEach((s: any) => {
-        if (!supplierProductCounts[s.supplier_id]) {
-          supplierProductCounts[s.supplier_id] = { count: 0, name: s.supplier_name };
-        }
-        supplierProductCounts[s.supplier_id].count++;
-      });
-    }
-  });
-
-  // Add product count info to each supplier in materials
+  // Add product counts to suppliers
   const materialsWithCounts = materials.map(m => ({
     ...m,
-    available_suppliers: m.available_suppliers.map((s: any) => ({
+    available_suppliers: m.available_suppliers.map(s => ({
       ...s,
-      products_available: supplierProductCounts[s.supplier_id]?.count || 0,
+      products_available: supplierProductCounts[s.supplier_id] || 0,
       total_products_needed: totalMaterialsCount,
     })),
   }));
@@ -494,13 +492,16 @@ export const bulkUpdateMaterialStatus = async (req: Request, res: Response) => {
 export const getAvailableSuppliersForMaterial = async (req: Request, res: Response) => {
   const { materialId } = req.params;
 
-  const material = await pool.query(
-    `SELECT pm.*, s.name_en, s.name_ka
-     FROM project_materials pm
-     LEFT JOIN skus s ON pm.sku_id = s.id
-     WHERE pm.id = $1`,
-    [materialId]
-  );
+  const [material, supplierSkus] = await Promise.all([
+    pool.query(
+      `SELECT pm.*, s.name_en, s.name_ka
+       FROM project_materials pm
+       LEFT JOIN skus s ON pm.sku_id = s.id
+       WHERE pm.id = $1`,
+      [materialId]
+    ),
+    getSupplierSkusFromCache()
+  ]);
 
   if (material.rows.length === 0) {
     return res.status(404).json({ success: false, message: 'Material not found' });
@@ -508,48 +509,22 @@ export const getAvailableSuppliersForMaterial = async (req: Request, res: Respon
 
   const mat = material.rows[0];
   const searchName = mat.custom_name || mat.name_en || mat.name_ka;
-
-  // Find suppliers with matching SKUs
-  const suppliers = await pool.query(
-    `SELECT DISTINCT ON (sup.id)
-      sup.id,
-      COALESCE(sup.business_name_en, sup.business_name_ka) as name,
-      sup.logo_url,
-      s.id as sku_id,
-      COALESCE(s.name_en, s.name_ka) as sku_name,
-      s.unit_price,
-      s.unit,
-      s.images,
-      tm.spec_reliability_pct,
-      tm.on_time_pct
-     FROM suppliers sup
-     JOIN skus s ON s.supplier_id = sup.id
-     LEFT JOIN trust_metrics tm ON tm.supplier_id = sup.id
-     WHERE sup.is_active = true
-       AND s.is_active = true
-       AND (
-         LOWER(COALESCE(s.name_en, '')) ILIKE $1
-         OR LOWER(COALESCE(s.name_ka, '')) ILIKE $1
-       )
-     ORDER BY sup.id, s.unit_price ASC`,
-    [`%${searchName}%`]
-  );
+  const searchTerms = extractSearchTerms(searchName);
+  const matchingSuppliers = findMatchingSuppliers(searchTerms, supplierSkus);
 
   return success(res, {
     material_id: materialId,
     material_name: searchName,
-    suppliers: suppliers.rows.map(s => ({
-      supplier_id: s.id,
-      supplier_name: s.name,
+    suppliers: Array.from(matchingSuppliers.values()).map(s => ({
+      supplier_id: s.supplier_id,
+      supplier_name: s.supplier_name,
       logo_url: s.logo_url,
       sku_id: s.sku_id,
-      sku_name: s.sku_name,
-      unit_price: parseFloat(s.unit_price),
+      unit_price: s.unit_price,
       unit: s.unit,
       images: s.images,
       trust_metrics: {
-        spec_reliability: s.spec_reliability_pct,
-        on_time: s.on_time_pct
+        trust_score: s.trust_score
       }
     }))
   }, 'Available suppliers retrieved');
