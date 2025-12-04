@@ -20,6 +20,7 @@ export const getCart = async (req: Request, res: Response) => {
       sup.logo_url as supplier_logo,
       sup.depot_address as supplier_address,
       p.name as project_name,
+      p.address as project_address,
       s.images as sku_images
      FROM cart_items ci
      LEFT JOIN suppliers sup ON ci.supplier_id = sup.id
@@ -56,6 +57,7 @@ export const getCart = async (req: Request, res: Response) => {
       project_material_id: item.project_material_id,
       project_id: item.project_id,
       project_name: item.project_name,
+      project_address: item.project_address,
       name: item.name,
       description: item.description,
       quantity: parseFloat(item.quantity),

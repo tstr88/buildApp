@@ -8,7 +8,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { projectsService } from '../services/api/projectsService';
 import { api } from '../services/api';
-import MapPinPicker from '../components/map/MapPinPicker';
+import { AddressInput } from '../components/orders/AddressInput';
 import { Icons } from '../components/icons/Icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 
@@ -73,11 +73,6 @@ export default function ProjectForm() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleMapChange = (lat: number, lng: number) => {
-    setLatitude(lat);
-    setLongitude(lng);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -350,7 +345,7 @@ export default function ProjectForm() {
           </p>
         </div>
 
-        {/* Map Pin Picker */}
+        {/* Address with Autocomplete and Map */}
         <div style={{
           backgroundColor: colors.neutral[0],
           borderRadius: borderRadius.lg,
@@ -364,60 +359,23 @@ export default function ProjectForm() {
             fontSize: typography.fontSize.sm,
             fontWeight: typography.fontWeight.medium,
             color: colors.text.secondary,
-            marginBottom: spacing[4],
-          }}>
-            {t('projects.form.location')}
-          </label>
-          <MapPinPicker latitude={latitude} longitude={longitude} onChange={handleMapChange} />
-        </div>
-
-        {/* Address */}
-        <div style={{
-          backgroundColor: colors.neutral[0],
-          borderRadius: borderRadius.lg,
-          border: `1px solid ${colors.border.light}`,
-          padding: spacing[6],
-          boxShadow: shadows.sm,
-          marginBottom: spacing[6],
-        }}>
-          <label htmlFor="address" style={{
-            display: 'block',
-            fontSize: typography.fontSize.sm,
-            fontWeight: typography.fontWeight.medium,
-            color: colors.text.secondary,
             marginBottom: spacing[2],
           }}>
             {t('projects.form.address')}
           </label>
-          <input
-            type="text"
-            id="address"
+          <AddressInput
             value={address}
-            onChange={(e) => setAddress(e.target.value)}
+            onChange={(newAddress, coords) => {
+              setAddress(newAddress);
+              if (coords) {
+                setLatitude(coords.lat);
+                setLongitude(coords.lng);
+              }
+            }}
             placeholder={t('projects.form.addressPlaceholder')}
-            style={{
-              width: '100%',
-              padding: spacing[3],
-              border: `1px solid ${colors.border.light}`,
-              borderRadius: borderRadius.md,
-              fontSize: typography.fontSize.base,
-              outline: 'none',
-              fontFamily: typography.fontFamily.base,
-            }}
-            onFocus={(e) => {
-              e.target.style.borderColor = colors.primary[600];
-              e.target.style.boxShadow = `0 0 0 3px ${colors.primary[50]}`;
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = colors.border.light;
-              e.target.style.boxShadow = 'none';
-            }}
+            latitude={latitude}
+            longitude={longitude}
           />
-          <p style={{
-            marginTop: spacing[1],
-            fontSize: typography.fontSize.xs,
-            color: colors.text.tertiary,
-          }}>{t('projects.form.addressHint')}</p>
         </div>
 
         {/* Notes */}
