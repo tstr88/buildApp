@@ -55,7 +55,10 @@
     "ordersAndRfqsCreated": "{{orderCount}} order(s) and {{rfqCount}} RFQ(s) created!",
     "continueOrdering": "Continue Ordering",
     "redirecting": "Redirecting in 3 seconds...",
-    "checkoutFailed": "Checkout failed. Please try again."
+    "checkoutFailed": "Checkout failed. Please try again.",
+    "checkoutSuccess": "Checkout completed successfully!",
+    "deliveryTime": "Delivery Time",
+    "pickupTime": "Pickup Time"
   },
   "nav": {
     "home": "Home",

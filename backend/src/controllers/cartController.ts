@@ -21,7 +21,8 @@ export const getCart = async (req: Request, res: Response) => {
       sup.depot_address as supplier_address,
       p.name as project_name,
       p.address as project_address,
-      s.images as sku_images
+      s.images as sku_images,
+      s.approx_lead_time_label as lead_time
      FROM cart_items ci
      LEFT JOIN suppliers sup ON ci.supplier_id = sup.id
      LEFT JOIN projects p ON ci.project_id = p.id
@@ -30,6 +31,31 @@ export const getCart = async (req: Request, res: Response) => {
      ORDER BY ci.supplier_id, ci.created_at`,
     [userId]
   );
+
+  // Generate available delivery timeslots (next 3 days)
+  const generateTimeslots = () => {
+    const slots = [];
+    const now = new Date();
+
+    for (let dayOffset = 1; dayOffset <= 3; dayOffset++) {
+      const date = new Date(now);
+      date.setDate(date.getDate() + dayOffset);
+      const dateStr = date.toISOString().split('T')[0];
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+      const monthDay = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+      // Morning, Afternoon, Evening slots
+      slots.push(
+        { id: `${dateStr}-morning`, date: dateStr, label: `${dayName}, ${monthDay}`, time: '09:00 - 12:00', slot: 'morning' },
+        { id: `${dateStr}-afternoon`, date: dateStr, label: `${dayName}, ${monthDay}`, time: '12:00 - 17:00', slot: 'afternoon' },
+        { id: `${dateStr}-evening`, date: dateStr, label: `${dayName}, ${monthDay}`, time: '17:00 - 20:00', slot: 'evening' }
+      );
+    }
+    return slots;
+  };
+
+  const deliverySlots = generateTimeslots();
+  const pickupSlots = generateTimeslots();
 
   // Group by supplier
   const supplierGroups: Record<string, any> = {};
@@ -81,6 +107,10 @@ export const getCart = async (req: Request, res: Response) => {
       total_items: totalItems,
       total_suppliers: Object.keys(supplierGroups).length,
       total_amount: totalAmount
+    },
+    timeslots: {
+      delivery: deliverySlots,
+      pickup: pickupSlots
     }
   }, 'Cart retrieved successfully');
 };

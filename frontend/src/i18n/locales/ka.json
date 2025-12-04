@@ -55,7 +55,10 @@
     "ordersAndRfqsCreated": "{{orderCount}} შეკვეთა და {{rfqCount}} მოთხოვნა შეიქმნა!",
     "continueOrdering": "შეკვეთის გაგრძელება",
     "redirecting": "გადამისამართება 3 წამში...",
-    "checkoutFailed": "შეკვეთა ვერ მოხერხდა. სცადეთ თავიდან."
+    "checkoutFailed": "შეკვეთა ვერ მოხერხდა. სცადეთ თავიდან.",
+    "checkoutSuccess": "შეკვეთა წარმატებით დასრულდა!",
+    "deliveryTime": "მიწოდების დრო",
+    "pickupTime": "გატანის დრო"
   },
   "nav": {
     "home": "მთავარი",

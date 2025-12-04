@@ -44,9 +44,21 @@ interface CartSummary {
   total_amount: number;
 }
 
+interface Timeslot {
+  id: string;
+  date: string;
+  label: string;
+  time: string;
+  slot: string;
+}
+
 interface CartResponse {
   suppliers: SupplierGroup[];
   summary: CartSummary;
+  timeslots?: {
+    delivery: Timeslot[];
+    pickup: Timeslot[];
+  };
 }
 
 type PaymentOption = 'cod' | 'bank_transfer' | 'prepay';
@@ -65,6 +77,8 @@ export const Cart: React.FC = () => {
   // Checkout options
   const [paymentOption, setPaymentOption] = useState<PaymentOption>('cod');
   const [deliveryOption, setDeliveryOption] = useState<DeliveryOption>('delivery');
+  const [selectedTimeslot, setSelectedTimeslot] = useState<string | null>(null);
+  const [timeslots, setTimeslots] = useState<{ delivery: Timeslot[]; pickup: Timeslot[] }>({ delivery: [], pickup: [] });
 
   // Success notification
   const [showSuccess, setShowSuccess] = useState(false);
@@ -104,6 +118,13 @@ export const Cart: React.FC = () => {
         const data = (response.data as any).suppliers ? response.data as CartResponse : (response.data as any).data as CartResponse;
         setSupplierGroups(data?.suppliers || []);
         setSummary(data?.summary || { total_items: 0, total_suppliers: 0, total_amount: 0 });
+        if (data?.timeslots) {
+          setTimeslots(data.timeslots);
+          // Auto-select first timeslot
+          if (data.timeslots.delivery?.length > 0 && !selectedTimeslot) {
+            setSelectedTimeslot(data.timeslots.delivery[0].id);
+          }
+        }
       }
     } catch (err) {
       console.error('Failed to fetch cart:', err);
@@ -111,7 +132,7 @@ export const Cart: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, selectedTimeslot]);
 
   useEffect(() => {
     fetchCart();
@@ -161,13 +182,15 @@ export const Cart: React.FC = () => {
       const response = await api.post<{ orders?: any[]; rfqs?: any[]; processed_items?: number }>('/buyers/cart/checkout', {
         pickup_or_delivery: deliveryOption,
         payment_terms: paymentOption,
+        delivery_timeslot: selectedTimeslot,
       });
 
-      if (response.success && response.data) {
-        const orders = response.data.orders || [];
-        const rfqs = response.data.rfqs || [];
+      if (response.success) {
+        const orders = response.data?.orders || [];
+        const rfqs = response.data?.rfqs || [];
+        const processedItems = response.data?.processed_items || 0;
 
-        // Build success message
+        // Build success message - show success even if no explicit orders/rfqs returned
         let message = '';
         if (orders.length > 0 && rfqs.length === 0) {
           message = t('cart.ordersCreated', '{{count}} order(s) created successfully!', { count: orders.length });
@@ -175,24 +198,25 @@ export const Cart: React.FC = () => {
           message = t('cart.rfqsCreated', '{{count}} RFQ(s) sent successfully!', { count: rfqs.length });
         } else if (orders.length > 0 && rfqs.length > 0) {
           message = t('cart.ordersAndRfqsCreated', '{{orderCount}} order(s) and {{rfqCount}} RFQ(s) created!', { orderCount: orders.length, rfqCount: rfqs.length });
-        }
-
-        if (message) {
-          setSuccessMessage(message);
-          setRedirectProjectId(firstProjectId);
-          setShowSuccess(true);
-
-          // Auto-redirect after 3 seconds
-          setTimeout(() => {
-            if (firstProjectId) {
-              navigate(`/projects/${firstProjectId}/materials`);
-            } else {
-              navigate('/projects');
-            }
-          }, 3000);
+        } else if (processedItems > 0) {
+          message = t('cart.checkoutSuccess', 'Checkout completed successfully!');
         } else {
-          await fetchCart();
+          // Fallback success message
+          message = t('cart.checkoutSuccess', 'Checkout completed successfully!');
         }
+
+        setSuccessMessage(message);
+        setRedirectProjectId(firstProjectId);
+        setShowSuccess(true);
+
+        // Auto-redirect after 3 seconds
+        setTimeout(() => {
+          if (firstProjectId) {
+            navigate(`/projects/${firstProjectId}/materials`);
+          } else {
+            navigate('/projects');
+          }
+        }, 3000);
       }
     } catch (err) {
       console.error('Checkout failed:', err);
@@ -695,6 +719,49 @@ export const Cart: React.FC = () => {
                 </button>
               </div>
             </div>
+
+            {/* Timeslot Selection */}
+            {(deliveryOption === 'delivery' ? timeslots.delivery : timeslots.pickup).length > 0 && (
+              <div style={{ marginBottom: spacing[4] }}>
+                <div style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.text.secondary, marginBottom: spacing[2] }}>
+                  <Icons.Clock size={14} style={{ marginRight: spacing[1], verticalAlign: 'middle' }} />
+                  {deliveryOption === 'delivery'
+                    ? t('cart.deliveryTime', 'Delivery Time')
+                    : t('cart.pickupTime', 'Pickup Time')}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[2], maxHeight: '200px', overflowY: 'auto' }}>
+                  {(deliveryOption === 'delivery' ? timeslots.delivery : timeslots.pickup).map((slot) => (
+                    <button
+                      key={slot.id}
+                      onClick={() => setSelectedTimeslot(slot.id)}
+                      style={{
+                        padding: spacing[3],
+                        backgroundColor: selectedTimeslot === slot.id ? colors.primary[50] : colors.neutral[50],
+                        border: `2px solid ${selectedTimeslot === slot.id ? colors.primary[600] : colors.border.light}`,
+                        borderRadius: borderRadius.md,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: typography.fontWeight.medium, color: selectedTimeslot === slot.id ? colors.primary[600] : colors.text.primary }}>
+                          {slot.label}
+                        </div>
+                        <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                          {slot.time}
+                        </div>
+                      </div>
+                      {selectedTimeslot === slot.id && (
+                        <Icons.CheckCircle size={20} color={colors.primary[600]} />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Payment Option */}
             <div>
