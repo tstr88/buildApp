@@ -230,12 +230,23 @@ export const CreateRFQ: React.FC = () => {
       });
       if (response.ok) {
         const data = await response.json();
-        if (data.data) {
-          setSelectedProject(data.data);
-          setProjectLocation({
-            lat: data.data.latitude,
-            lng: data.data.longitude,
-          });
+        const project = data.data?.project || data.data;
+        if (project) {
+          setSelectedProject(project);
+          if (project.latitude && project.longitude) {
+            setProjectLocation({
+              lat: project.latitude,
+              lng: project.longitude,
+            });
+            setDeliveryCoords({
+              lat: project.latitude,
+              lng: project.longitude,
+            });
+          }
+          // Set delivery address from project
+          if (project.address) {
+            setDeliveryAddress(project.address);
+          }
         }
       }
     } catch (error) {
