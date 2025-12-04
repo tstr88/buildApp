@@ -497,18 +497,22 @@ export const checkoutCart = async (req: Request, res: Response) => {
 
         const totalAmount = items.reduce((sum, item) => sum + item.total, 0);
 
+        // Get project_id from the first item (all items in group should be from same project)
+        const projectId = group.items[0]?.project_id || null;
+
         const orderResult = await client.query(
           `INSERT INTO orders (
-            buyer_id, supplier_id, order_type, items, total_amount,
+            buyer_id, supplier_id, project_id, order_type, items, total_amount,
             delivery_fee, tax_amount, grand_total,
             pickup_or_delivery, delivery_address, delivery_latitude, delivery_longitude,
             promised_window_start, promised_window_end,
             payment_terms, negotiable, status, notes
-          ) VALUES ($1, $2, 'material', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, true, 'pending', $15)
+          ) VALUES ($1, $2, $3, 'material', $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, true, 'pending', $16)
           RETURNING id, order_number`,
           [
             userId,
             group.supplier_id,
+            projectId,
             JSON.stringify(items),
             totalAmount,
             0, // delivery_fee
@@ -555,15 +559,19 @@ export const checkoutCart = async (req: Request, res: Response) => {
           project_material_id: item.project_material_id
         }));
 
+        // Get project_id from the first item
+        const projectId = group.items[0]?.project_id || null;
+
         const rfqResult = await client.query(
           `INSERT INTO rfqs (
-            buyer_id, lines, preferred_window_start, preferred_window_end,
+            buyer_id, project_id, lines, preferred_window_start, preferred_window_end,
             delivery_location_lat, delivery_location_lng, delivery_address,
             delivery_preference, additional_notes, status, expires_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', NOW() + INTERVAL '7 days')
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'active', NOW() + INTERVAL '7 days')
           RETURNING id`,
           [
             userId,
+            projectId,
             JSON.stringify(lines),
             delivery_window_start || null,
             delivery_window_end || null,
