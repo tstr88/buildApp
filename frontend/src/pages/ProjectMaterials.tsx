@@ -435,23 +435,16 @@ export const ProjectMaterials: React.FC = () => {
   const handleCreateToolOrder = async (order: SupplierToolOrder, type: 'direct' | 'rfq') => {
     setCreatingOrder(order.supplier_id);
     try {
-      if (type === 'direct') {
-        // Navigate to direct rental booking
-        navigate('/rentals/book', {
+      if (type === 'direct' && order.tools.length === 1 && order.tools[0].rental_tool_id) {
+        // Single tool with rental_tool_id - navigate to direct booking page
+        navigate(`/rentals/book/${order.tools[0].rental_tool_id}`, {
           state: {
-            tools: order.tools.map(t => ({
-              project_tool_id: t.id,
-              rental_tool_id: t.rental_tool_id,
-              name: t.name,
-              duration_days: t.rental_duration_days,
-              daily_rate: t.daily_rate_estimate,
-            })),
             project_id: projectId,
-            supplier_id: order.supplier_id,
+            duration_days: order.tools[0].rental_duration_days,
           },
         });
       } else {
-        // Navigate to rental RFQ creation
+        // Multiple tools or no rental_tool_id - use RFQ flow
         const rfqData = {
           project_id: projectId,
           supplier_id: order.supplier_id,
