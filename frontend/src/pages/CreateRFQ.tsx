@@ -102,6 +102,43 @@ export const CreateRFQ: React.FC = () => {
     }
   }, [skuIdFromUrl]);
 
+  // Load prefill data from ProjectMaterials page
+  useEffect(() => {
+    const prefillData = sessionStorage.getItem('rfq_prefill');
+    if (prefillData) {
+      try {
+        const data = JSON.parse(prefillData);
+        sessionStorage.removeItem('rfq_prefill'); // Clear after reading
+
+        // Set project
+        if (data.project_id) {
+          setSelectedProjectId(data.project_id);
+        }
+
+        // Set supplier
+        if (data.supplier_id) {
+          setPreselectedSupplierId(data.supplier_id);
+          setSelectedSupplierIds([data.supplier_id]);
+        }
+
+        // Set lines
+        if (data.lines && data.lines.length > 0) {
+          const newLines: RFQLine[] = data.lines.map((line: any, index: number) => ({
+            id: `line-${Date.now()}-${index}`,
+            sku_id: line.sku_id || undefined,
+            description: line.description || '',
+            quantity: line.quantity || 1,
+            unit: line.unit || 'm3',
+            spec_notes: '',
+          }));
+          setLines(newLines);
+        }
+      } catch (error) {
+        console.error('Failed to parse prefill data:', error);
+      }
+    }
+  }, []);
+
   // Load alternative suppliers when on review step
   useEffect(() => {
     const hasSupplierStep = !preselectedSupplierId;

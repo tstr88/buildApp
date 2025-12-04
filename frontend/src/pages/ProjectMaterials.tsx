@@ -230,34 +230,21 @@ export const ProjectMaterials: React.FC = () => {
         await api.post('/buyers/cart/bulk', { items });
         navigate('/cart');
       } else {
-        // Create RFQ
+        // Navigate to RFQ creation page with pre-filled data
         const rfqData = {
-          supplier_ids: [order.supplier_id],
           project_id: projectId,
-          title: `Materials for project`,
+          supplier_id: order.supplier_id,
           lines: order.materials.map(m => ({
             description: m.name + (m.description ? ` - ${m.description}` : ''),
             quantity: m.quantity,
             unit: m.unit,
             sku_id: m.sku_id,
           })),
-          delivery_preference: 'delivery',
-          additional_notes: '',
         };
 
-        const result = await api.post<{ id: string }>('/buyers/rfqs', rfqData);
-        if (result.success && result.data) {
-          const rfqId = result.data.id;
-          // Update material statuses
-          setMaterials(prev => prev.map(m => {
-            if (order.materials.find(om => om.id === m.id)) {
-              return { ...m, status: 'rfq_sent' as const, rfq_id: rfqId };
-            }
-            return m;
-          }));
-          // Navigate to the RFQ detail page
-          navigate(`/rfqs/${rfqId}`);
-        }
+        // Store RFQ data in sessionStorage for CreateRFQ page to pick up
+        sessionStorage.setItem('rfq_prefill', JSON.stringify(rfqData));
+        navigate('/rfqs/create');
       }
     } catch (err) {
       console.error('Failed to create order:', err);
