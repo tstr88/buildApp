@@ -7,8 +7,94 @@ import { Request, Response } from 'express';
 import pool from '../config/database';
 import { success } from '../utils/responseHelpers';
 
+// Georgian to English material type mapping for matching
+const materialMappings: Record<string, string[]> = {
+  'ბეტონი': ['concrete', 'beton'],
+  'ხრეში': ['gravel', 'crushed'],
+  'ქვიშა': ['sand'],
+  'არმატურა': ['rebar', 'reinforcement', 'armatura'],
+  'ბადე': ['mesh', 'reinforcement', 'net'],
+  'ფურცელი': ['sheet', 'metal', 'plate'],
+  'სვეტი': ['post', 'profile', 'column'],
+  'ბოძი': ['post', 'profile', 'pole'],
+  'დაფა': ['board', 'lumber', 'formwork', 'plank'],
+  'ხე-ტყე': ['lumber', 'wood', 'formwork', 'timber'],
+  'რელსი': ['rail', 'profile'],
+  'ცემენტი': ['cement'],
+  'აგური': ['brick'],
+  'ბლოკი': ['block'],
+  'თუნუქი': ['sheet', 'tin'],
+};
+
 /**
- * Get all materials for a project
+ * Extract searchable terms from material name
+ */
+function extractSearchTerms(materialName: string): string[] {
+  const terms: string[] = [];
+  const lowerName = materialName.toLowerCase();
+
+  // Add the full name
+  terms.push(lowerName);
+
+  // Extract grade codes like M300, M200, C25
+  const gradeMatch = materialName.match(/[MCmc]\d+/gi);
+  if (gradeMatch) terms.push(...gradeMatch.map(g => g.toLowerCase()));
+
+  // Extract dimensions like 60x60, 40x20, 100x100
+  const dimMatch = materialName.match(/\d+[xX×]\d+/g);
+  if (dimMatch) terms.push(...dimMatch.map(d => d.replace(/[X×]/gi, 'x').toLowerCase()));
+
+  // Extract diameter/thickness like Ø4, Ø12, d4, d12
+  const diameterMatch = materialName.match(/[Øød]\d+/gi);
+  if (diameterMatch) terms.push(...diameterMatch.map(d => d.toLowerCase()));
+
+  // Extract mm measurements
+  const mmMatch = materialName.match(/\d+\s?მ?მ/g);
+  if (mmMatch) terms.push(...mmMatch.map(m => m.replace(/\s/g, '')));
+
+  // Add Georgian to English translations
+  Object.entries(materialMappings).forEach(([georgian, englishTerms]) => {
+    if (materialName.includes(georgian)) {
+      terms.push(...englishTerms);
+    }
+  });
+
+  // Split name into words and add significant words (>2 chars)
+  const words = materialName.split(/[\s,.-]+/).filter(w => w.length > 2);
+  terms.push(...words.map(w => w.toLowerCase()));
+
+  return [...new Set(terms)]; // Remove duplicates
+}
+
+/**
+ * Check if a supplier SKU matches a material based on terms
+ */
+function skuMatchesMaterial(
+  skuNameEn: string | null,
+  skuNameKa: string | null,
+  specStringEn: string | null,
+  specStringKa: string | null,
+  categoryEn: string | null,
+  searchTerms: string[]
+): boolean {
+  const skuText = [skuNameEn, skuNameKa, specStringEn, specStringKa, categoryEn]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  // Check if any search term matches
+  return searchTerms.some(term => {
+    // For short terms (grades, dimensions), require exact word boundary or contained
+    if (term.length <= 4) {
+      return skuText.includes(term);
+    }
+    // For longer terms, use substring matching
+    return skuText.includes(term) || term.includes(skuText.substring(0, Math.min(skuText.length, 10)));
+  });
+}
+
+/**
+ * Get all materials for a project - OPTIMIZED VERSION
  */
 export const getProjectMaterials = async (req: Request, res: Response) => {
   const userId = req.user?.id;
@@ -24,8 +110,8 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
     return res.status(404).json({ success: false, message: 'Project not found' });
   }
 
-  // Get materials with supplier and SKU info
-  const result = await pool.query(
+  // Get materials with supplier and SKU info - SINGLE QUERY
+  const materialsResult = await pool.query(
     `SELECT
       pm.id,
       pm.project_id,
@@ -60,104 +146,76 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
     [projectId]
   );
 
-  // For each material, find available suppliers with matching SKUs
-  const materials = await Promise.all(result.rows.map(async (row) => {
+  // Get ALL active suppliers with their SKUs in ONE query
+  const suppliersResult = await pool.query(
+    `SELECT
+      sup.id as supplier_id,
+      COALESCE(sup.business_name_en, sup.business_name_ka) as supplier_name,
+      sup.logo_url,
+      sup.depot_address,
+      sup.is_verified,
+      s.id as sku_id,
+      s.name_en as sku_name_en,
+      s.name_ka as sku_name_ka,
+      s.spec_string_en,
+      s.spec_string_ka,
+      s.category_en,
+      s.base_price as unit_price,
+      COALESCE(s.unit_en, s.unit_ka) as unit,
+      s.images,
+      s.direct_order_available,
+      tm.on_time_pct,
+      tm.spec_reliability_pct
+    FROM suppliers sup
+    JOIN skus s ON s.supplier_id = sup.id
+    LEFT JOIN trust_metrics tm ON tm.supplier_id = sup.id
+    WHERE sup.is_active = true AND s.is_active = true
+    ORDER BY sup.id, s.base_price ASC`
+  );
+
+  // Build a map of supplier SKUs for fast lookup
+  const supplierSkus = suppliersResult.rows;
+
+  // Process each material and find matching suppliers IN MEMORY
+  const materials = materialsResult.rows.map(row => {
     const materialName = row.custom_name || row.sku_name_en || row.sku_name_ka || '';
+    const searchTerms = extractSearchTerms(materialName);
 
-    // Extract key terms from material name for matching
-    // Common patterns: "M300", "M200", numbers, dimensions like "60x60", "2m", etc.
-    const keyTerms: string[] = [];
+    // Find matching suppliers - group by supplier, pick lowest price SKU per supplier
+    const matchingSupplierMap: Record<string, any> = {};
 
-    // Extract grade codes like M300, M200
-    const gradeMatch = materialName.match(/M\d+/gi);
-    if (gradeMatch) keyTerms.push(...gradeMatch);
-
-    // Extract dimensions like 60x60, 40x20, 100x100
-    const dimMatch = materialName.match(/\d+[xX×]\d+/g);
-    if (dimMatch) keyTerms.push(...dimMatch.map((d: string) => d.replace(/[X×]/gi, 'x')));
-
-    // Extract diameter/thickness like Ø4, Ø12, 2mm, 4mm
-    const thicknessMatch = materialName.match(/[Ø]?\d+მ?მ?/g);
-    if (thicknessMatch) keyTerms.push(...thicknessMatch);
-
-    // Build search conditions
-    let searchConditions = `
-      LOWER(COALESCE(s2.name_en, '')) ILIKE $1
-      OR LOWER(COALESCE(s2.name_ka, '')) ILIKE $1
-      OR LOWER($2) ILIKE '%' || LOWER(COALESCE(s2.name_en, '')) || '%'
-      OR LOWER($2) ILIKE '%' || LOWER(COALESCE(s2.name_ka, '')) || '%'
-    `;
-
-    const queryParams: string[] = [`%${materialName}%`, materialName];
-
-    // Add key term matching - if material has M300, find SKUs with M300
-    if (keyTerms.length > 0) {
-      keyTerms.forEach((term) => {
-        const paramIdx = queryParams.length + 1;
-        searchConditions += `
-          OR LOWER(COALESCE(s2.name_en, '')) ILIKE $${paramIdx}
-          OR LOWER(COALESCE(s2.name_ka, '')) ILIKE $${paramIdx}
-          OR LOWER(COALESCE(s2.spec_string_en, '')) ILIKE $${paramIdx}
-          OR LOWER(COALESCE(s2.spec_string_ka, '')) ILIKE $${paramIdx}
-        `;
-        queryParams.push(`%${term}%`);
-      });
+    for (const sku of supplierSkus) {
+      if (skuMatchesMaterial(
+        sku.sku_name_en,
+        sku.sku_name_ka,
+        sku.spec_string_en,
+        sku.spec_string_ka,
+        sku.category_en,
+        searchTerms
+      )) {
+        // Only keep the first (lowest price) SKU per supplier
+        if (!matchingSupplierMap[sku.supplier_id]) {
+          matchingSupplierMap[sku.supplier_id] = {
+            supplier_id: sku.supplier_id,
+            supplier_name: sku.supplier_name,
+            logo_url: sku.logo_url,
+            location: sku.depot_address || null,
+            is_verified: sku.is_verified,
+            direct_order_available: sku.direct_order_available,
+            trust_score: sku.on_time_pct && sku.spec_reliability_pct
+              ? Math.round((parseFloat(sku.on_time_pct) + parseFloat(sku.spec_reliability_pct)) / 2)
+              : null,
+            sku_id: sku.sku_id,
+            sku_name: sku.sku_name_en || sku.sku_name_ka,
+            unit_price: sku.unit_price ? parseFloat(sku.unit_price) : null,
+            unit: sku.unit,
+            images: sku.images
+          };
+        }
+      }
     }
 
-    // Also check for category/type matches via keyword translation
-    // Georgian to English material type mapping
-    const materialMappings: Record<string, string[]> = {
-      'ბეტონი': ['concrete'],
-      'ხრეში': ['gravel'],
-      'ქვიშა': ['sand'],
-      'არმატურა': ['rebar', 'reinforcement'],
-      'ბადე': ['mesh', 'reinforcement'],
-      'ფურცელი': ['sheet', 'metal'],
-      'სვეტი': ['post', 'profile'],
-      'ბოძი': ['post', 'profile'],
-      'დაფა': ['board', 'lumber', 'formwork'],
-      'ხე-ტყე': ['lumber', 'wood', 'formwork'],
-      'რელსი': ['rail', 'profile'],
-      'ცემენტი': ['cement'],
-    };
-
-    Object.entries(materialMappings).forEach(([georgian, englishTerms]) => {
-      if (materialName.includes(georgian)) {
-        englishTerms.forEach(term => {
-          const paramIdx = queryParams.length + 1;
-          searchConditions += `
-            OR LOWER(COALESCE(s2.name_en, '')) ILIKE $${paramIdx}
-            OR LOWER(COALESCE(s2.category_en, '')) ILIKE $${paramIdx}
-          `;
-          queryParams.push(`%${term}%`);
-        });
-      }
-    });
-
-    const availableSuppliersResult = await pool.query(
-      `SELECT DISTINCT ON (sup2.id)
-        sup2.id as supplier_id,
-        COALESCE(sup2.business_name_en, sup2.business_name_ka) as supplier_name,
-        sup2.logo_url,
-        sup2.depot_address,
-        sup2.is_verified,
-        s2.id as sku_id,
-        COALESCE(s2.name_en, s2.name_ka) as sku_name,
-        s2.base_price as unit_price,
-        COALESCE(s2.unit_en, s2.unit_ka) as unit,
-        s2.images,
-        s2.direct_order_available,
-        tm.on_time_pct,
-        tm.spec_reliability_pct
-      FROM skus s2
-      JOIN suppliers sup2 ON s2.supplier_id = sup2.id
-      LEFT JOIN trust_metrics tm ON tm.supplier_id = sup2.id
-      WHERE s2.is_active = true
-        AND sup2.is_active = true
-        AND (${searchConditions})
-      ORDER BY sup2.id, s2.base_price ASC`,
-      queryParams
-    );
+    const availableSuppliers = Object.values(matchingSupplierMap);
 
     return {
       id: row.id,
@@ -178,27 +236,12 @@ export const getProjectMaterials = async (req: Request, res: Response) => {
       order_id: row.order_id,
       cart_item_id: row.cart_item_id,
       images: row.sku_images,
-      available_suppliers: availableSuppliersResult.rows.map(s => ({
-        supplier_id: s.supplier_id,
-        supplier_name: s.supplier_name,
-        logo_url: s.logo_url,
-        location: s.depot_address || null,
-        is_verified: s.is_verified,
-        direct_order_available: s.direct_order_available,
-        trust_score: s.on_time_pct && s.spec_reliability_pct
-          ? Math.round((parseFloat(s.on_time_pct) + parseFloat(s.spec_reliability_pct)) / 2)
-          : null,
-        sku_id: s.sku_id,
-        sku_name: s.sku_name,
-        unit_price: s.unit_price ? parseFloat(s.unit_price) : null,
-        unit: s.unit,
-        images: s.images
-      })),
+      available_suppliers: availableSuppliers,
       sort_order: row.sort_order,
       created_at: row.created_at,
       updated_at: row.updated_at,
     };
-  }));
+  });
 
   // Calculate how many materials each supplier can provide
   const supplierProductCounts: Record<string, { count: number; name: string }> = {};
