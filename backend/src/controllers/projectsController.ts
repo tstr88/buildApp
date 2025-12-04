@@ -157,17 +157,16 @@ export async function getProjectById(req: Request, res: Response): Promise<void>
     const deliveriesResult = await pool.query(
       `SELECT
         de.id,
-        de.delivered_at,
-        de.notes,
+        de.timestamp as delivered_at,
+        de.delivery_notes as notes,
+        de.driver_name as delivered_by_name,
         o.order_number,
-        COALESCE(s.business_name_en, s.business_name_ka) as supplier_name,
-        u.full_name as delivered_by_name
+        COALESCE(s.business_name_en, s.business_name_ka) as supplier_name
       FROM delivery_events de
       JOIN orders o ON de.order_id = o.id
       LEFT JOIN suppliers s ON o.supplier_id = s.id
-      LEFT JOIN users u ON de.delivered_by_user_id = u.id
       WHERE o.project_id = $1
-      ORDER BY de.delivered_at DESC`,
+      ORDER BY de.timestamp DESC`,
       [projectId]
     );
 
