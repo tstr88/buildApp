@@ -492,57 +492,6 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320,
 };
 
 // ============================================================================
-// GRAVEL BASE - Simple layered view
-// ============================================================================
-export const GravelBaseAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
-  <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    {/* Title */}
-    <rect x="0" y="0" width="280" height="28" fill={palette.dimensionBg} />
-    <text x="140" y="18" textAnchor="middle" fill={palette.dimension} fontSize="12" fontWeight="600">GRAVEL BASE LAYER</text>
-
-    {/* Formwork sides */}
-    <rect x="30" y="70" width="18" height="90" fill={palette.wood} stroke={palette.woodDark} strokeWidth="2" />
-    <rect x="232" y="70" width="18" height="90" fill={palette.wood} stroke={palette.woodDark} strokeWidth="2" />
-
-    {/* Soil base */}
-    <rect x="48" y="130" width="184" height="30" fill={palette.soil} />
-    <text x="140" y="150" textAnchor="middle" fill={palette.white} fontSize="10" fontWeight="500">SOIL</text>
-
-    {/* Gravel layer */}
-    <rect x="48" y="95" width="184" height="35" fill={palette.gravel} stroke={palette.gravelDark} strokeWidth="1" />
-    {/* Gravel dots pattern */}
-    {[70, 100, 130, 160, 190].map((x, i) => (
-      <g key={i}>
-        <circle cx={x} cy={108} r="4" fill={palette.gravelDark} />
-        <circle cx={x + 15} cy={118} r="3" fill={palette.gravelDark} />
-      </g>
-    ))}
-    <text x="140" y="115" textAnchor="middle" fill={palette.white} fontSize="11" fontWeight="600">GRAVEL</text>
-
-    {/* Compact arrows */}
-    {[90, 140, 190].map((x, i) => (
-      <g key={i} transform={`translate(${x}, 45)`}>
-        <line x1="0" y1="0" x2="0" y2="35" stroke={palette.dimension} strokeWidth="2" />
-        <polygon points="-6,30 6,30 0,42" fill={palette.dimension} />
-      </g>
-    ))}
-    <text x="140" y="38" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">COMPACT</text>
-
-    {/* Depth dimension */}
-    <g transform="translate(255, 95)">
-      <line x1="10" y1="0" x2="10" y2="35" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="3" y1="0" x2="17" y2="0" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="3" y1="35" x2="17" y2="35" stroke={palette.dimension} strokeWidth="2" />
-    </g>
-    <text x="277" y="118" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="700">15cm</text>
-
-    {/* Labels for formwork */}
-    <text x="39" y="185" textAnchor="middle" fill={palette.gray} fontSize="9">FORM</text>
-    <text x="241" y="185" textAnchor="middle" fill={palette.gray} fontSize="9">FORM</text>
-  </svg>
-);
-
-// ============================================================================
 // FORMWORK - Clear side view with proper sizing
 // ============================================================================
 export const FormworkAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
