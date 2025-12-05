@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../services/api';
 import { Icons } from '../components/icons/Icons';
@@ -119,12 +119,16 @@ type ActiveTab = 'materials' | 'tools';
 export const ProjectMaterials: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
+
+  // Get initial tab from URL query parameter
+  const initialTab = searchParams.get('tab') === 'tools' ? 'tools' : 'materials';
 
   const [project, setProject] = useState<Project | null>(null);
   const [materials, setMaterials] = useState<ProjectMaterial[]>([]);
   const [tools, setTools] = useState<ProjectTool[]>([]);
-  const [activeTab, setActiveTab] = useState<ActiveTab>('materials');
+  const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [savingIds, setSavingIds] = useState<Set<string>>(new Set());

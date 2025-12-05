@@ -12,7 +12,7 @@ import { Icons } from '../components/icons/Icons';
 import { formatDate, formatCurrency } from '../utils/formatters';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 
-type TabType = 'overview' | 'rfqs' | 'orders' | 'deliveries' | 'rentals';
+type TabType = 'overview' | 'materials' | 'tools' | 'rfqs' | 'orders' | 'deliveries' | 'rentals';
 
 export default function ProjectDetail() {
   const { t } = useTranslation();
@@ -135,6 +135,8 @@ export default function ProjectDetail() {
 
   const tabs: { key: TabType; label: string; count?: number }[] = [
     { key: 'overview', label: t('projects.tabs.overview') },
+    { key: 'materials', label: t('projects.tabs.materials', 'Materials') },
+    { key: 'tools', label: t('projects.tabs.tools', 'Tool Rentals') },
     { key: 'rfqs', label: t('projects.tabs.rfqs'), count: rfqs.length },
     { key: 'orders', label: t('projects.tabs.orders'), count: orders.length },
     { key: 'deliveries', label: t('projects.tabs.deliveries'), count: deliveries.length },
@@ -256,6 +258,8 @@ export default function ProjectDetail() {
       {/* Tab Content */}
       <div style={{ padding: spacing[4] }}>
         {activeTab === 'overview' && <OverviewTab project={project} onDelete={handleDelete} />}
+        {activeTab === 'materials' && <MaterialsTab projectId={project.id} navigate={navigate} />}
+        {activeTab === 'tools' && <ToolsTab projectId={project.id} navigate={navigate} />}
         {activeTab === 'rfqs' && <RFQsTab rfqs={rfqs} navigate={navigate} />}
         {activeTab === 'orders' && <OrdersTab orders={orders} navigate={navigate} />}
         {activeTab === 'deliveries' && <DeliveriesTab deliveries={deliveries} />}
@@ -268,38 +272,10 @@ export default function ProjectDetail() {
 // Overview Tab Component
 function OverviewTab({ project, onDelete }: { project: ProjectDetailType['project']; onDelete: () => void }) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const hasLocation = project.latitude !== null && project.longitude !== null;
 
   return (
     <div>
-      {/* Materials Quick Action */}
-      <button
-        onClick={() => navigate(`/projects/${project.id}/materials`)}
-        style={{
-          width: '100%',
-          padding: spacing[4],
-          backgroundColor: colors.primary[600],
-          color: colors.text.inverse,
-          border: 'none',
-          borderRadius: borderRadius.lg,
-          fontWeight: typography.fontWeight.semibold,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing[2],
-          cursor: 'pointer',
-          marginBottom: spacing[6],
-          fontSize: typography.fontSize.base,
-          transition: 'background-color 200ms ease',
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.primary[700]}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary[600]}
-      >
-        <Icons.ClipboardCheck size={20} />
-        {t('projects.detail.viewMaterials', 'View Materials List')}
-      </button>
-
       {/* Location */}
       {hasLocation && (
         <div style={{
@@ -797,6 +773,58 @@ function RentalsTab({ rentals }: { rentals: ProjectDetailType['rentals'] }) {
           }}>{formatCurrency(rental.total_cost)}</div>
         </div>
       ))}
+    </div>
+  );
+}
+
+// Materials Tab Component - redirects to full materials page
+function MaterialsTab({ projectId, navigate }: { projectId: string; navigate: (path: string) => void }) {
+  // Redirect to materials page on mount
+  useEffect(() => {
+    navigate(`/projects/${projectId}/materials?tab=materials`);
+  }, [projectId, navigate]);
+
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: spacing[8],
+    }}>
+      <div style={{
+        width: '32px',
+        height: '32px',
+        border: `3px solid ${colors.border.light}`,
+        borderTop: `3px solid ${colors.primary[600]}`,
+        borderRadius: borderRadius.full,
+        animation: 'spin 1s linear infinite',
+      }} />
+    </div>
+  );
+}
+
+// Tools Tab Component - redirects to full materials page with tools tab
+function ToolsTab({ projectId, navigate }: { projectId: string; navigate: (path: string) => void }) {
+  // Redirect to materials page with tools tab on mount
+  useEffect(() => {
+    navigate(`/projects/${projectId}/materials?tab=tools`);
+  }, [projectId, navigate]);
+
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: spacing[8],
+    }}>
+      <div style={{
+        width: '32px',
+        height: '32px',
+        border: `3px solid ${colors.border.light}`,
+        borderTop: `3px solid ${colors.primary[600]}`,
+        borderRadius: borderRadius.full,
+        animation: 'spin 1s linear infinite',
+      }} />
     </div>
   );
 }
