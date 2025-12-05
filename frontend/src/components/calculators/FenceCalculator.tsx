@@ -10,6 +10,7 @@ import { UnitInput } from '../forms/UnitInput';
 import { PillSelector } from '../forms/PillSelector';
 import type { PillOption } from '../forms/PillSelector';
 import { BOMTable } from '../bom/BOMTable';
+import { ToolsBOMTable } from '../bom/ToolsBOMTable';
 import { SafetyNoticeCard } from '../common/SafetyNoticeCard';
 import type { SafetyNotice } from '../common/SafetyNoticeCard';
 import { SaveToProjectModal } from '../modals/SaveToProjectModal';
@@ -543,6 +544,29 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
             showTotal={true}
             disclaimer={t('bom.disclaimer')}
           />
+
+          {/* Tools Table */}
+          {calculationResult.tools && calculationResult.tools.length > 0 && (
+            <div style={{ marginTop: spacing[6] }}>
+              <h2
+                style={{
+                  fontSize: typography.fontSize.lg,
+                  fontWeight: typography.fontWeight.semibold,
+                  color: colors.text.primary,
+                  marginBottom: spacing[4],
+                }}
+              >
+                {t('tools.title', 'Required Tools')}
+              </h2>
+
+              <ToolsBOMTable
+                items={calculationResult.tools}
+                currency="₾"
+                showTotal={true}
+                disclaimer={t('tools.disclaimer', 'Tool rental prices are estimates. Actual prices may vary by supplier.')}
+              />
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div
