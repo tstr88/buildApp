@@ -459,21 +459,18 @@ export const ProjectMaterials: React.FC = () => {
           },
         });
       } else {
-        // RFQ flow - for tools without rental_tool_id
-        const rfqData = {
-          project_id: projectId,
-          supplier_id: order.supplier_id,
-          tools: order.tools.map(t => ({
-            project_tool_id: t.id,
-            rental_tool_id: t.rental_tool_id,
-            name: t.name,
-            category: t.category,
-            duration_days: t.rental_duration_days,
-          })),
-        };
+        // RFQ flow - pass rental_tool_ids to the RFQ page
+        const rentalToolIds = order.tools
+          .filter(t => t.rental_tool_id)
+          .map(t => t.rental_tool_id as string);
 
-        sessionStorage.setItem('rental_rfq_prefill', JSON.stringify(rfqData));
-        navigate('/rentals/rfq');
+        navigate('/rentals/rfq', {
+          state: {
+            preselectedTools: rentalToolIds,
+            project_id: projectId,
+            supplier_id: order.supplier_id,
+          },
+        });
       }
     } catch (err) {
       console.error('Failed to create tool order:', err);
