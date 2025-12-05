@@ -14,31 +14,6 @@ import { InstructionsTab } from '../components/project/InstructionsTab';
 import { formatDate, formatCurrency } from '../utils/formatters';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 
-// Fix illustration_type for slab projects created with old/wrong types
-function fixSlabIllustrationTypes(instructions: any[], templateSlug?: string): any[] {
-  if (templateSlug !== 'concrete_slab' && templateSlug !== 'slab') return instructions;
-
-  // Map old fence types to correct slab types by step number
-  const slabTypeMap: Record<number, string> = {
-    1: 'site_preparation',
-    2: 'gravel_base',
-    3: 'formwork',
-    4: 'rebar',
-    5: 'concrete_pour',
-    6: 'smoothing',
-    7: 'curing',
-    8: 'completion'
-  };
-
-  return instructions.map(inst => {
-    const correctType = slabTypeMap[inst.step];
-    if (correctType && inst.illustration_type !== correctType) {
-      return { ...inst, illustration_type: correctType };
-    }
-    return inst;
-  });
-}
-
 // Types for materials and tools
 interface Supplier {
   supplier_id: string;
@@ -390,10 +365,7 @@ export default function ProjectDetail() {
         {activeTab === 'tools' && <ToolsTab projectId={project.id} navigate={navigate} />}
         {activeTab === 'instructions' && (
           <InstructionsTab
-            instructions={fixSlabIllustrationTypes(
-              Array.isArray(project.instructions) ? project.instructions : [],
-              project.template_slug || undefined
-            )}
+            instructions={Array.isArray(project.instructions) ? project.instructions : []}
             safetyNotes={Array.isArray(project.safety_notes) ? project.safety_notes : []}
             templateSlug={project.template_slug || undefined}
             templateInputs={project.template_inputs || undefined}

@@ -7,7 +7,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icons } from '../icons/Icons';
-import { InstructionIllustration } from '../instructions/AnimatedIllustrations';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
 
 interface InstructionStep {
@@ -439,23 +438,6 @@ export const InstructionsTab: React.FC<InstructionsTabProps> = ({
                     {isGeorgian ? step.description_ka : step.description_en}
                   </p>
 
-                  {/* Animated Illustration */}
-                  {step.illustration_type && (
-                    <div style={{
-                      width: '100%',
-                      backgroundColor: '#FAFAFA',
-                      borderRadius: borderRadius.lg,
-                      marginBottom: spacing[4],
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: spacing[6],
-                      border: `2px solid ${colors.border.light}`,
-                      boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)',
-                    }}>
-                      <InstructionIllustration type={step.illustration_type} size={320} />
-                    </div>
-                  )}
 
                   {/* Substeps */}
                   {step.substeps && step.substeps.length > 0 && (
