@@ -42,10 +42,17 @@ const palette = {
 // Phase 4: Compact the soil
 // ============================================================================
 export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 }) => {
-  const height = size * 0.85;
+  const aspectRatio = 0.85;
 
   return (
-    <div style={{ width: size, height, position: 'relative', overflow: 'hidden' }}>
+    <div style={{
+      width: '100%',
+      maxWidth: size,
+      aspectRatio: `1 / ${aspectRatio}`,
+      position: 'relative',
+      overflow: 'hidden',
+      margin: '0 auto'
+    }}>
       {/* CSS Keyframes */}
       <style>{`
         @keyframes phase1-lines {
@@ -122,9 +129,10 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
 
       {/* PHASE 1: Top View - Mark Area */}
       <svg
-        width={size}
-        height={height}
+        width="100%"
+        height="100%"
         viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
         style={{
           position: 'absolute',
           top: 0,
@@ -198,9 +206,10 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
 
       {/* PHASE 2: Side View - Dig and Remove */}
       <svg
-        width={size}
-        height={height}
+        width="100%"
+        height="100%"
         viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
         style={{
           position: 'absolute',
           top: 0,
@@ -280,9 +289,10 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
 
       {/* PHASE 3: Level Surface */}
       <svg
-        width={size}
-        height={height}
+        width="100%"
+        height="100%"
         viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
         style={{
           position: 'absolute',
           top: 0,
@@ -342,9 +352,10 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
 
       {/* PHASE 4: Compact Soil */}
       <svg
-        width={size}
-        height={height}
+        width="100%"
+        height="100%"
         viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
         style={{
           position: 'absolute',
           top: 0,

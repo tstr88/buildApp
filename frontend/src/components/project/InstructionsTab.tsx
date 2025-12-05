@@ -449,8 +449,9 @@ export const InstructionsTab: React.FC<InstructionsTabProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      padding: spacing[4],
+                      padding: spacing[2],
                       border: `1px solid ${colors.border.light}`,
+                      overflow: 'hidden',
                     }}>
                       <InstructionIllustration type={step.illustration_type} size={320} />
                     </div>
