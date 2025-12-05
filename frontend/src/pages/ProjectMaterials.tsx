@@ -473,7 +473,7 @@ export const ProjectMaterials: React.FC = () => {
         };
 
         sessionStorage.setItem('rental_rfq_prefill', JSON.stringify(rfqData));
-        navigate('/rentals/rfq/create');
+        navigate('/rentals/rfq');
       }
     } catch (err) {
       console.error('Failed to create tool order:', err);
