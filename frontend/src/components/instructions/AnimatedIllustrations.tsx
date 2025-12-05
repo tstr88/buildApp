@@ -35,75 +35,398 @@ const palette = {
 };
 
 // ============================================================================
-// SITE PREPARATION - Shows clearing and leveling a large area
-// Instruction: "Clear and level a 9m × 10m area. Remove grass, roots, and topsoil to 15-20cm depth."
+// SITE PREPARATION - Animated 4-phase sequence
+// Phase 1: Top view - mark area with dimensions
+// Phase 2: Side view - dig and remove grass/topsoil
+// Phase 3: Level the surface
+// Phase 4: Compact the soil
 // ============================================================================
-export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
-  <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    {/* Title */}
-    <rect x="0" y="0" width="280" height="28" fill={palette.dimensionBg} />
-    <text x="140" y="18" textAnchor="middle" fill={palette.dimension} fontSize="12" fontWeight="600">SITE PREPARATION - CROSS SECTION</text>
+export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 }) => {
+  const height = size * 0.85;
 
-    {/* BEFORE section - left side showing original ground */}
-    <text x="70" y="48" textAnchor="middle" fill={palette.gray} fontSize="10" fontWeight="600">BEFORE</text>
+  return (
+    <div style={{ width: size, height, position: 'relative', overflow: 'hidden' }}>
+      {/* CSS Keyframes */}
+      <style>{`
+        @keyframes phase1-lines {
+          0%, 5% { stroke-dashoffset: 200; opacity: 0; }
+          10%, 25% { stroke-dashoffset: 0; opacity: 1; }
+          30%, 100% { opacity: 0; }
+        }
+        @keyframes phase1-dims {
+          0%, 8% { opacity: 0; }
+          15%, 25% { opacity: 1; }
+          30%, 100% { opacity: 0; }
+        }
+        @keyframes phase1-container {
+          0%, 25% { opacity: 1; }
+          30%, 100% { opacity: 0; }
+        }
+        @keyframes phase2-container {
+          0%, 25% { opacity: 0; }
+          30%, 55% { opacity: 1; }
+          60%, 100% { opacity: 0; }
+        }
+        @keyframes phase2-dig {
+          0%, 30% { transform: translateY(0); }
+          35%, 55% { transform: translateY(-40px); }
+        }
+        @keyframes phase2-shovel {
+          0%, 30% { transform: rotate(0deg) translateY(0); }
+          35% { transform: rotate(-30deg) translateY(-5px); }
+          40% { transform: rotate(15deg) translateY(10px); }
+          45% { transform: rotate(-20deg) translateY(-3px); }
+          50%, 55% { transform: rotate(0deg) translateY(0); }
+        }
+        @keyframes phase3-container {
+          0%, 55% { opacity: 0; }
+          60%, 80% { opacity: 1; }
+          85%, 100% { opacity: 0; }
+        }
+        @keyframes phase3-rake {
+          0%, 60% { transform: translateX(0); }
+          65% { transform: translateX(30px); }
+          70% { transform: translateX(-20px); }
+          75% { transform: translateX(20px); }
+          80% { transform: translateX(0); }
+        }
+        @keyframes phase3-surface {
+          0%, 60% { d: path('M40 130 Q80 125 120 135 Q160 128 200 132 Q240 126 280 130'); }
+          75%, 100% { d: path('M40 130 L280 130'); }
+        }
+        @keyframes phase4-container {
+          0%, 80% { opacity: 0; }
+          85%, 100% { opacity: 1; }
+        }
+        @keyframes phase4-compactor {
+          0%, 85% { transform: translateY(0); }
+          87% { transform: translateY(3px); }
+          89% { transform: translateY(0); }
+          91% { transform: translateY(3px); }
+          93% { transform: translateY(0); }
+          95% { transform: translateY(3px); }
+          97% { transform: translateY(0); }
+          99% { transform: translateY(2px); }
+          100% { transform: translateY(0); }
+        }
+        @keyframes phase4-arrows {
+          0%, 85% { opacity: 0; transform: translateY(-5px); }
+          88%, 100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes phase-label {
+          0%, 5% { opacity: 0; }
+          10%, 90% { opacity: 1; }
+          95%, 100% { opacity: 0; }
+        }
+      `}</style>
 
-    {/* Original ground with grass layer */}
-    <rect x="20" y="70" width="100" height="8" fill={palette.grass} />
-    {/* Grass blades */}
-    {[30, 45, 60, 75, 90, 105].map((x, i) => (
-      <path key={i} d={`M${x} 70 Q${x-2} 62 ${x} 58 M${x} 70 Q${x+2} 64 ${x+3} 60`} stroke={palette.grass} strokeWidth="1.5" fill="none" />
-    ))}
+      {/* PHASE 1: Top View - Mark Area */}
+      <svg
+        width={size}
+        height={height}
+        viewBox="0 0 320 270"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'phase1-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          STEP 1: MARK THE AREA (TOP VIEW)
+        </text>
 
-    {/* Topsoil layer (dark brown) */}
-    <rect x="20" y="78" width="100" height="35" fill={palette.soilDark} />
-    <text x="70" y="100" textAnchor="middle" fill={palette.white} fontSize="9">TOPSOIL</text>
+        {/* Green grass background */}
+        <rect x="20" y="50" width="280" height="180" fill="#7CB342" rx="4" />
 
-    {/* Deep soil */}
-    <rect x="20" y="113" width="100" height="40" fill={palette.soil} />
+        {/* Grass texture */}
+        {[40, 70, 100, 130, 160, 190, 220, 250, 280].map((x, i) => (
+          [60, 90, 120, 150, 180, 210].map((y, j) => (
+            <g key={`grass-${i}-${j}`} opacity="0.6">
+              <line x1={x} y1={y} x2={x-3} y2={y-8} stroke="#5D8A2D" strokeWidth="1" />
+              <line x1={x} y1={y} x2={x+2} y2={y-7} stroke="#5D8A2D" strokeWidth="1" />
+            </g>
+          ))
+        ))}
 
-    {/* AFTER section - right side showing excavated area */}
-    <text x="200" y="48" textAnchor="middle" fill={palette.gray} fontSize="10" fontWeight="600">AFTER</text>
+        {/* Marking lines - animated drawing */}
+        <rect
+          x="60" y="80" width="200" height="120"
+          fill="none"
+          stroke="#E53935"
+          strokeWidth="3"
+          strokeDasharray="200"
+          style={{ animation: 'phase1-lines 12s infinite' }}
+        />
 
-    {/* Excavated flat surface */}
-    <rect x="150" y="113" width="110" height="40" fill={palette.soil} />
+        {/* Corner stakes */}
+        {[[60, 80], [260, 80], [60, 200], [260, 200]].map(([x, y], i) => (
+          <g key={`stake-${i}`} style={{ animation: 'phase1-dims 12s infinite' }}>
+            <circle cx={x} cy={y} r="6" fill="#8B4513" stroke="#5D2E0C" strokeWidth="2" />
+            <circle cx={x} cy={y} r="2" fill="#E53935" />
+          </g>
+        ))}
 
-    {/* Empty excavated area */}
-    <rect x="150" y="70" width="110" height="43" fill={palette.lightGray} stroke={palette.soilDark} strokeWidth="1" strokeDasharray="4,2" />
+        {/* Width dimension */}
+        <g style={{ animation: 'phase1-dims 12s infinite' }}>
+          <line x1="60" y1="65" x2="260" y2="65" stroke="#1565C0" strokeWidth="2" />
+          <line x1="60" y1="58" x2="60" y2="72" stroke="#1565C0" strokeWidth="2" />
+          <line x1="260" y1="58" x2="260" y2="72" stroke="#1565C0" strokeWidth="2" />
+          <rect x="130" y="52" width="60" height="20" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+          <text x="160" y="67" textAnchor="middle" fill="#1565C0" fontSize="13" fontWeight="700">9m</text>
+        </g>
 
-    {/* Flat leveled surface line */}
-    <line x1="150" y1="113" x2="260" y2="113" stroke={palette.soilDark} strokeWidth="2" />
+        {/* Height dimension */}
+        <g style={{ animation: 'phase1-dims 12s infinite' }}>
+          <line x1="275" y1="80" x2="275" y2="200" stroke="#1565C0" strokeWidth="2" />
+          <line x1="268" y1="80" x2="282" y2="80" stroke="#1565C0" strokeWidth="2" />
+          <line x1="268" y1="200" x2="282" y2="200" stroke="#1565C0" strokeWidth="2" />
+          <rect x="282" y="125" width="30" height="20" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+          <text x="297" y="140" textAnchor="middle" fill="#1565C0" fontSize="13" fontWeight="700">10m</text>
+        </g>
 
-    {/* Arrow showing transformation */}
-    <g transform="translate(130, 95)">
-      <line x1="0" y1="0" x2="12" y2="0" stroke={palette.arrow} strokeWidth="2" />
-      <polygon points="10,-4 10,4 18,0" fill={palette.arrow} />
-    </g>
+        {/* Phase label */}
+        <g style={{ animation: 'phase-label 12s infinite' }}>
+          <rect x="20" y="240" width="280" height="24" fill="#FFF3E0" stroke="#FF9800" strokeWidth="1" rx="4" />
+          <text x="160" y="257" textAnchor="middle" fill="#E65100" fontSize="11" fontWeight="600">
+            Mark corners with stakes, stretch string line
+          </text>
+        </g>
+      </svg>
 
-    {/* Depth dimension on right */}
-    <g transform="translate(265, 70)">
-      <line x1="8" y1="0" x2="8" y2="43" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="2" y1="0" x2="14" y2="0" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="2" y1="43" x2="14" y2="43" stroke={palette.dimension} strokeWidth="2" />
-    </g>
+      {/* PHASE 2: Side View - Dig and Remove */}
+      <svg
+        width={size}
+        height={height}
+        viewBox="0 0 320 270"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'phase2-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          STEP 2: REMOVE GRASS & TOPSOIL (SIDE VIEW)
+        </text>
 
-    {/* Depth label */}
-    <g transform="translate(150, 155)">
-      <rect x="0" y="0" width="110" height="22" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="3" />
-      <text x="55" y="15" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="700">DEPTH: 15-20cm</text>
-    </g>
+        {/* Ground cross-section */}
+        {/* Sky/air */}
+        <rect x="20" y="50" width="280" height="60" fill="#E3F2FD" />
 
-    {/* What to remove - legend at bottom */}
-    <g transform="translate(20, 185)">
-      <rect x="0" y="0" width="12" height="12" fill={palette.grass} />
-      <text x="18" y="10" fill={palette.gray} fontSize="9">Grass</text>
+        {/* Grass layer being removed */}
+        <g style={{ animation: 'phase2-dig 12s infinite' }}>
+          <rect x="20" y="110" width="280" height="12" fill="#7CB342" />
+          {[40, 70, 100, 130, 160, 190, 220, 250, 280].map((x, i) => (
+            <path key={`blade-${i}`} d={`M${x} 110 Q${x-3} 100 ${x} 95 M${x} 110 Q${x+3} 102 ${x+2} 97`} stroke="#5D8A2D" strokeWidth="1.5" fill="none" />
+          ))}
+        </g>
 
-      <rect x="60" y="0" width="12" height="12" fill={palette.soilDark} />
-      <text x="78" y="10" fill={palette.gray} fontSize="9">Topsoil + roots</text>
+        {/* Topsoil layer being removed */}
+        <g style={{ animation: 'phase2-dig 12s infinite' }}>
+          <rect x="20" y="122" width="280" height="35" fill="#5D4E37" />
+          {/* Roots in topsoil */}
+          {[50, 120, 200, 260].map((x, i) => (
+            <path key={`root-${i}`} d={`M${x} 125 Q${x+10} 140 ${x-5} 150`} stroke="#3E2723" strokeWidth="2" fill="none" opacity="0.5" />
+          ))}
+          <text x="160" y="145" textAnchor="middle" fill="#FFF" fontSize="10" fontWeight="500">TOPSOIL + ROOTS</text>
+        </g>
 
-      <text x="155" y="10" fill={palette.arrow} fontSize="9" fontWeight="600">= REMOVE ALL</text>
-    </g>
-  </svg>
-);
+        {/* Subsoil (stays) */}
+        <rect x="20" y="157" width="280" height="50" fill="#8B7355" />
+        <text x="160" y="185" textAnchor="middle" fill="#FFF" fontSize="10" opacity="0.7">SUBSOIL</text>
+
+        {/* Depth dimension */}
+        <g>
+          <line x1="305" y1="110" x2="305" y2="157" stroke="#1565C0" strokeWidth="2" />
+          <line x1="298" y1="110" x2="312" y2="110" stroke="#1565C0" strokeWidth="2" />
+          <line x1="298" y1="157" x2="312" y2="157" stroke="#1565C0" strokeWidth="2" />
+        </g>
+        <rect x="280" y="122" width="40" height="22" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="300" y="138" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20</text>
+        <text x="300" y="150" textAnchor="middle" fill="#1565C0" fontSize="9">cm</text>
+
+        {/* Shovel animation */}
+        <g style={{ transformOrigin: '70px 100px', animation: 'phase2-shovel 12s infinite' }}>
+          {/* Shovel handle */}
+          <rect x="65" y="55" width="8" height="55" fill="#8B4513" rx="2" />
+          {/* Shovel blade */}
+          <path d="M60 110 L78 110 L74 130 Q69 135 64 130 Z" fill="#607D8B" stroke="#455A64" strokeWidth="1" />
+        </g>
+
+        {/* Removed material indicator */}
+        <g>
+          <path d="M160 90 L180 70 L200 70" stroke="#E53935" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" />
+          <text x="205" y="75" fill="#E53935" fontSize="10" fontWeight="600">REMOVE</text>
+        </g>
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#E53935" />
+          </marker>
+        </defs>
+
+        {/* Phase label */}
+        <rect x="20" y="215" width="280" height="45" fill="#FFEBEE" stroke="#E53935" strokeWidth="1" rx="4" />
+        <text x="160" y="233" textAnchor="middle" fill="#C62828" fontSize="11" fontWeight="600">
+          Dig out grass, roots, and topsoil
+        </text>
+        <text x="160" y="250" textAnchor="middle" fill="#C62828" fontSize="10">
+          Depth: 15-20cm across entire marked area
+        </text>
+      </svg>
+
+      {/* PHASE 3: Level Surface */}
+      <svg
+        width={size}
+        height={height}
+        viewBox="0 0 320 270"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'phase3-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          STEP 3: LEVEL THE SURFACE
+        </text>
+
+        {/* Sky/excavated area */}
+        <rect x="20" y="50" width="280" height="80" fill="#F5F5F5" />
+
+        {/* Uneven surface being leveled */}
+        <path
+          d="M20 130 Q60 125 100 135 Q140 128 180 132 Q220 126 260 130 L300 130 L300 207 L20 207 Z"
+          fill="#8B7355"
+        />
+
+        {/* Level line indicator */}
+        <line x1="20" y1="130" x2="300" y2="130" stroke="#1565C0" strokeWidth="2" strokeDasharray="8,4" />
+        <text x="160" y="145" textAnchor="middle" fill="#1565C0" fontSize="10" fontWeight="600">LEVEL LINE</text>
+
+        {/* Rake tool */}
+        <g style={{ transformOrigin: '160px 100px', animation: 'phase3-rake 12s infinite' }}>
+          {/* Handle */}
+          <rect x="155" y="50" width="6" height="70" fill="#8B4513" rx="2" />
+          {/* Rake head */}
+          <rect x="130" y="118" width="50" height="8" fill="#607D8B" rx="2" />
+          {/* Rake tines */}
+          {[135, 145, 155, 165, 175].map((x, i) => (
+            <rect key={`tine-${i}`} x={x} y="126" width="3" height="10" fill="#455A64" />
+          ))}
+        </g>
+
+        {/* Depth reference */}
+        <g>
+          <line x1="305" y1="50" x2="305" y2="130" stroke="#1565C0" strokeWidth="2" />
+          <line x1="298" y1="50" x2="312" y2="50" stroke="#1565C0" strokeWidth="2" />
+          <line x1="298" y1="130" x2="312" y2="130" stroke="#1565C0" strokeWidth="2" />
+        </g>
+        <rect x="280" y="78" width="40" height="22" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="300" y="94" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20</text>
+        <text x="300" y="106" textAnchor="middle" fill="#1565C0" fontSize="9">cm</text>
+
+        {/* Phase label */}
+        <rect x="20" y="215" width="280" height="45" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="1" rx="4" />
+        <text x="160" y="233" textAnchor="middle" fill="#2E7D32" fontSize="11" fontWeight="600">
+          Use rake to level the excavated surface
+        </text>
+        <text x="160" y="250" textAnchor="middle" fill="#2E7D32" fontSize="10">
+          Remove high spots, fill low spots
+        </text>
+      </svg>
+
+      {/* PHASE 4: Compact Soil */}
+      <svg
+        width={size}
+        height={height}
+        viewBox="0 0 320 270"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'phase4-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          STEP 4: COMPACT THE SOIL
+        </text>
+
+        {/* Excavated area */}
+        <rect x="20" y="50" width="280" height="80" fill="#F5F5F5" />
+
+        {/* Compacted soil - flat and level */}
+        <rect x="20" y="130" width="280" height="77" fill="#8B7355" />
+
+        {/* Compaction marks */}
+        <line x1="20" y1="130" x2="300" y2="130" stroke="#5D4E37" strokeWidth="3" />
+
+        {/* Plate compactor */}
+        <g style={{ animation: 'phase4-compactor 12s infinite' }}>
+          {/* Handle */}
+          <rect x="145" y="55" width="10" height="40" fill="#424242" rx="2" />
+          <rect x="140" y="50" width="20" height="10" fill="#616161" rx="3" />
+          {/* Engine housing */}
+          <rect x="125" y="95" width="50" height="25" fill="#FF5722" rx="4" />
+          <rect x="135" y="100" width="30" height="8" fill="#BF360C" rx="2" />
+          {/* Base plate */}
+          <rect x="115" y="120" width="70" height="12" fill="#607D8B" rx="2" />
+        </g>
+
+        {/* Vibration lines */}
+        <g style={{ animation: 'phase4-arrows 12s infinite' }}>
+          {[130, 150, 170].map((x, i) => (
+            <g key={`vib-${i}`}>
+              <line x1={x} y1="135" x2={x} y2="145" stroke="#FF5722" strokeWidth="2" />
+              <polygon points={`${x-4} 145, ${x+4} 145, ${x} 152`} fill="#FF5722" />
+            </g>
+          ))}
+        </g>
+
+        {/* Compression arrows */}
+        <g style={{ animation: 'phase4-arrows 12s infinite' }}>
+          <path d="M60 145 L60 160" stroke="#1565C0" strokeWidth="2" />
+          <polygon points="56 160, 64 160, 60 170" fill="#1565C0" />
+          <path d="M240 145 L240 160" stroke="#1565C0" strokeWidth="2" />
+          <polygon points="236 160, 244 160, 240 170" fill="#1565C0" />
+        </g>
+
+        {/* Final depth reference */}
+        <g>
+          <line x1="305" y1="50" x2="305" y2="130" stroke="#1565C0" strokeWidth="2" />
+          <line x1="298" y1="50" x2="312" y2="50" stroke="#1565C0" strokeWidth="2" />
+          <line x1="298" y1="130" x2="312" y2="130" stroke="#1565C0" strokeWidth="2" />
+        </g>
+        <rect x="280" y="78" width="40" height="22" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="300" y="94" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20</text>
+        <text x="300" y="106" textAnchor="middle" fill="#1565C0" fontSize="9">cm</text>
+
+        {/* Checkmark */}
+        <g style={{ animation: 'phase4-arrows 12s infinite' }}>
+          <circle cx="50" y="175" r="15" fill="#4CAF50" />
+          <path d="M42 175 L48 181 L58 168" stroke="#FFF" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+
+        {/* Phase label */}
+        <rect x="20" y="215" width="280" height="45" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="4" />
+        <text x="160" y="233" textAnchor="middle" fill="#0D47A1" fontSize="11" fontWeight="600">
+          Compact soil with plate compactor or tamper
+        </text>
+        <text x="160" y="250" textAnchor="middle" fill="#0D47A1" fontSize="10">
+          Creates stable base for gravel layer
+        </text>
+      </svg>
+    </div>
+  );
+};
 
 // ============================================================================
 // GRAVEL BASE - Simple layered view
