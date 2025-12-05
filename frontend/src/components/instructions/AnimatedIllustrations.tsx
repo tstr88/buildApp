@@ -931,57 +931,449 @@ export const FormworkAnimation: React.FC<AnimationProps> = ({ size = 320, templa
 };
 
 // ============================================================================
-// REBAR GRID - Clean top view
+// REBAR GRID - Animated 5-phase sequence
+// Phase 1: Top view - cutting rebars to size
+// Phase 2: Top view - laying first horizontal layer
+// Phase 3: Top view - laying second vertical layer
+// Phase 4: Top view - tying intersections (zoomed)
+// Phase 5: Side view - lifting grid on spacers
 // ============================================================================
-export const RebarAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
-  <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    {/* Title */}
-    <rect x="0" y="0" width="280" height="28" fill={palette.dimensionBg} />
-    <text x="140" y="18" textAnchor="middle" fill={palette.dimension} fontSize="12" fontWeight="600">REBAR GRID - TOP VIEW</text>
 
-    {/* Formwork outline */}
-    <rect x="40" y="40" width="200" height="130" fill={palette.lightGray} stroke={palette.woodDark} strokeWidth="8" />
+// Translations for Rebar Animation
+const rebarTranslations = {
+  en: {
+    step1Title: 'STEP 1: CUT REBARS',
+    step2Title: 'STEP 2: LAY HORIZONTAL BARS',
+    step3Title: 'STEP 3: LAY VERTICAL BARS',
+    step4Title: 'STEP 4: TIE INTERSECTIONS',
+    step5Title: 'STEP 5: LIFT ON SPACERS',
+    rebar: 'REBAR',
+    spacing: '15-20 cm',
+    phase1Label: 'Cut rebars to required lengths',
+    phase2Label1: 'Place horizontal rebars evenly spaced',
+    phase2Label2: 'Keep 5cm from formwork edges',
+    phase3Label1: 'Place vertical rebars on top',
+    phase3Label2: 'Maintain consistent spacing',
+    phase4Label1: 'Tie every intersection with wire',
+    phase4Label2: 'Use diagonal wire ties',
+    phase5Label1: 'Place spacers under grid',
+    phase5Label2: 'Lift 5cm from gravel base',
+    wireTie: 'WIRE TIE',
+    spacer: 'SPACER',
+    liftHeight: '5 cm',
+  },
+  ka: {
+    step1Title: 'ნაბიჯი 1: დაჭერით არმატურა',
+    step2Title: 'ნაბიჯი 2: დააწყვეთ ჰორიზონტალური',
+    step3Title: 'ნაბიჯი 3: დააწყვეთ ვერტიკალური',
+    step4Title: 'ნაბიჯი 4: შეკარით კვანძები',
+    step5Title: 'ნაბიჯი 5: აწიეთ სპეისერებზე',
+    rebar: 'არმატურა',
+    spacing: '15-20 სმ',
+    phase1Label: 'დაჭერით არმატურა საჭირო სიგრძეზე',
+    phase2Label1: 'დააწყვეთ ჰორიზონტალური ღეროები',
+    phase2Label2: 'დატოვეთ 5სმ ყალიბიდან',
+    phase3Label1: 'დააწყვეთ ვერტიკალური ღეროები ზემოდან',
+    phase3Label2: 'შეინარჩუნეთ თანაბარი მანძილი',
+    phase4Label1: 'შეკარით ყველა კვანძი მავთულით',
+    phase4Label2: 'გამოიყენეთ დიაგონალური შეკვრა',
+    phase5Label1: 'განათავსეთ სპეისერები ბადის ქვეშ',
+    phase5Label2: 'აწიეთ 5სმ ხრეშის ფენიდან',
+    wireTie: 'მავთული',
+    spacer: 'სპეისერი',
+    liftHeight: '5 სმ',
+  },
+};
 
-    {/* Horizontal rebars */}
-    {[60, 95, 130].map((y, i) => (
-      <rect key={`h${i}`} x="50" y={y} width="180" height="6" fill={palette.rebar} rx="3" />
-    ))}
+export const RebarAnimation: React.FC<AnimationProps> = ({ size = 320, templateInputs }) => {
+  const { i18n } = useTranslation();
+  const lang = i18n.language?.startsWith('ka') ? 'ka' : 'en';
+  const isGeorgian = lang === 'ka';
+  const aspectRatio = 0.85;
 
-    {/* Vertical rebars */}
-    {[70, 110, 150, 190].map((x, i) => (
-      <rect key={`v${i}`} x={x} y="50" width="6" height="110" fill={palette.rebar} rx="3" />
-    ))}
+  const t = rebarTranslations[lang];
 
-    {/* Wire ties at intersections - simplified */}
-    {[60, 95, 130].flatMap((y) =>
-      [70, 110, 150, 190].map((x) => (
-        <circle key={`t${x}${y}`} cx={x + 3} cy={y + 3} r="5" fill="none" stroke={palette.metalDark} strokeWidth="2" />
-      ))
-    )}
+  return (
+    <div style={{
+      width: '100%',
+      maxWidth: size,
+      aspectRatio: `1 / ${aspectRatio}`,
+      position: 'relative',
+      overflow: 'hidden',
+      margin: '0 auto'
+    }}>
+      {/* CSS Keyframes */}
+      <style>{`
+        @keyframes rebar-phase1-container {
+          0%, 20% { opacity: 1; }
+          24%, 100% { opacity: 0; }
+        }
+        @keyframes rebar-phase2-container {
+          0%, 20% { opacity: 0; }
+          24%, 40% { opacity: 1; }
+          44%, 100% { opacity: 0; }
+        }
+        @keyframes rebar-phase3-container {
+          0%, 40% { opacity: 0; }
+          44%, 60% { opacity: 1; }
+          64%, 100% { opacity: 0; }
+        }
+        @keyframes rebar-phase4-container {
+          0%, 60% { opacity: 0; }
+          64%, 80% { opacity: 1; }
+          84%, 100% { opacity: 0; }
+        }
+        @keyframes rebar-phase5-container {
+          0%, 80% { opacity: 0; }
+          84%, 100% { opacity: 1; }
+        }
+        @keyframes rebar-cut {
+          0%, 5% { stroke-dashoffset: 200; }
+          15%, 20% { stroke-dashoffset: 0; }
+        }
+        @keyframes rebar-place-h {
+          0%, 24% { transform: translateX(-50px); opacity: 0; }
+          30%, 40% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes rebar-place-v {
+          0%, 44% { transform: translateY(-50px); opacity: 0; }
+          50%, 60% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes rebar-tie-appear {
+          0%, 64% { transform: scale(0); opacity: 0; }
+          70%, 80% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes rebar-lift {
+          0%, 84% { transform: translateY(0); }
+          90%, 100% { transform: translateY(-15px); }
+        }
+        @keyframes rebar-spacer-appear {
+          0%, 84% { opacity: 0; }
+          88%, 100% { opacity: 1; }
+        }
+        @keyframes rebar-phase-label {
+          0%, 5% { opacity: 0; }
+          10%, 90% { opacity: 1; }
+          95%, 100% { opacity: 0; }
+        }
+        @keyframes rebar-saw {
+          0%, 5% { transform: translateX(0) rotate(0deg); }
+          8% { transform: translateX(5px) rotate(5deg); }
+          11% { transform: translateX(-5px) rotate(-5deg); }
+          14% { transform: translateX(5px) rotate(5deg); }
+          17%, 20% { transform: translateX(0) rotate(0deg); }
+        }
+      `}</style>
 
-    {/* Spacing dimension - horizontal */}
-    <g transform="translate(70, 175)">
-      <line x1="0" y1="0" x2="40" y2="0" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="0" y1="-6" x2="0" y2="6" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="40" y1="-6" x2="40" y2="6" stroke={palette.dimension} strokeWidth="2" />
-      <text x="20" y="15" textAnchor="middle" fill={palette.dimension} fontSize="10" fontWeight="600">15cm</text>
-    </g>
+      {/* PHASE 1: Top View - Cutting Rebars */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'rebar-phase1-container 15s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step1Title}
+        </text>
 
-    {/* Spacing dimension - vertical */}
-    <g transform="translate(248, 60)">
-      <line x1="0" y1="0" x2="0" y2="35" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="-6" y1="0" x2="6" y2="0" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="-6" y1="35" x2="6" y2="35" stroke={palette.dimension} strokeWidth="2" />
-      <text x="15" y="22" fill={palette.dimension} fontSize="10" fontWeight="600">15cm</text>
-    </g>
+        {/* Long rebar being cut */}
+        <rect x="20" y="80" width="280" height="10" fill="#5D4037" rx="5" />
 
-    {/* Legend */}
-    <g transform="translate(130, 178)">
-      <circle cx="0" cy="0" r="5" fill="none" stroke={palette.metalDark} strokeWidth="2" />
-      <text x="10" y="4" fill={palette.gray} fontSize="9">= Wire tie</text>
-    </g>
-  </svg>
-);
+        {/* Cut mark */}
+        <line x1="200" y1="70" x2="200" y2="100" stroke="#E53935" strokeWidth="3" strokeDasharray="5,3" />
+
+        {/* Angle grinder / cutter */}
+        <g style={{ transformOrigin: '200px 85px', animation: 'rebar-saw 15s infinite' }}>
+          <circle cx="200" cy="60" r="18" fill="#607D8B" stroke="#455A64" strokeWidth="2" />
+          <circle cx="200" cy="60" r="8" fill="#455A64" />
+          <rect x="215" y="50" width="35" height="20" fill="#424242" rx="3" />
+          {/* Sparks */}
+          <g>
+            <line x1="195" y1="78" x2="190" y2="90" stroke="#FFD54F" strokeWidth="2" />
+            <line x1="200" y1="78" x2="200" y2="92" stroke="#FFD54F" strokeWidth="2" />
+            <line x1="205" y1="78" x2="210" y2="90" stroke="#FFD54F" strokeWidth="2" />
+          </g>
+        </g>
+
+        {/* Cut pieces below */}
+        <rect x="30" y="130" width="150" height="8" fill="#5D4037" rx="4" />
+        <rect x="30" y="150" width="150" height="8" fill="#5D4037" rx="4" />
+        <rect x="30" y="170" width="150" height="8" fill="#5D4037" rx="4" />
+        <rect x="200" y="130" width="90" height="8" fill="#5D4037" rx="4" />
+        <rect x="200" y="150" width="90" height="8" fill="#5D4037" rx="4" />
+
+        {/* Length dimension */}
+        <g>
+          <line x1="30" y1="195" x2="180" y2="195" stroke="#1565C0" strokeWidth="2" />
+          <line x1="30" y1="188" x2="30" y2="202" stroke="#1565C0" strokeWidth="2" />
+          <line x1="180" y1="188" x2="180" y2="202" stroke="#1565C0" strokeWidth="2" />
+        </g>
+        <rect x="80" y="198" width="50" height="18" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="105" y="211" textAnchor="middle" fill="#1565C0" fontSize="10" fontWeight="600">
+          {isGeorgian ? 'სიგრძე' : 'LENGTH'}
+        </text>
+
+        {/* Phase label */}
+        <g style={{ animation: 'rebar-phase-label 15s infinite' }}>
+          <rect x="20" y="240" width="280" height="24" fill="#FFF3E0" stroke="#FF9800" strokeWidth="1" rx="4" />
+          <text x="160" y="257" textAnchor="middle" fill="#E65100" fontSize="11" fontWeight="600">
+            {t.phase1Label}
+          </text>
+        </g>
+      </svg>
+
+      {/* PHASE 2: Top View - Lay Horizontal Bars */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'rebar-phase2-container 15s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step2Title}
+        </text>
+
+        {/* Formwork outline - top view */}
+        <rect x="40" y="50" width="240" height="155" fill="#F5F5F5" stroke="#8B6914" strokeWidth="8" />
+
+        {/* Horizontal rebars - animated placement */}
+        {[75, 105, 135, 165].map((y, i) => (
+          <g key={`h-${i}`} style={{ animation: 'rebar-place-h 15s infinite', animationDelay: `${i * 0.15}s` }}>
+            <rect x="55" y={y} width="210" height="8" fill="#5D4037" rx="4" />
+          </g>
+        ))}
+
+        {/* Spacing dimension */}
+        <g>
+          <line x1="280" y1="75" x2="280" y2="105" stroke="#1565C0" strokeWidth="2" />
+          <line x1="273" y1="75" x2="287" y2="75" stroke="#1565C0" strokeWidth="2" />
+          <line x1="273" y1="105" x2="287" y2="105" stroke="#1565C0" strokeWidth="2" />
+        </g>
+        <rect x="285" y="80" width="32" height="18" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="301" y="93" textAnchor="middle" fill="#1565C0" fontSize="9" fontWeight="600">{t.spacing}</text>
+
+        {/* Edge distance indicator */}
+        <g>
+          <line x1="48" y1="55" x2="48" y2="75" stroke="#4CAF50" strokeWidth="1.5" strokeDasharray="3,2" />
+          <text x="48" y="45" textAnchor="middle" fill="#4CAF50" fontSize="8">5cm</text>
+        </g>
+
+        {/* Phase label */}
+        <rect x="20" y="215" width="280" height="45" fill="#FFF3E0" stroke="#FF9800" strokeWidth="1" rx="4" />
+        <text x="160" y="233" textAnchor="middle" fill="#E65100" fontSize="11" fontWeight="600">
+          {t.phase2Label1}
+        </text>
+        <text x="160" y="250" textAnchor="middle" fill="#E65100" fontSize="10">
+          {t.phase2Label2}
+        </text>
+      </svg>
+
+      {/* PHASE 3: Top View - Lay Vertical Bars */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'rebar-phase3-container 15s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step3Title}
+        </text>
+
+        {/* Formwork outline */}
+        <rect x="40" y="50" width="240" height="155" fill="#F5F5F5" stroke="#8B6914" strokeWidth="8" />
+
+        {/* Horizontal rebars (already placed) */}
+        {[75, 105, 135, 165].map((y, i) => (
+          <rect key={`h2-${i}`} x="55" y={y} width="210" height="8" fill="#5D4037" rx="4" />
+        ))}
+
+        {/* Vertical rebars - animated placement */}
+        {[75, 115, 155, 195, 235].map((x, i) => (
+          <g key={`v-${i}`} style={{ animation: 'rebar-place-v 15s infinite', animationDelay: `${i * 0.12}s` }}>
+            <rect x={x} y="60" width="8" height="135" fill="#5D4037" rx="4" />
+          </g>
+        ))}
+
+        {/* Grid pattern indicator */}
+        <text x="160" y="215" textAnchor="middle" fill="#5D4037" fontSize="10" fontWeight="600">
+          {isGeorgian ? 'ბადის სტრუქტურა' : 'GRID PATTERN'}
+        </text>
+
+        {/* Phase label */}
+        <rect x="20" y="220" width="280" height="40" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="1" rx="4" />
+        <text x="160" y="237" textAnchor="middle" fill="#2E7D32" fontSize="11" fontWeight="600">
+          {t.phase3Label1}
+        </text>
+        <text x="160" y="252" textAnchor="middle" fill="#2E7D32" fontSize="10">
+          {t.phase3Label2}
+        </text>
+      </svg>
+
+      {/* PHASE 4: Top View - Tie Intersections (zoomed) */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'rebar-phase4-container 15s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step4Title}
+        </text>
+
+        {/* Zoomed view indicator */}
+        <rect x="30" y="45" width="260" height="160" fill="#F5F5F5" stroke="#BDBDBD" strokeWidth="2" rx="8" />
+
+        {/* Zoomed horizontal rebars */}
+        <rect x="40" y="85" width="240" height="16" fill="#5D4037" rx="8" />
+        <rect x="40" y="145" width="240" height="16" fill="#5D4037" rx="8" />
+
+        {/* Zoomed vertical rebars */}
+        <rect x="95" y="55" width="16" height="140" fill="#5D4037" rx="8" />
+        <rect x="175" y="55" width="16" height="140" fill="#5D4037" rx="8" />
+
+        {/* Wire ties at intersections - animated */}
+        {[[103, 93], [183, 93], [103, 153], [183, 153]].map(([x, y], i) => (
+          <g key={`tie-${i}`} style={{ animation: 'rebar-tie-appear 15s infinite', animationDelay: `${i * 0.2}s` }}>
+            {/* Diagonal wire pattern */}
+            <line x1={x-12} y1={y-12} x2={x+12} y2={y+12} stroke="#78909C" strokeWidth="3" />
+            <line x1={x+12} y1={y-12} x2={x-12} y2={y+12} stroke="#78909C" strokeWidth="3" />
+            {/* Center knot */}
+            <circle cx={x} cy={y} r="6" fill="#607D8B" stroke="#455A64" strokeWidth="2" />
+          </g>
+        ))}
+
+        {/* Wire tie label */}
+        <g>
+          <line x1="183" y1="93" x2="240" y2="60" stroke="#607D8B" strokeWidth="1.5" />
+          <text x="245" y="58" fill="#455A64" fontSize="10" fontWeight="600">{t.wireTie}</text>
+        </g>
+
+        {/* Magnifying glass indicator */}
+        <g transform="translate(280, 180)">
+          <circle cx="0" cy="0" r="15" fill="none" stroke="#1565C0" strokeWidth="2" />
+          <line x1="10" y1="10" x2="20" y2="20" stroke="#1565C0" strokeWidth="3" />
+          <text x="0" y="5" textAnchor="middle" fill="#1565C0" fontSize="12" fontWeight="700">+</text>
+        </g>
+
+        {/* Phase label */}
+        <rect x="20" y="215" width="280" height="45" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="1" rx="4" />
+        <text x="160" y="233" textAnchor="middle" fill="#2E7D32" fontSize="11" fontWeight="600">
+          {t.phase4Label1}
+        </text>
+        <text x="160" y="250" textAnchor="middle" fill="#2E7D32" fontSize="10">
+          {t.phase4Label2}
+        </text>
+      </svg>
+
+      {/* PHASE 5: Side View - Lift on Spacers */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'rebar-phase5-container 15s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step5Title}
+        </text>
+
+        {/* Formwork sides */}
+        <rect x="30" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="272" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+
+        {/* Gravel base */}
+        <rect x="48" y="155" width="224" height="15" fill="#A09080" />
+        <text x="160" y="167" textAnchor="middle" fill="#FFF" fontSize="9">{isGeorgian ? 'ხრეში' : 'GRAVEL'}</text>
+
+        {/* Spacers - animated appearance */}
+        {[80, 160, 240].map((x, i) => (
+          <g key={`spacer-${i}`} style={{ animation: 'rebar-spacer-appear 15s infinite' }}>
+            <rect x={x-8} y="140" width="16" height="15" fill="#9E9E9E" stroke="#757575" strokeWidth="1" rx="2" />
+          </g>
+        ))}
+
+        {/* Rebar grid - animated lifting */}
+        <g style={{ animation: 'rebar-lift 15s infinite' }}>
+          {/* Horizontal bars (cross-section circles) */}
+          {[70, 110, 150, 190, 230].map((x, i) => (
+            <circle key={`rebar-c-${i}`} cx={x} cy="135" r="6" fill="#5D4037" stroke="#3E2723" strokeWidth="1" />
+          ))}
+          {/* Connecting line to show grid */}
+          <line x1="70" y1="135" x2="230" y2="135" stroke="#5D4037" strokeWidth="3" />
+        </g>
+
+        {/* Lift height dimension */}
+        <g>
+          <line x1="255" y1="140" x2="255" y2="155" stroke="#1565C0" strokeWidth="2" />
+          <line x1="248" y1="140" x2="262" y2="140" stroke="#1565C0" strokeWidth="2" />
+          <line x1="248" y1="155" x2="262" y2="155" stroke="#1565C0" strokeWidth="2" />
+        </g>
+        <rect x="262" y="140" width="35" height="16" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="280" y="152" textAnchor="middle" fill="#1565C0" fontSize="10" fontWeight="700">{t.liftHeight}</text>
+
+        {/* Spacer label */}
+        <g>
+          <line x1="160" y1="155" x2="160" y2="180" stroke="#757575" strokeWidth="1" />
+          <text x="160" y="192" textAnchor="middle" fill="#616161" fontSize="10" fontWeight="500">{t.spacer}</text>
+        </g>
+
+        {/* Checkmark */}
+        <g transform="translate(285, 110)">
+          <circle cx="0" cy="0" r="14" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="2" />
+          <path d="M-6 0 L-2 4 L6 -4" stroke="#4CAF50" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+
+        {/* Phase label */}
+        <rect x="20" y="215" width="280" height="45" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="4" />
+        <text x="160" y="233" textAnchor="middle" fill="#0D47A1" fontSize="11" fontWeight="600">
+          {t.phase5Label1}
+        </text>
+        <text x="160" y="250" textAnchor="middle" fill="#0D47A1" fontSize="10">
+          {t.phase5Label2}
+        </text>
+      </svg>
+    </div>
+  );
+};
 
 // ============================================================================
 // CONCRETE POUR - Simple side view
@@ -1955,6 +2347,7 @@ export const IllustrationMap: Record<string, React.FC<AnimationProps>> = {
   'site_preparation': SitePreparationAnimation,
   'gravel_base': GravelBaseAnimation,
   'formwork': FormworkAnimation,
+  'rebar': RebarAnimation,
 };
 
 // ============================================================================
