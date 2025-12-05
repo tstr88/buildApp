@@ -453,7 +453,7 @@ export const InstructionsTab: React.FC<InstructionsTabProps> = ({
                       border: `1px solid ${colors.border.light}`,
                       overflow: 'hidden',
                     }}>
-                      <InstructionIllustration type={step.illustration_type} size={320} />
+                      <InstructionIllustration type={step.illustration_type} size={320} templateInputs={templateInputs} />
                     </div>
                   )}
 

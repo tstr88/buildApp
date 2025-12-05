@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 interface AnimationProps {
   size?: number;
+  templateInputs?: Record<string, any>;
 }
 
 // Translations for Site Preparation Animation
@@ -22,6 +23,9 @@ const sitePreparationTranslations = {
     subsoil: 'SUBSOIL',
     levelLine: 'LEVEL LINE',
     remove: 'REMOVE',
+    depth: '15-20 cm',
+    dim9m: '9m',
+    dim10m: '10m',
     phase1Label: 'Mark corners with stakes, stretch string line',
     phase2Label1: 'Dig out grass, roots, and topsoil',
     phase2Label2: 'Depth: 15-20cm across entire marked area',
@@ -35,12 +39,15 @@ const sitePreparationTranslations = {
     step2Title: 'ნაბიჯი 2: მოაშორეთ ბალახი',
     step3Title: 'ნაბიჯი 3: გაასწორეთ ზედაპირი',
     step4Title: 'ნაბიჯი 4: დატკეპნეთ ნიადაგი',
-    topsoilRoots: 'ტოპსოილი + ფესვები',
+    topsoilRoots: 'მიწის ზედაფენა + ფესვები',
     subsoil: 'ქვენიადაგი',
     levelLine: 'დონის ხაზი',
     remove: 'მოშორება',
-    phase1Label: 'მონიშნეთ კუთხეები პალებით, გაჭიმეთ თოკი',
-    phase2Label1: 'ამოთხარეთ ბალახი, ფესვები და ტოპსოილი',
+    depth: '15-20 სმ',
+    dim9m: '9მ',
+    dim10m: '10მ',
+    phase1Label: 'მონიშნეთ კუთხეები, გაჭიმეთ თოკი',
+    phase2Label1: 'ამოთხარეთ ბალახი, ფესვები და მიწის ზედაფენა',
     phase2Label2: 'სიღრმე: 15-20სმ მთელ მონიშნულ ფართობზე',
     phase3Label1: 'გამოიყენეთ ფოცხი ზედაპირის გასასწორებლად',
     phase3Label2: 'მოაშორეთ ამობურცულები, შეავსეთ ჩაზნექილები',
@@ -80,11 +87,23 @@ const palette = {
 // Phase 3: Level the surface
 // Phase 4: Compact the soil
 // ============================================================================
-export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 }) => {
+export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320, templateInputs }) => {
   const { i18n } = useTranslation();
   const lang = i18n.language?.startsWith('ka') ? 'ka' : 'en';
-  const t = sitePreparationTranslations[lang];
+  const isGeorgian = lang === 'ka';
   const aspectRatio = 0.85;
+
+  // Get dimensions from templateInputs or use defaults
+  const length = templateInputs?.length || 9;
+  const width = templateInputs?.width || 10;
+  const unitSuffix = isGeorgian ? 'მ' : 'm';
+
+  // Dynamic translations with actual dimensions
+  const t = {
+    ...sitePreparationTranslations[lang],
+    dim9m: `${length}${unitSuffix}`,
+    dim10m: `${width}${unitSuffix}`,
+  };
 
   return (
     <div style={{
@@ -225,7 +244,7 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
           <line x1="60" y1="58" x2="60" y2="72" stroke="#1565C0" strokeWidth="2" />
           <line x1="260" y1="58" x2="260" y2="72" stroke="#1565C0" strokeWidth="2" />
           <rect x="130" y="52" width="60" height="20" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
-          <text x="160" y="67" textAnchor="middle" fill="#1565C0" fontSize="13" fontWeight="700">9m</text>
+          <text x="160" y="67" textAnchor="middle" fill="#1565C0" fontSize="13" fontWeight="700">{t.dim9m}</text>
         </g>
 
         {/* Height dimension */}
@@ -234,7 +253,7 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
           <line x1="268" y1="80" x2="282" y2="80" stroke="#1565C0" strokeWidth="2" />
           <line x1="268" y1="200" x2="282" y2="200" stroke="#1565C0" strokeWidth="2" />
           <rect x="282" y="125" width="30" height="20" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
-          <text x="297" y="140" textAnchor="middle" fill="#1565C0" fontSize="13" fontWeight="700">10m</text>
+          <text x="297" y="140" textAnchor="middle" fill="#1565C0" fontSize="13" fontWeight="700">{t.dim10m}</text>
         </g>
 
         {/* Phase label */}
@@ -298,7 +317,7 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
           <line x1="283" y1="157" x2="297" y2="157" stroke="#1565C0" strokeWidth="2" />
         </g>
         <rect x="248" y="120" width="58" height="24" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
-        <text x="277" y="137" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20 cm</text>
+        <text x="277" y="137" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">{t.depth}</text>
 
         {/* Shovel animation */}
         <g style={{ transformOrigin: '70px 100px', animation: 'phase2-shovel 12s infinite' }}>
@@ -380,7 +399,7 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
           <line x1="283" y1="130" x2="297" y2="130" stroke="#1565C0" strokeWidth="2" />
         </g>
         <rect x="248" y="76" width="58" height="24" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
-        <text x="277" y="93" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20 cm</text>
+        <text x="277" y="93" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">{t.depth}</text>
 
         {/* Phase label */}
         <rect x="20" y="215" width="280" height="45" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="1" rx="4" />
@@ -457,7 +476,7 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
           <line x1="283" y1="130" x2="297" y2="130" stroke="#1565C0" strokeWidth="2" />
         </g>
         <rect x="248" y="76" width="58" height="24" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
-        <text x="277" y="93" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20 cm</text>
+        <text x="277" y="93" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">{t.depth}</text>
 
         {/* Phase label */}
         <rect x="20" y="215" width="280" height="45" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="4" />
@@ -1219,9 +1238,10 @@ export const IllustrationMap: Record<string, React.FC<AnimationProps>> = {
 interface InstructionIllustrationProps {
   type: string;
   size?: number;
+  templateInputs?: Record<string, any>;
 }
 
-export const InstructionIllustration: React.FC<InstructionIllustrationProps> = ({ type, size = 280 }) => {
+export const InstructionIllustration: React.FC<InstructionIllustrationProps> = ({ type, size = 280, templateInputs }) => {
   const IllustrationComponent = IllustrationMap[type];
 
   // Return nothing if no illustration available for this type
@@ -1229,5 +1249,5 @@ export const InstructionIllustration: React.FC<InstructionIllustrationProps> = (
     return null;
   }
 
-  return <IllustrationComponent size={size} />;
+  return <IllustrationComponent size={size} templateInputs={templateInputs} />;
 };
