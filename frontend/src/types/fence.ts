@@ -27,9 +27,24 @@ export interface FenceBOMItem {
   category: string;
 }
 
+export interface FenceToolItem {
+  id: string;
+  name: string;
+  name_ka: string;
+  name_en: string;
+  category: string;
+  rental_duration_days: number;
+  daily_rate_estimate: number;
+  estimated_total: number;
+  notes?: string;
+}
+
 export interface FenceCalculationResult {
   inputs: FenceInputs;
   bom: FenceBOMItem[];
+  tools: FenceToolItem[];
+  totalMaterialPrice: number;
+  totalToolPrice: number;
   totalPrice: number;
   notes: string[];
 }

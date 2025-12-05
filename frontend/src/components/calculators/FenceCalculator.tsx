@@ -22,6 +22,7 @@ import type {
   GateType,
   TerrainType,
   FenceCalculationResult,
+  FenceToolItem,
 } from '../../types/fence';
 
 interface FenceCalculatorProps {
@@ -273,14 +274,93 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
       });
     }
 
-    const totalPrice = bom.reduce(
+    const totalMaterialPrice = bom.reduce(
       (sum, item) => sum + item.quantity * item.estimatedPrice,
       0
     );
 
+    // Generate tool recommendations based on fence project
+    const tools: FenceToolItem[] = [];
+
+    // Angle grinder - always needed for cutting metal posts/panels
+    tools.push({
+      id: 'fence-tool-1',
+      name: 'Angle Grinder',
+      name_ka: 'კუთხის სახეხი (ბოლგარკა)',
+      name_en: 'Angle Grinder',
+      category: 'Cutting Tools',
+      rental_duration_days: 1,
+      daily_rate_estimate: 25,
+      estimated_total: 25,
+      notes: t('fence.tools.grinderNote', 'For cutting metal posts and panels'),
+    });
+
+    // Welding machine - needed for metal fences
+    if (style === 'metal_privacy' || style === 'wood_on_metal') {
+      tools.push({
+        id: 'fence-tool-2',
+        name: 'Welding Machine',
+        name_ka: 'შედუღების აპარატი',
+        name_en: 'Welding Machine',
+        category: 'Welding Equipment',
+        rental_duration_days: Math.ceil(length / 20) || 1, // ~20m per day
+        daily_rate_estimate: 40,
+        estimated_total: 40 * (Math.ceil(length / 20) || 1),
+        notes: t('fence.tools.welderNote', 'For welding posts and frame'),
+      });
+    }
+
+    // Post hole digger / auger - always needed
+    tools.push({
+      id: 'fence-tool-3',
+      name: 'Post Hole Digger / Auger',
+      name_ka: 'სვეტის ორმოს საბურღი',
+      name_en: 'Post Hole Digger / Auger',
+      category: 'Ground Preparation',
+      rental_duration_days: 1,
+      daily_rate_estimate: 60,
+      estimated_total: 60,
+      notes: t('fence.tools.augerNote', 'For digging post holes quickly'),
+    });
+
+    // Concrete mixer - for setting posts
+    const postCount = Math.ceil(length / 2.5) + 1;
+    if (postCount > 10) {
+      tools.push({
+        id: 'fence-tool-4',
+        name: 'Concrete Mixer',
+        name_ka: 'ბეტონის მიქსერი',
+        name_en: 'Concrete Mixer',
+        category: 'Concrete Equipment',
+        rental_duration_days: 1,
+        daily_rate_estimate: 50,
+        estimated_total: 50,
+        notes: t('fence.tools.mixerNote', 'For mixing concrete for post foundations'),
+      });
+    }
+
+    // Level and measuring tools - always needed
+    tools.push({
+      id: 'fence-tool-5',
+      name: 'Laser Level',
+      name_ka: 'ლაზერული დონე',
+      name_en: 'Laser Level',
+      category: 'Measuring Tools',
+      rental_duration_days: Math.ceil(length / 30) || 1,
+      daily_rate_estimate: 20,
+      estimated_total: 20 * (Math.ceil(length / 30) || 1),
+      notes: t('fence.tools.levelNote', 'For ensuring posts are perfectly aligned'),
+    });
+
+    const totalToolPrice = tools.reduce((sum, tool) => sum + tool.estimated_total, 0);
+    const totalPrice = totalMaterialPrice + totalToolPrice;
+
     return {
       inputs,
       bom,
+      tools,
+      totalMaterialPrice,
+      totalToolPrice,
       totalPrice,
       notes: [],
     };
@@ -681,6 +761,7 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
           isOpen={showSaveModal}
           onClose={() => setShowSaveModal(false)}
           bom={calculationResult.bom}
+          tools={calculationResult.tools}
           templateSlug="fence"
           templateInputs={calculationResult.inputs}
           totalPrice={calculationResult.totalPrice}
