@@ -1164,21 +1164,9 @@ export const CompletionAnimation: React.FC<AnimationProps> = ({ size = 280 }) =>
 // Map of illustration keys to components
 // ============================================================================
 export const IllustrationMap: Record<string, React.FC<AnimationProps>> = {
+  // Only site_preparation has the new animated illustration
+  // Other steps will show no diagram until we create new ones
   'site_preparation': SitePreparationAnimation,
-  'gravel_base': GravelBaseAnimation,
-  'formwork': FormworkAnimation,
-  'digging': DiggingAnimation,
-  'post_install': PostInstallAnimation,
-  'concrete_mixing': ConcreteMixingAnimation,
-  'panel_attach': PanelAttachAnimation,
-  'measuring': MeasuringAnimation,
-  'gate_install': GateInstallAnimation,
-  'leveling': LevelingAnimation,
-  'concrete_pour': ConcretePourAnimation,
-  'rebar': RebarAnimation,
-  'smoothing': SmoothingAnimation,
-  'curing': CuringAnimation,
-  'completion': CompletionAnimation,
 };
 
 // ============================================================================
@@ -1192,15 +1180,9 @@ interface InstructionIllustrationProps {
 export const InstructionIllustration: React.FC<InstructionIllustrationProps> = ({ type, size = 280 }) => {
   const IllustrationComponent = IllustrationMap[type];
 
+  // Return nothing if no illustration available for this type
   if (!IllustrationComponent) {
-    return (
-      <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-        <rect x="0" y="0" width="280" height="28" fill={palette.dimensionBg} />
-        <text x="140" y="18" textAnchor="middle" fill={palette.dimension} fontSize="12" fontWeight="600">INSTRUCTION</text>
-        <rect x="40" y="50" width="200" height="120" fill={palette.lightGray} stroke={palette.dimension} strokeWidth="1" rx="4" />
-        <text x="140" y="115" textAnchor="middle" fill={palette.gray} fontSize="11">Diagram not available</text>
-      </svg>
-    );
+    return null;
   }
 
   return <IllustrationComponent size={size} />;
