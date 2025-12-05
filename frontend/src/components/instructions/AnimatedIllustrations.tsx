@@ -417,12 +417,6 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
         <rect x="248" y="76" width="58" height="24" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
         <text x="277" y="93" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20 cm</text>
 
-        {/* Checkmark */}
-        <g style={{ animation: 'phase4-arrows 12s infinite' }}>
-          <circle cx="50" y="175" r="15" fill="#4CAF50" />
-          <path d="M42 175 L48 181 L58 168" stroke="#FFF" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-        </g>
-
         {/* Phase label */}
         <rect x="20" y="215" width="280" height="45" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="4" />
         <text x="160" y="233" textAnchor="middle" fill="#0D47A1" fontSize="11" fontWeight="600">
