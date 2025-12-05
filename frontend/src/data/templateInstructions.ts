@@ -604,14 +604,14 @@ export function generateSlabInstructions(inputs: {
       }] : []),
       {
         step: hasReinforcement ? 5 : 4,
-        title_ka: 'ბეტონის მოსხმა',
-        title_en: 'Pour Concrete',
-        description_ka: `ჩაასხით ${grade.toUpperCase()} ბეტონი (დაგჭირდებათ დაახლოებით ${(volume * 1.05).toFixed(1)}მ³). ${needsPump ? 'რეკომენდირებულია ბეტონის ტუმბოს გამოყენება.' : 'შესაძლებელია ხელით ჩასხმა.'}`,
-        description_en: `Pour ${grade.toUpperCase()} concrete (you'll need approximately ${(volume * 1.05).toFixed(1)}m³). ${needsPump ? 'Concrete pump is recommended.' : 'Manual pouring is possible.'}`,
+        title_ka: 'ბეტონის მოსხმა და გასწორება',
+        title_en: 'Pour & Level Concrete',
+        description_ka: `ჩაასხით ${grade.toUpperCase()} ბეტონი (დაგჭირდებათ დაახლოებით ${(volume * 1.05).toFixed(1)}მ³) და გაასწორეთ ზედაპირი. ${needsPump ? 'რეკომენდირებულია ბეტონის ტუმბოს გამოყენება.' : 'შესაძლებელია ხელით ჩასხმა.'}`,
+        description_en: `Pour ${grade.toUpperCase()} concrete (you'll need approximately ${(volume * 1.05).toFixed(1)}m³) and level the surface. ${needsPump ? 'Concrete pump is recommended.' : 'Manual pouring is possible.'}`,
         illustration_type: 'concrete_pour',
-        duration_minutes: Math.max(60, volume * 20),
+        duration_minutes: Math.max(60, volume * 20) + area * 2,
         difficulty: 'hard',
-        tools_needed: ['ბეტონის მიქსერი', 'თვლები ან ტუმბო', 'ვიბრატორი', 'ფოცხი'],
+        tools_needed: ['ბეტონის მიქსერი', 'თვლები ან ტუმბო', 'ვიბრატორი', 'ნიჩაბი', 'რეიკა (სწორი ფიცარი)', 'ხელის ფლოუტი', 'დონე'],
         materials_needed: [`ბეტონი ${grade.toUpperCase()}`, 'წყალი'],
         substeps: [
           {
@@ -623,23 +623,31 @@ export function generateSlabInstructions(inputs: {
             text_en: 'Pour evenly across the entire area',
           },
           {
-            text_ka: 'გამოიყენეთ ვიბრატორი ჰაერის მოსაშორებლად',
-            text_en: 'Use vibrator to remove air pockets',
+            text_ka: 'გაანაწილეთ ნიჩბით თანაბრად',
+            text_en: 'Spread evenly with shovel',
           },
           {
-            text_ka: 'არ შეწყვიტოთ სანამ მთელი ფილა არ ჩაისხმება',
-            text_en: "Don't stop until the entire slab is poured",
+            text_ka: 'გაათრიეთ რეიკა ყალიბის გასწვრივ',
+            text_en: 'Pull screed along the formwork',
+          },
+          {
+            text_ka: 'გამოიყენეთ ფლოუტი საბოლოო გასწორებისთვის',
+            text_en: 'Use float for final smoothing',
           },
         ],
         tips_ka: [
           'შეკვეთეთ 5-10% მეტი ბეტონი',
           'დარწმუნდით, რომ გზა მზადაა მიქსერისთვის',
           'გყავდეთ საკმარისი მუშახელი',
+          'იმუშავეთ სწრაფად სანამ ბეტონი რბილია',
+          'შეინახეთ ცოტა ბეტონი ხვრელების შესავსებად',
         ],
         tips_en: [
           'Order 5-10% extra concrete',
           'Make sure access road is ready for mixer truck',
           'Have enough workers available',
+          'Work quickly while concrete is still workable',
+          'Keep some concrete aside for filling holes',
         ],
         warnings_ka: [
           'ბეტონი იწყებს გამაგრებას 30-60 წუთში - იჩქარეთ!',
@@ -652,39 +660,6 @@ export function generateSlabInstructions(inputs: {
       },
       {
         step: hasReinforcement ? 6 : 5,
-        title_ka: 'ზედაპირის გასწორება',
-        title_en: 'Level Surface',
-        description_ka: 'გაასწორეთ ბეტონის ზედაპირი რეიკით და ხელის ფლოუტით. ზედაპირი უნდა იყოს თანაბარი და გლუვი.',
-        description_en: 'Level the concrete surface with a screed and hand float. Surface should be even and smooth.',
-        illustration_type: 'smoothing',
-        duration_minutes: area * 2,
-        difficulty: 'medium',
-        tools_needed: ['რეიკა (სწორი ფიცარი)', 'ხელის ფლოუტი', 'დონე'],
-        substeps: [
-          {
-            text_ka: 'გაათრიეთ რეიკა ყალიბის გასწვრივ',
-            text_en: 'Pull screed along the formwork',
-          },
-          {
-            text_ka: 'შეავსეთ დაბალი ადგილები',
-            text_en: 'Fill in low spots',
-          },
-          {
-            text_ka: 'გამოიყენეთ ფლოუტი საბოლოო გასწორებისთვის',
-            text_en: 'Use float for final leveling',
-          },
-        ],
-        tips_ka: [
-          'იმუშავეთ სწრაფად სანამ ბეტონი რბილია',
-          'შეინახეთ ცოტა ბეტონი ხვრელების შესავსებად',
-        ],
-        tips_en: [
-          'Work quickly while concrete is still workable',
-          'Keep some concrete aside for filling holes',
-        ],
-      },
-      {
-        step: hasReinforcement ? 7 : 6,
         title_ka: 'გამაგრება და მოვლა',
         title_en: 'Curing & Care',
         description_ka: 'დაფარეთ ფილა პლასტმასით ან სველი ქსოვილით. შეინახეთ ნესტიანად 7 დღის განმავლობაში.',
@@ -725,7 +700,7 @@ export function generateSlabInstructions(inputs: {
         ],
       },
       {
-        step: hasReinforcement ? 8 : 7,
+        step: hasReinforcement ? 7 : 6,
         title_ka: 'ყალიბის მოხსნა',
         title_en: 'Remove Formwork',
         description_ka: 'მოხსენით ყალიბი 24-48 საათის შემდეგ. ფრთხილად იმოქმედეთ, რომ არ დააზიანოთ კიდეები.',

@@ -24,9 +24,8 @@ function fixSlabIllustrationTypes(instructions: any[], templateSlug?: string): a
     3: 'formwork',
     4: 'rebar',
     5: 'concrete_pour',
-    6: 'smoothing',
-    7: 'curing',
-    8: 'completion'
+    6: 'curing',
+    7: 'completion'
   };
 
   return instructions.map(inst => {
