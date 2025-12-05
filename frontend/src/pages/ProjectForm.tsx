@@ -33,6 +33,8 @@ interface PendingMaterials {
     status: string;
     sort_order: number;
   }>;
+  instructions?: Array<any>;
+  safety_notes?: Array<any>;
   template_slug: string;
   template_inputs: Record<string, any>;
 }
@@ -137,8 +139,18 @@ export default function ProjectForm() {
               });
             }
 
-            // Navigate to materials page
-            navigate(`/projects/${projectId}/materials`);
+            // Save instructions if any
+            if (pendingMaterials.instructions && pendingMaterials.instructions.length > 0) {
+              await api.put(`/buyers/projects/${projectId}/instructions`, {
+                instructions: pendingMaterials.instructions,
+                safety_notes: pendingMaterials.safety_notes || [],
+                template_slug: pendingMaterials.template_slug,
+                template_inputs: pendingMaterials.template_inputs,
+              });
+            }
+
+            // Navigate to project detail page
+            navigate(`/projects/${projectId}`);
           } catch (materialErr) {
             console.error('Failed to save materials/tools:', materialErr);
             // Still navigate to project, materials save failed
@@ -331,7 +343,7 @@ export default function ProjectForm() {
             color: colors.text.secondary,
             marginBottom: spacing[2],
           }}>
-            {t('projects.form.name')} <span style={{ color: colors.error }}>*</span>
+            {t('projects.form.name')} <span style={{ color: colors.error[500] }}>*</span>
           </label>
           <input
             type="text"

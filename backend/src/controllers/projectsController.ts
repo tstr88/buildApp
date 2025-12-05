@@ -108,9 +108,11 @@ export async function getProjectById(req: Request, res: Response): Promise<void>
     const userId = req.user.id;
     const projectId = req.params.id;
 
-    // Get project details
+    // Get project details including instructions
     const projectResult = await pool.query<Project>(
-      `SELECT * FROM projects WHERE id = $1 AND user_id = $2`,
+      `SELECT id, user_id, name, latitude, longitude, address, notes, is_active,
+              created_at, updated_at, instructions, safety_notes, template_slug, template_inputs
+       FROM projects WHERE id = $1 AND user_id = $2`,
       [projectId, userId]
     );
 
@@ -499,6 +501,82 @@ export async function deleteProject(req: Request, res: Response): Promise<void> 
     res.status(500).json({
       success: false,
       error: 'Failed to delete project',
+    });
+  }
+}
+
+/**
+ * PUT /api/buyers/projects/:id/instructions
+ * Update project instructions and safety notes
+ */
+export async function updateProjectInstructions(req: Request, res: Response): Promise<void> {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        error: 'Authentication required',
+      });
+      return;
+    }
+
+    const userId = req.user.id;
+    const projectId = req.params.id;
+    const { instructions, safety_notes, template_slug, template_inputs } = req.body;
+
+    // Check if project exists and belongs to user
+    const existingProject = await pool.query(
+      `SELECT * FROM projects WHERE id = $1 AND user_id = $2`,
+      [projectId, userId]
+    );
+
+    if (existingProject.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        error: 'Project not found',
+      });
+      return;
+    }
+
+    // Validate instructions array if provided
+    if (instructions !== undefined && !Array.isArray(instructions)) {
+      res.status(400).json({
+        success: false,
+        error: 'Instructions must be an array',
+      });
+      return;
+    }
+
+    // Update project instructions
+    const result = await pool.query<Project>(
+      `UPDATE projects
+       SET
+         instructions = COALESCE($1, instructions),
+         safety_notes = COALESCE($2, safety_notes),
+         template_slug = COALESCE($3, template_slug),
+         template_inputs = COALESCE($4, template_inputs),
+         updated_at = NOW()
+       WHERE id = $5 AND user_id = $6
+       RETURNING *`,
+      [
+        instructions ? JSON.stringify(instructions) : null,
+        safety_notes ? JSON.stringify(safety_notes) : null,
+        template_slug || null,
+        template_inputs ? JSON.stringify(template_inputs) : null,
+        projectId,
+        userId,
+      ]
+    );
+
+    res.json({
+      success: true,
+      data: result.rows[0],
+      message: 'Project instructions updated successfully',
+    });
+  } catch (error) {
+    console.error('Update project instructions error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update project instructions',
     });
   }
 }

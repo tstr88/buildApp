@@ -42,6 +42,45 @@ interface ToolItem {
   notes?: string;
 }
 
+interface InstructionStep {
+  step: number;
+  title_ka: string;
+  title_en: string;
+  description_ka: string;
+  description_en: string;
+  image_url?: string;
+  duration_minutes?: number;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  tools_needed?: string[];
+  materials_needed?: string[];
+  tips_ka?: string[];
+  tips_en?: string[];
+  warnings_ka?: string[];
+  warnings_en?: string[];
+  substeps?: Array<{
+    text_ka: string;
+    text_en: string;
+    image_url?: string;
+  }>;
+}
+
+interface SafetyNote {
+  text_ka: string;
+  text_en: string;
+  severity: 'info' | 'warning' | 'critical';
+  icon?: string;
+}
+
+interface TemplateInstructions {
+  title_ka: string;
+  title_en: string;
+  estimated_duration_hours: number;
+  difficulty: 'easy' | 'medium' | 'hard';
+  people_required: number;
+  steps: InstructionStep[];
+  safety_notes: SafetyNote[];
+}
+
 interface SaveToProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -50,6 +89,7 @@ interface SaveToProjectModalProps {
   templateSlug: string;
   templateInputs: Record<string, any>;
   totalPrice?: number;
+  instructions?: TemplateInstructions;
 }
 
 export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
@@ -60,6 +100,7 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
   templateSlug,
   templateInputs,
   totalPrice,
+  instructions,
 }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -145,6 +186,8 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
               tools: transformToolsToProjectTools(),
               template_slug: templateSlug,
               template_inputs: templateInputs,
+              instructions: instructions?.steps || [],
+              safety_notes: instructions?.safety_notes || [],
             },
           },
         });
@@ -177,10 +220,20 @@ export const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
         }
       }
 
+      // Save instructions to project (if any)
+      if (instructions) {
+        await api.put(`/buyers/projects/${projectId}/instructions`, {
+          instructions: instructions.steps,
+          safety_notes: instructions.safety_notes,
+          template_slug: templateSlug,
+          template_inputs: templateInputs,
+        });
+      }
+
       if (addMaterialsResponse.success) {
         onClose();
-        // Navigate to the project materials page
-        navigate(`/projects/${projectId}/materials`);
+        // Navigate to the project detail page (instructions tab will be available)
+        navigate(`/projects/${projectId}`);
       } else {
         throw new Error('Failed to add materials');
       }

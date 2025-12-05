@@ -17,6 +17,7 @@ import type { SafetyNotice } from '../common/SafetyNoticeCard';
 import { SaveToProjectModal } from '../modals/SaveToProjectModal';
 import { Icons } from '../icons/Icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
+import { generateSlabInstructions } from '../../data/templateInstructions';
 import type {
   SlabInputs,
   SlabPurpose,
@@ -493,7 +494,7 @@ export const SlabCalculator: React.FC<SlabCalculatorProps> = ({ onCalculate }) =
                 <p
                   style={{
                     fontSize: typography.fontSize.sm,
-                    color: colors.error,
+                    color: colors.error[500],
                     margin: 0,
                   }}
                 >
@@ -587,7 +588,7 @@ export const SlabCalculator: React.FC<SlabCalculatorProps> = ({ onCalculate }) =
                 gap: spacing[3],
               }}
             >
-              <AlertIcon size={24} color={colors.warning} />
+              <AlertIcon size={24} color={colors.warning[500]} />
               <div>
                 <h3
                   style={{
@@ -854,6 +855,13 @@ export const SlabCalculator: React.FC<SlabCalculatorProps> = ({ onCalculate }) =
           templateSlug="slab"
           templateInputs={calculationResult.inputs}
           totalPrice={calculationResult.totalPrice}
+          instructions={generateSlabInstructions({
+            length: calculationResult.inputs.length,
+            width: calculationResult.inputs.width,
+            thickness: calculationResult.inputs.thickness,
+            grade: calculationResult.inputs.purpose === 'parking_pad' ? 'm300' : 'm200',
+            reinforcement: calculationResult.inputs.thickness > 12 ? 'rebar' : 'mesh',
+          })}
         />
       )}
     </div>

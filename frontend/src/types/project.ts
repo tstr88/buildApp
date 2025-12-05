@@ -24,6 +24,11 @@ export interface Project {
   order_count?: number;
   delivery_count?: number;
   rental_count?: number;
+  // Instructions data
+  instructions?: any[];
+  safety_notes?: any[];
+  template_slug?: string | null;
+  template_inputs?: Record<string, any> | null;
 }
 
 export interface ProjectFormData {

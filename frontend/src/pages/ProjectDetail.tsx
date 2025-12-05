@@ -10,6 +10,7 @@ import { projectsService } from '../services/api/projectsService';
 import { api } from '../services/api';
 import type { ProjectDetail as ProjectDetailType } from '../types/project';
 import { Icons } from '../components/icons/Icons';
+import { InstructionsTab } from '../components/project/InstructionsTab';
 import { formatDate, formatCurrency } from '../utils/formatters';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 
@@ -110,7 +111,7 @@ interface SupplierToolOrder {
   total: number;
 }
 
-type TabType = 'overview' | 'materials' | 'tools' | 'rfqs' | 'orders' | 'deliveries' | 'rentals';
+type TabType = 'overview' | 'materials' | 'tools' | 'instructions' | 'rfqs' | 'orders' | 'deliveries' | 'rentals';
 
 export default function ProjectDetail() {
   const { t } = useTranslation();
@@ -231,10 +232,14 @@ export default function ProjectDetail() {
 
   const { project, rfqs, orders, deliveries, rentals } = projectData;
 
+  // Get instructions count
+  const instructionsCount = Array.isArray(project.instructions) ? project.instructions.length : 0;
+
   const tabs: { key: TabType; label: string; count?: number }[] = [
     { key: 'overview', label: t('projects.tabs.overview') },
     { key: 'materials', label: t('projects.tabs.materials', 'Materials') },
     { key: 'tools', label: t('projects.tabs.tools', 'Tool Rentals') },
+    { key: 'instructions', label: t('projects.tabs.instructions', 'Instructions'), count: instructionsCount > 0 ? instructionsCount : undefined },
     { key: 'rfqs', label: t('projects.tabs.rfqs'), count: rfqs.length },
     { key: 'orders', label: t('projects.tabs.orders'), count: orders.length },
     { key: 'deliveries', label: t('projects.tabs.deliveries'), count: deliveries.length },
@@ -358,6 +363,14 @@ export default function ProjectDetail() {
         {activeTab === 'overview' && <OverviewTab project={project} onDelete={handleDelete} />}
         {activeTab === 'materials' && <MaterialsTab projectId={project.id} navigate={navigate} />}
         {activeTab === 'tools' && <ToolsTab projectId={project.id} navigate={navigate} />}
+        {activeTab === 'instructions' && (
+          <InstructionsTab
+            instructions={Array.isArray(project.instructions) ? project.instructions : []}
+            safetyNotes={Array.isArray(project.safety_notes) ? project.safety_notes : []}
+            templateSlug={project.template_slug || undefined}
+            templateInputs={project.template_inputs || undefined}
+          />
+        )}
         {activeTab === 'rfqs' && <RFQsTab rfqs={rfqs} navigate={navigate} projectId={project.id} />}
         {activeTab === 'orders' && <OrdersTab orders={orders} navigate={navigate} projectId={project.id} />}
         {activeTab === 'deliveries' && <DeliveriesTab deliveries={deliveries} />}

@@ -15,6 +15,7 @@ import type { SafetyNotice } from '../common/SafetyNoticeCard';
 import { SaveToProjectModal } from '../modals/SaveToProjectModal';
 import { Icons } from '../icons/Icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
+import { generateFenceInstructions } from '../../data/templateInstructions';
 import type {
   FenceInputs,
   FenceStyle,
@@ -683,6 +684,7 @@ export const FenceCalculator: React.FC<FenceCalculatorProps> = ({ onCalculate })
           templateSlug="fence"
           templateInputs={calculationResult.inputs}
           totalPrice={calculationResult.totalPrice}
+          instructions={generateFenceInstructions(calculationResult.inputs)}
         />
       )}
     </div>

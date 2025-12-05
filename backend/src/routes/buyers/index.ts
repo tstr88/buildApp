@@ -12,6 +12,7 @@ import {
   createProject,
   updateProject,
   deleteProject,
+  updateProjectInstructions,
 } from '../../controllers/projectsController';
 import { getBuyerHome, getBuyerDashboard } from '../../controllers/buyersController';
 import {
@@ -108,6 +109,12 @@ router.put('/projects/:id', asyncHandler(updateProject));
  * Delete a project
  */
 router.delete('/projects/:id', asyncHandler(deleteProject));
+
+/**
+ * PUT /api/buyers/projects/:id/instructions
+ * Update project instructions and safety notes
+ */
+router.put('/projects/:id/instructions', asyncHandler(updateProjectInstructions));
 
 // =============================================================================
 // PROJECT MATERIALS ROUTES
