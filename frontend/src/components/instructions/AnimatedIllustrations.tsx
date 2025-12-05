@@ -242,12 +242,12 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
 
         {/* Depth dimension */}
         <g>
-          <line x1="305" y1="110" x2="305" y2="157" stroke="#1565C0" strokeWidth="2" />
-          <line x1="298" y1="110" x2="312" y2="110" stroke="#1565C0" strokeWidth="2" />
-          <line x1="298" y1="157" x2="312" y2="157" stroke="#1565C0" strokeWidth="2" />
+          <line x1="290" y1="110" x2="290" y2="157" stroke="#1565C0" strokeWidth="2" />
+          <line x1="283" y1="110" x2="297" y2="110" stroke="#1565C0" strokeWidth="2" />
+          <line x1="283" y1="157" x2="297" y2="157" stroke="#1565C0" strokeWidth="2" />
         </g>
-        <rect x="275" y="120" width="50" height="26" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
-        <text x="300" y="138" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20 cm</text>
+        <rect x="248" y="120" width="58" height="24" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="277" y="137" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20 cm</text>
 
         {/* Shovel animation */}
         <g style={{ transformOrigin: '70px 100px', animation: 'phase2-shovel 12s infinite' }}>
@@ -323,12 +323,12 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
 
         {/* Depth reference */}
         <g>
-          <line x1="305" y1="50" x2="305" y2="130" stroke="#1565C0" strokeWidth="2" />
-          <line x1="298" y1="50" x2="312" y2="50" stroke="#1565C0" strokeWidth="2" />
-          <line x1="298" y1="130" x2="312" y2="130" stroke="#1565C0" strokeWidth="2" />
+          <line x1="290" y1="50" x2="290" y2="130" stroke="#1565C0" strokeWidth="2" />
+          <line x1="283" y1="50" x2="297" y2="50" stroke="#1565C0" strokeWidth="2" />
+          <line x1="283" y1="130" x2="297" y2="130" stroke="#1565C0" strokeWidth="2" />
         </g>
-        <rect x="275" y="76" width="50" height="26" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
-        <text x="300" y="94" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20 cm</text>
+        <rect x="248" y="76" width="58" height="24" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="277" y="93" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20 cm</text>
 
         {/* Phase label */}
         <rect x="20" y="215" width="280" height="45" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="1" rx="4" />
@@ -399,12 +399,12 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
 
         {/* Final depth reference */}
         <g>
-          <line x1="305" y1="50" x2="305" y2="130" stroke="#1565C0" strokeWidth="2" />
-          <line x1="298" y1="50" x2="312" y2="50" stroke="#1565C0" strokeWidth="2" />
-          <line x1="298" y1="130" x2="312" y2="130" stroke="#1565C0" strokeWidth="2" />
+          <line x1="290" y1="50" x2="290" y2="130" stroke="#1565C0" strokeWidth="2" />
+          <line x1="283" y1="50" x2="297" y2="50" stroke="#1565C0" strokeWidth="2" />
+          <line x1="283" y1="130" x2="297" y2="130" stroke="#1565C0" strokeWidth="2" />
         </g>
-        <rect x="275" y="76" width="50" height="26" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
-        <text x="300" y="94" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20 cm</text>
+        <rect x="248" y="76" width="58" height="24" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="277" y="93" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20 cm</text>
 
         {/* Checkmark */}
         <g style={{ animation: 'phase4-arrows 12s infinite' }}>
