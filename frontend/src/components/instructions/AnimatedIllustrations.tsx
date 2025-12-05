@@ -3009,6 +3009,419 @@ export const CuringAnimation: React.FC<AnimationProps> = ({ size = 320, template
 };
 
 // ============================================================================
+// COMPLETION ANIMATION - Step 7 (Remove Formwork)
+// Phase 1: Remove stakes
+// Phase 2: Remove boards carefully
+// Phase 3: Check edges
+// Phase 4: Finished slab - project complete
+// ============================================================================
+
+const completionTranslations = {
+  en: {
+    step1Title: 'STEP 1: REMOVE STAKES',
+    step2Title: 'STEP 2: REMOVE BOARDS',
+    step3Title: 'STEP 3: CHECK EDGES',
+    step4Title: 'PROJECT COMPLETE!',
+    phase1Label: 'Pull out all supporting stakes',
+    phase2Label1: 'Carefully pry boards away from concrete',
+    phase2Label2: 'Work slowly to avoid edge damage',
+    phase3Label1: 'Inspect all edges for chips or cracks',
+    phase3Label2: 'Fill minor imperfections if needed',
+    phase4Label1: 'Your concrete slab is ready!',
+    phase4Label2: 'Wait 28 days for full strength before heavy loads',
+    complete: 'COMPLETE',
+    readyToUse: 'READY',
+  },
+  ka: {
+    step1Title: 'ნაბიჯი 1: ამოიღეთ პალები',
+    step2Title: 'ნაბიჯი 2: მოხსენით ფიცრები',
+    step3Title: 'ნაბიჯი 3: შეამოწმეთ კიდეები',
+    step4Title: 'პროექტი დასრულებულია!',
+    phase1Label: 'ამოიღეთ ყველა საყრდენი პალი',
+    phase2Label1: 'ფრთხილად მოაშორეთ ფიცრები ბეტონიდან',
+    phase2Label2: 'ნელა იმუშავეთ კიდეების დასაცავად',
+    phase3Label1: 'შეამოწმეთ ყველა კიდე ნაპრალებზე',
+    phase3Label2: 'საჭიროების შემთხვევაში შეავსეთ დეფექტები',
+    phase4Label1: 'თქვენი ბეტონის ფილა მზადაა!',
+    phase4Label2: 'დაელოდეთ 28 დღეს სრული სიმტკიცისთვის',
+    complete: 'დასრულდა',
+    readyToUse: 'მზადაა',
+  },
+};
+
+export const CompletionAnimationNew: React.FC<AnimationProps> = ({ size = 320, templateInputs }) => {
+  const { i18n } = useTranslation();
+  const lang = i18n.language?.startsWith('ka') ? 'ka' : 'en';
+  const t = completionTranslations[lang];
+  const aspectRatio = 0.85;
+
+  // Get dimensions from templateInputs
+  const length = templateInputs?.length || 9;
+  const width = templateInputs?.width || 10;
+  const isGeorgian = lang === 'ka';
+  const unitSuffix = isGeorgian ? 'მ' : 'm';
+
+  return (
+    <div style={{
+      width: '100%',
+      maxWidth: size,
+      aspectRatio: `1 / ${aspectRatio}`,
+      margin: '0 auto',
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      <style>{`
+        @keyframes completion-phase1-container {
+          0%, 25% { opacity: 1; }
+          30%, 100% { opacity: 0; }
+        }
+        @keyframes completion-phase2-container {
+          0%, 25% { opacity: 0; }
+          30%, 50% { opacity: 1; }
+          55%, 100% { opacity: 0; }
+        }
+        @keyframes completion-phase3-container {
+          0%, 50% { opacity: 0; }
+          55%, 75% { opacity: 1; }
+          80%, 100% { opacity: 0; }
+        }
+        @keyframes completion-phase4-container {
+          0%, 75% { opacity: 0; }
+          80%, 100% { opacity: 1; }
+        }
+        @keyframes completion-stake-pull {
+          0%, 10% { transform: translateY(0); }
+          20%, 25% { transform: translateY(-40px); }
+          25%, 100% { opacity: 0; }
+        }
+        @keyframes completion-board-remove {
+          0%, 30% { transform: translateX(0) rotate(0deg); }
+          45%, 50% { transform: translateX(-30px) rotate(-15deg); }
+          50%, 100% { opacity: 0; }
+        }
+        @keyframes completion-board-remove-right {
+          0%, 35% { transform: translateX(0) rotate(0deg); }
+          50%, 55% { transform: translateX(30px) rotate(15deg); }
+          55%, 100% { opacity: 0; }
+        }
+        @keyframes completion-magnify {
+          0%, 55% { transform: scale(1); }
+          60%, 70% { transform: scale(1.1); }
+          75%, 100% { transform: scale(1); }
+        }
+        @keyframes completion-checkmark {
+          0%, 80% { stroke-dashoffset: 50; opacity: 0; }
+          85% { opacity: 1; }
+          100% { stroke-dashoffset: 0; opacity: 1; }
+        }
+        @keyframes completion-sparkle {
+          0%, 80% { opacity: 0; transform: scale(0); }
+          85% { opacity: 1; transform: scale(1); }
+          90% { opacity: 0.5; transform: scale(1.2); }
+          95%, 100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes completion-celebrate {
+          0%, 80% { transform: translateY(0); }
+          85% { transform: translateY(-5px); }
+          90% { transform: translateY(0); }
+          95% { transform: translateY(-3px); }
+          100% { transform: translateY(0); }
+        }
+      `}</style>
+
+      {/* PHASE 1: Remove stakes */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'completion-phase1-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step1Title}
+        </text>
+
+        {/* Ground */}
+        <rect x="20" y="170" width="280" height="20" fill="#8B7355" />
+
+        {/* Concrete slab */}
+        <rect x="50" y="140" width="220" height="30" fill="#9E9E9E" />
+        <rect x="50" y="135" width="220" height="8" fill="#757575" />
+
+        {/* Formwork boards still in place */}
+        <rect x="35" y="130" width="15" height="45" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="270" y="130" width="15" height="45" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+
+        {/* Stakes being pulled - animated */}
+        <g style={{ animation: 'completion-stake-pull 12s infinite' }}>
+          <rect x="25" y="145" width="8" height="50" fill="#5D4037" />
+          <polygon points="25 195, 33 195, 29 205" fill="#5D4037" />
+        </g>
+        <g style={{ animation: 'completion-stake-pull 12s 0.3s infinite' }}>
+          <rect x="287" y="145" width="8" height="50" fill="#5D4037" />
+          <polygon points="287 195, 295 195, 291 205" fill="#5D4037" />
+        </g>
+
+        {/* Pry bar tool */}
+        <g transform="translate(60, 100)">
+          <rect x="0" y="0" width="80" height="8" fill="#424242" rx="2" />
+          <rect x="75" y="-5" width="15" height="18" fill="#616161" rx="2" />
+          <path d="M90 -2 L100 8 L90 18" fill="none" stroke="#424242" strokeWidth="3" />
+        </g>
+
+        {/* Arrow showing pull direction */}
+        <g>
+          <line x1="29" y1="115" x2="29" y2="85" stroke="#E53935" strokeWidth="3" />
+          <polygon points="23 90, 35 90, 29 78" fill="#E53935" />
+        </g>
+        <g>
+          <line x1="291" y1="115" x2="291" y2="85" stroke="#E53935" strokeWidth="3" />
+          <polygon points="285 90, 297 90, 291 78" fill="#E53935" />
+        </g>
+
+        {/* Phase label */}
+        <rect x="20" y="220" width="280" height="35" fill="#FFF3E0" stroke="#FF9800" strokeWidth="1" rx="4" />
+        <text x="160" y="242" textAnchor="middle" fill="#E65100" fontSize="11" fontWeight="600">
+          {t.phase1Label}
+        </text>
+      </svg>
+
+      {/* PHASE 2: Remove boards */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'completion-phase2-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step2Title}
+        </text>
+
+        {/* Ground */}
+        <rect x="20" y="170" width="280" height="20" fill="#8B7355" />
+
+        {/* Concrete slab - now visible edges */}
+        <rect x="50" y="140" width="220" height="30" fill="#9E9E9E" />
+        <rect x="50" y="135" width="220" height="8" fill="#757575" />
+
+        {/* Clean edge lines */}
+        <line x1="50" y1="140" x2="50" y2="170" stroke="#616161" strokeWidth="2" />
+        <line x1="270" y1="140" x2="270" y2="170" stroke="#616161" strokeWidth="2" />
+
+        {/* Left board being removed - animated */}
+        <g style={{ transformOrigin: '50px 155px', animation: 'completion-board-remove 12s infinite' }}>
+          <rect x="35" y="130" width="15" height="45" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        </g>
+
+        {/* Right board being removed - animated */}
+        <g style={{ transformOrigin: '270px 155px', animation: 'completion-board-remove-right 12s infinite' }}>
+          <rect x="270" y="130" width="15" height="45" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        </g>
+
+        {/* Hands/gloves prying */}
+        <g>
+          <ellipse cx="30" cy="150" rx="12" ry="8" fill="#FDD835" />
+          <rect x="20" y="145" width="15" height="12" fill="#1976D2" rx="2" />
+        </g>
+
+        {/* Arrows showing removal direction */}
+        <g>
+          <line x1="25" y1="155" x2="10" y2="155" stroke="#E53935" strokeWidth="3" />
+          <polygon points="15 150, 15 160, 5 155" fill="#E53935" />
+        </g>
+        <g>
+          <line x1="295" y1="155" x2="310" y2="155" stroke="#E53935" strokeWidth="3" />
+          <polygon points="305 150, 305 160, 315 155" fill="#E53935" />
+        </g>
+
+        {/* Caution icon */}
+        <g transform="translate(145, 70)">
+          <polygon points="15 0, 30 25, 0 25" fill="#FFC107" stroke="#FF8F00" strokeWidth="2" />
+          <text x="15" y="20" textAnchor="middle" fill="#5D4037" fontSize="16" fontWeight="700">!</text>
+        </g>
+
+        {/* Phase label */}
+        <rect x="20" y="210" width="280" height="50" fill="#FFF3E0" stroke="#FF9800" strokeWidth="1" rx="4" />
+        <text x="160" y="230" textAnchor="middle" fill="#E65100" fontSize="11" fontWeight="600">
+          {t.phase2Label1}
+        </text>
+        <text x="160" y="248" textAnchor="middle" fill="#E65100" fontSize="10">
+          {t.phase2Label2}
+        </text>
+      </svg>
+
+      {/* PHASE 3: Check edges */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'completion-phase3-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step3Title}
+        </text>
+
+        {/* Ground */}
+        <rect x="20" y="170" width="280" height="20" fill="#8B7355" />
+
+        {/* Concrete slab - fully exposed */}
+        <rect x="50" y="140" width="220" height="30" fill="#9E9E9E" />
+        <rect x="50" y="135" width="220" height="8" fill="#757575" />
+
+        {/* Clean edges */}
+        <rect x="48" y="138" width="4" height="34" fill="#757575" />
+        <rect x="268" y="138" width="4" height="34" fill="#757575" />
+
+        {/* Magnifying glass inspecting edge - animated */}
+        <g style={{ animation: 'completion-magnify 12s infinite' }}>
+          <circle cx="70" cy="155" r="25" fill="none" stroke="#1565C0" strokeWidth="4" />
+          <circle cx="70" cy="155" r="22" fill="#E3F2FD" opacity="0.3" />
+          <line x1="87" y1="172" x2="105" y2="190" stroke="#1565C0" strokeWidth="5" strokeLinecap="round" />
+
+          {/* Zoomed edge detail inside magnifier */}
+          <rect x="55" y="148" width="30" height="14" fill="#9E9E9E" />
+          <line x1="55" y1="148" x2="55" y2="162" stroke="#4CAF50" strokeWidth="2" />
+        </g>
+
+        {/* Checkmarks for good edges */}
+        <g transform="translate(120, 100)">
+          <circle cx="0" cy="0" r="12" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="2" />
+          <path d="M-5 0 L-2 3 L6 -4" stroke="#4CAF50" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+        <g transform="translate(200, 100)">
+          <circle cx="0" cy="0" r="12" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="2" />
+          <path d="M-5 0 L-2 3 L6 -4" stroke="#4CAF50" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+
+        {/* Dimension labels */}
+        <g>
+          <line x1="50" y1="195" x2="270" y2="195" stroke="#1565C0" strokeWidth="2" />
+          <line x1="50" y1="190" x2="50" y2="200" stroke="#1565C0" strokeWidth="2" />
+          <line x1="270" y1="190" x2="270" y2="200" stroke="#1565C0" strokeWidth="2" />
+          <rect x="130" y="185" width="60" height="20" fill="#E3F2FD" rx="3" />
+          <text x="160" y="199" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="600">{length}{unitSuffix}</text>
+        </g>
+
+        {/* Phase label */}
+        <rect x="20" y="210" width="280" height="50" fill="#E1F5FE" stroke="#03A9F4" strokeWidth="1" rx="4" />
+        <text x="160" y="230" textAnchor="middle" fill="#0277BD" fontSize="11" fontWeight="600">
+          {t.phase3Label1}
+        </text>
+        <text x="160" y="248" textAnchor="middle" fill="#0277BD" fontSize="10">
+          {t.phase3Label2}
+        </text>
+      </svg>
+
+      {/* PHASE 4: Project complete celebration */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'completion-phase4-container 12s infinite'
+        }}
+      >
+        {/* Title - Green success */}
+        <rect x="0" y="0" width="320" height="32" fill="#E8F5E9" />
+        <text x="160" y="22" textAnchor="middle" fill="#2E7D32" fontSize="14" fontWeight="600">
+          {t.step4Title}
+        </text>
+
+        {/* Ground */}
+        <rect x="20" y="160" width="280" height="15" fill="#8B7355" />
+
+        {/* Finished concrete slab - isometric-ish view */}
+        <g style={{ animation: 'completion-celebrate 12s infinite' }}>
+          {/* Slab top */}
+          <rect x="40" y="120" width="240" height="40" fill="#BDBDBD" rx="2" />
+          {/* Slab front edge */}
+          <rect x="40" y="155" width="240" height="8" fill="#9E9E9E" />
+          {/* Smooth surface lines */}
+          <line x1="60" y1="135" x2="260" y2="135" stroke="#E0E0E0" strokeWidth="1" opacity="0.5" />
+          <line x1="60" y1="145" x2="260" y2="145" stroke="#E0E0E0" strokeWidth="1" opacity="0.5" />
+        </g>
+
+        {/* Large success checkmark - animated */}
+        <g transform="translate(160, 75)">
+          <circle cx="0" cy="0" r="30" fill="#4CAF50" style={{ animation: 'completion-sparkle 12s infinite' }} />
+          <path
+            d="M-12 0 L-4 8 L14 -10"
+            stroke="white"
+            strokeWidth="5"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{
+              strokeDasharray: 50,
+              animation: 'completion-checkmark 12s infinite'
+            }}
+          />
+        </g>
+
+        {/* Sparkles around checkmark */}
+        {[
+          { x: 115, y: 55, delay: '0s' },
+          { x: 205, y: 55, delay: '0.2s' },
+          { x: 125, y: 95, delay: '0.4s' },
+          { x: 195, y: 95, delay: '0.3s' },
+        ].map((spark, i) => (
+          <g key={`spark-${i}`} style={{ animation: `completion-sparkle 12s ${spark.delay} infinite` }}>
+            <polygon
+              points={`${spark.x} ${spark.y-6}, ${spark.x+2} ${spark.y}, ${spark.x} ${spark.y+6}, ${spark.x-2} ${spark.y}`}
+              fill="#FFD700"
+            />
+          </g>
+        ))}
+
+        {/* Dimensions display */}
+        <g transform="translate(160, 185)">
+          <rect x="-60" y="-12" width="120" height="24" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="12" />
+          <text x="0" y="5" textAnchor="middle" fill="#1565C0" fontSize="12" fontWeight="600">
+            {length}{unitSuffix} × {width}{unitSuffix}
+          </text>
+        </g>
+
+        {/* Phase label */}
+        <rect x="20" y="210" width="280" height="50" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="2" rx="4" />
+        <text x="160" y="230" textAnchor="middle" fill="#2E7D32" fontSize="12" fontWeight="700">
+          {t.phase4Label1}
+        </text>
+        <text x="160" y="248" textAnchor="middle" fill="#2E7D32" fontSize="10">
+          {t.phase4Label2}
+        </text>
+      </svg>
+    </div>
+  );
+};
+
+// ============================================================================
 // Map of illustration keys to components
 // ============================================================================
 export const IllustrationMap: Record<string, React.FC<AnimationProps>> = {
@@ -3019,6 +3432,7 @@ export const IllustrationMap: Record<string, React.FC<AnimationProps>> = {
   'concrete_pour': ConcretePourAnimation,
   'smoothing': ConcretePourAnimation,
   'curing': CuringAnimation,
+  'completion': CompletionAnimationNew,
 };
 
 // ============================================================================
