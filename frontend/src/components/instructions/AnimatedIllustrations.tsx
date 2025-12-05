@@ -135,7 +135,7 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
         {/* Title */}
         <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
         <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
-          STEP 1: MARK THE AREA (TOP VIEW)
+          STEP 1: MARK THE AREA
         </text>
 
         {/* Green grass background */}
@@ -211,7 +211,7 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
         {/* Title */}
         <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
         <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
-          STEP 2: REMOVE GRASS & TOPSOIL (SIDE VIEW)
+          STEP 2: REMOVE GRASS & TOPSOIL
         </text>
 
         {/* Ground cross-section */}
@@ -246,9 +246,8 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
           <line x1="298" y1="110" x2="312" y2="110" stroke="#1565C0" strokeWidth="2" />
           <line x1="298" y1="157" x2="312" y2="157" stroke="#1565C0" strokeWidth="2" />
         </g>
-        <rect x="280" y="122" width="40" height="22" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
-        <text x="300" y="138" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20</text>
-        <text x="300" y="150" textAnchor="middle" fill="#1565C0" fontSize="9">cm</text>
+        <rect x="275" y="120" width="50" height="26" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="300" y="138" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20 cm</text>
 
         {/* Shovel animation */}
         <g style={{ transformOrigin: '70px 100px', animation: 'phase2-shovel 12s infinite' }}>
@@ -328,9 +327,8 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
           <line x1="298" y1="50" x2="312" y2="50" stroke="#1565C0" strokeWidth="2" />
           <line x1="298" y1="130" x2="312" y2="130" stroke="#1565C0" strokeWidth="2" />
         </g>
-        <rect x="280" y="78" width="40" height="22" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
-        <text x="300" y="94" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20</text>
-        <text x="300" y="106" textAnchor="middle" fill="#1565C0" fontSize="9">cm</text>
+        <rect x="275" y="76" width="50" height="26" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="300" y="94" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20 cm</text>
 
         {/* Phase label */}
         <rect x="20" y="215" width="280" height="45" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="1" rx="4" />
@@ -405,9 +403,8 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
           <line x1="298" y1="50" x2="312" y2="50" stroke="#1565C0" strokeWidth="2" />
           <line x1="298" y1="130" x2="312" y2="130" stroke="#1565C0" strokeWidth="2" />
         </g>
-        <rect x="280" y="78" width="40" height="22" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
-        <text x="300" y="94" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20</text>
-        <text x="300" y="106" textAnchor="middle" fill="#1565C0" fontSize="9">cm</text>
+        <rect x="275" y="76" width="50" height="26" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="300" y="94" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">15-20 cm</text>
 
         {/* Checkmark */}
         <g style={{ animation: 'phase4-arrows 12s infinite' }}>
