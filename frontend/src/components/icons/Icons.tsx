@@ -61,6 +61,7 @@ import {
   HelpCircle,
   Trash2,
   ClipboardCheck,
+  Image,
 } from 'lucide-react';
 
 export const Icons = {
@@ -138,6 +139,7 @@ export const Icons = {
   HelpCircle,
   Trash2,
   ClipboardCheck,
+  Image,
 } as const;
 
 export type IconName = keyof typeof Icons;
