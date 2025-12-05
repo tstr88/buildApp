@@ -492,69 +492,421 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320,
 };
 
 // ============================================================================
-// FORMWORK - Clear side view with proper sizing
+// FORMWORK - Animated 4-phase sequence
+// Phase 1: Top view - mark perimeter with dimensions
+// Phase 2: Side view - place boards at edges
+// Phase 3: Side view - secure with stakes
+// Phase 4: Side view - check level and alignment
 // ============================================================================
-export const FormworkAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
-  <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    {/* Title */}
-    <rect x="0" y="0" width="280" height="28" fill={palette.dimensionBg} />
-    <text x="140" y="18" textAnchor="middle" fill={palette.dimension} fontSize="12" fontWeight="600">FORMWORK SETUP</text>
 
-    {/* Gravel base */}
-    <rect x="0" y="145" width="280" height="25" fill={palette.gravel} />
-    <text x="140" y="162" textAnchor="middle" fill={palette.white} fontSize="10" fontWeight="500">GRAVEL BASE</text>
+// Translations for Formwork Animation
+const formworkTranslations = {
+  en: {
+    step1Title: 'STEP 1: MARK PERIMETER',
+    step2Title: 'STEP 2: PLACE BOARDS',
+    step3Title: 'STEP 3: SECURE WITH STAKES',
+    step4Title: 'STEP 4: CHECK LEVEL',
+    gravel: 'GRAVEL BASE',
+    board: 'BOARD',
+    stake: 'STAKE',
+    thickness: '15 cm',
+    phase1Label: 'Mark formwork positions along slab edges',
+    phase2Label1: 'Place boards along marked lines',
+    phase2Label2: 'Board height = slab thickness',
+    phase3Label1: 'Drive stakes behind boards',
+    phase3Label2: 'Nail stakes to boards securely',
+    phase4Label1: 'Check level across all boards',
+    phase4Label2: 'Adjust height with shims if needed',
+  },
+  ka: {
+    step1Title: 'ნაბიჯი 1: მონიშნეთ პერიმეტრი',
+    step2Title: 'ნაბიჯი 2: მოათავსეთ ფიცრები',
+    step3Title: 'ნაბიჯი 3: დაამაგრეთ პალებით',
+    step4Title: 'ნაბიჯი 4: შეამოწმეთ დონე',
+    gravel: 'ხრეშის ფენა',
+    board: 'ფიცარი',
+    stake: 'პალი',
+    thickness: '15 სმ',
+    phase1Label: 'მონიშნეთ ყალიბის პოზიციები ფილის კიდეებზე',
+    phase2Label1: 'მოათავსეთ ფიცრები მონიშნულ ხაზებზე',
+    phase2Label2: 'ფიცრის სიმაღლე = ფილის სისქე',
+    phase3Label1: 'ჩაარჭვეთ პალები ფიცრების უკან',
+    phase3Label2: 'მიამაგრეთ პალები ფიცრებს ლურსმნებით',
+    phase4Label1: 'შეამოწმეთ დონე ყველა ფიცარზე',
+    phase4Label2: 'საჭიროების შემთხვევაში შეასწორეთ სიმაღლე',
+  },
+};
 
-    {/* Left formwork assembly */}
-    <g transform="translate(45, 85)">
-      {/* Board */}
-      <rect x="0" y="0" width="20" height="60" fill={palette.wood} stroke={palette.woodDark} strokeWidth="2" />
-      <text x="10" y="75" textAnchor="middle" fill={palette.gray} fontSize="8">BOARD</text>
-      {/* Stake */}
-      <rect x="-18" y="15" width="12" height="65" fill={palette.woodDark} stroke={palette.black} strokeWidth="1" />
-      <polygon points="-18,80 -6,80 -12,95" fill={palette.woodDark} stroke={palette.black} strokeWidth="1" />
-      <text x="-12" y="105" textAnchor="middle" fill={palette.gray} fontSize="8">STAKE</text>
-    </g>
+export const FormworkAnimation: React.FC<AnimationProps> = ({ size = 320, templateInputs }) => {
+  const { i18n } = useTranslation();
+  const lang = i18n.language?.startsWith('ka') ? 'ka' : 'en';
+  const isGeorgian = lang === 'ka';
+  const aspectRatio = 0.85;
 
-    {/* Right formwork assembly */}
-    <g transform="translate(215, 85)">
-      {/* Board */}
-      <rect x="0" y="0" width="20" height="60" fill={palette.wood} stroke={palette.woodDark} strokeWidth="2" />
-      {/* Stake */}
-      <rect x="26" y="15" width="12" height="65" fill={palette.woodDark} stroke={palette.black} strokeWidth="1" />
-      <polygon points="26,80 38,80 32,95" fill={palette.woodDark} stroke={palette.black} strokeWidth="1" />
-    </g>
+  // Get dimensions from templateInputs
+  const length = templateInputs?.length || 9;
+  const width = templateInputs?.width || 10;
+  const thickness = templateInputs?.thickness || 15;
+  const unitM = isGeorgian ? 'მ' : 'm';
+  const unitCm = isGeorgian ? 'სმ' : 'cm';
 
-    {/* String line */}
-    <line x1="65" y1="90" x2="215" y2="90" stroke={palette.arrow} strokeWidth="2" strokeDasharray="8,4" />
-    <text x="140" y="82" textAnchor="middle" fill={palette.arrow} fontSize="10" fontWeight="500">STRING LINE</text>
+  const t = {
+    ...formworkTranslations[lang],
+    thickness: `${thickness} ${unitCm}`,
+    dimLength: `${length}${unitM}`,
+    dimWidth: `${width}${unitM}`,
+  };
 
-    {/* Height dimension - LEFT with large label */}
-    <g transform="translate(10, 85)">
-      <line x1="0" y1="0" x2="0" y2="60" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="-8" y1="0" x2="8" y2="0" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="-8" y1="60" x2="8" y2="60" stroke={palette.dimension} strokeWidth="2" />
-      <rect x="-40" y="20" width="38" height="22" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="3" />
-      <text x="-21" y="36" textAnchor="middle" fill={palette.dimension} fontSize="13" fontWeight="700">15cm</text>
-    </g>
+  return (
+    <div style={{
+      width: '100%',
+      maxWidth: size,
+      aspectRatio: `1 / ${aspectRatio}`,
+      position: 'relative',
+      overflow: 'hidden',
+      margin: '0 auto'
+    }}>
+      {/* CSS Keyframes */}
+      <style>{`
+        @keyframes formwork-phase1-container {
+          0%, 25% { opacity: 1; }
+          30%, 100% { opacity: 0; }
+        }
+        @keyframes formwork-phase2-container {
+          0%, 25% { opacity: 0; }
+          30%, 55% { opacity: 1; }
+          60%, 100% { opacity: 0; }
+        }
+        @keyframes formwork-phase3-container {
+          0%, 55% { opacity: 0; }
+          60%, 80% { opacity: 1; }
+          85%, 100% { opacity: 0; }
+        }
+        @keyframes formwork-phase4-container {
+          0%, 80% { opacity: 0; }
+          85%, 100% { opacity: 1; }
+        }
+        @keyframes formwork-mark-draw {
+          0%, 5% { stroke-dashoffset: 400; opacity: 0; }
+          10%, 25% { stroke-dashoffset: 0; opacity: 1; }
+        }
+        @keyframes formwork-dims-appear {
+          0%, 8% { opacity: 0; }
+          15%, 25% { opacity: 1; }
+        }
+        @keyframes formwork-board-place {
+          0%, 30% { transform: translateY(-30px); opacity: 0; }
+          40%, 55% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes formwork-stake-drive {
+          0%, 60% { transform: translateY(-40px); opacity: 0; }
+          70%, 80% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes formwork-hammer {
+          0%, 60% { transform: rotate(0deg); }
+          63% { transform: rotate(-40deg); }
+          66% { transform: rotate(0deg); }
+          69% { transform: rotate(-40deg); }
+          72% { transform: rotate(0deg); }
+          75% { transform: rotate(-35deg); }
+          78%, 80% { transform: rotate(0deg); }
+        }
+        @keyframes formwork-level-check {
+          0%, 85% { transform: translateX(-50px); opacity: 0; }
+          90%, 100% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes formwork-phase-label {
+          0%, 5% { opacity: 0; }
+          10%, 90% { opacity: 1; }
+          95%, 100% { opacity: 0; }
+        }
+      `}</style>
 
-    {/* Level indicator */}
-    <g transform="translate(115, 55)">
-      <rect x="0" y="0" width="50" height="18" fill="#FFD54F" stroke="#F9A825" strokeWidth="1.5" rx="3" />
-      <rect x="17" y="4" width="16" height="10" fill="#81D4FA" stroke="#0288D1" strokeWidth="1" rx="2" />
-      <circle cx="25" cy="9" r="3" fill="#4CAF50" />
-      <text x="25" y="32" textAnchor="middle" fill={palette.gray} fontSize="9" fontWeight="500">LEVEL</text>
-    </g>
+      {/* PHASE 1: Top View - Mark Perimeter */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'formwork-phase1-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step1Title}
+        </text>
 
-    {/* Width dimension */}
-    <g transform="translate(65, 180)">
-      <line x1="0" y1="0" x2="150" y2="0" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="0" y1="-8" x2="0" y2="8" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="150" y1="-8" x2="150" y2="8" stroke={palette.dimension} strokeWidth="2" />
-      <rect x="50" y="5" width="50" height="18" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="3" />
-      <text x="75" y="18" textAnchor="middle" fill={palette.dimension} fontSize="10" fontWeight="600">SLAB WIDTH</text>
-    </g>
-  </svg>
-);
+        {/* Gravel base - top view */}
+        <rect x="40" y="55" width="240" height="150" fill="#A09080" rx="4" />
+
+        {/* Gravel texture */}
+        {[60, 100, 140, 180, 220, 260].map((x, i) => (
+          [75, 105, 135, 165, 185].map((y, j) => (
+            <circle key={`grav-${i}-${j}`} cx={x} cy={y} r="3" fill="#706050" opacity="0.5" />
+          ))
+        ))}
+
+        {/* Formwork marking lines - animated drawing */}
+        <rect
+          x="50" y="65" width="220" height="130"
+          fill="none"
+          stroke="#E53935"
+          strokeWidth="4"
+          strokeDasharray="400"
+          style={{ animation: 'formwork-mark-draw 12s infinite' }}
+        />
+
+        {/* Corner markers */}
+        {[[50, 65], [270, 65], [50, 195], [270, 195]].map(([x, y], i) => (
+          <g key={`corner-${i}`} style={{ animation: 'formwork-dims-appear 12s infinite' }}>
+            <circle cx={x} cy={y} r="8" fill="#E53935" />
+            <circle cx={x} cy={y} r="4" fill="#FFF" />
+          </g>
+        ))}
+
+        {/* Length dimension */}
+        <g style={{ animation: 'formwork-dims-appear 12s infinite' }}>
+          <line x1="50" y1="50" x2="270" y2="50" stroke="#1565C0" strokeWidth="2" />
+          <line x1="50" y1="42" x2="50" y2="58" stroke="#1565C0" strokeWidth="2" />
+          <line x1="270" y1="42" x2="270" y2="58" stroke="#1565C0" strokeWidth="2" />
+          <rect x="130" y="35" width="60" height="22" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+          <text x="160" y="51" textAnchor="middle" fill="#1565C0" fontSize="13" fontWeight="700">{t.dimLength}</text>
+        </g>
+
+        {/* Width dimension */}
+        <g style={{ animation: 'formwork-dims-appear 12s infinite' }}>
+          <line x1="285" y1="65" x2="285" y2="195" stroke="#1565C0" strokeWidth="2" />
+          <line x1="277" y1="65" x2="293" y2="65" stroke="#1565C0" strokeWidth="2" />
+          <line x1="277" y1="195" x2="293" y2="195" stroke="#1565C0" strokeWidth="2" />
+          <rect x="290" y="115" width="28" height="22" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+          <text x="304" y="131" textAnchor="middle" fill="#1565C0" fontSize="13" fontWeight="700">{t.dimWidth}</text>
+        </g>
+
+        {/* Phase label */}
+        <g style={{ animation: 'formwork-phase-label 12s infinite' }}>
+          <rect x="20" y="240" width="280" height="24" fill="#FFF3E0" stroke="#FF9800" strokeWidth="1" rx="4" />
+          <text x="160" y="257" textAnchor="middle" fill="#E65100" fontSize="11" fontWeight="600">
+            {t.phase1Label}
+          </text>
+        </g>
+      </svg>
+
+      {/* PHASE 2: Side View - Place Boards */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'formwork-phase2-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step2Title}
+        </text>
+
+        {/* Gravel base - side view */}
+        <rect x="20" y="160" width="280" height="25" fill="#A09080" />
+        <text x="160" y="177" textAnchor="middle" fill="#FFF" fontSize="10" fontWeight="500">{t.gravel}</text>
+
+        {/* Ground line */}
+        <line x1="20" y1="160" x2="300" y2="160" stroke="#706050" strokeWidth="2" />
+
+        {/* Left board - animated placement */}
+        <g style={{ animation: 'formwork-board-place 12s infinite' }}>
+          <rect x="35" y="110" width="20" height="50" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+          <text x="45" y="195" textAnchor="middle" fill="#5D4E37" fontSize="9" fontWeight="500">{t.board}</text>
+        </g>
+
+        {/* Right board - animated placement */}
+        <g style={{ animation: 'formwork-board-place 12s infinite', animationDelay: '0.3s' }}>
+          <rect x="265" y="110" width="20" height="50" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        </g>
+
+        {/* Board height dimension */}
+        <g>
+          <line x1="15" y1="110" x2="15" y2="160" stroke="#1565C0" strokeWidth="2" />
+          <line x1="8" y1="110" x2="22" y2="110" stroke="#1565C0" strokeWidth="2" />
+          <line x1="8" y1="160" x2="22" y2="160" stroke="#1565C0" strokeWidth="2" />
+        </g>
+        <rect x="-25" y="122" width="50" height="20" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="0" y="137" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">{t.thickness}</text>
+
+        {/* Slab area indicator */}
+        <rect x="55" y="115" width="210" height="45" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" strokeDasharray="8,4" />
+        <text x="160" y="142" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="500">
+          {isGeorgian ? 'ფილის არე' : 'SLAB AREA'}
+        </text>
+
+        {/* Phase label */}
+        <rect x="20" y="215" width="280" height="45" fill="#FFF3E0" stroke="#FF9800" strokeWidth="1" rx="4" />
+        <text x="160" y="233" textAnchor="middle" fill="#E65100" fontSize="11" fontWeight="600">
+          {t.phase2Label1}
+        </text>
+        <text x="160" y="250" textAnchor="middle" fill="#E65100" fontSize="10">
+          {t.phase2Label2}
+        </text>
+      </svg>
+
+      {/* PHASE 3: Side View - Secure with Stakes */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'formwork-phase3-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step3Title}
+        </text>
+
+        {/* Gravel base */}
+        <rect x="20" y="160" width="280" height="25" fill="#A09080" />
+
+        {/* Ground (soil under gravel for stakes) */}
+        <rect x="20" y="185" width="280" height="20" fill="#8B7355" />
+
+        {/* Left board */}
+        <rect x="35" y="110" width="20" height="50" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+
+        {/* Left stake - animated driving */}
+        <g style={{ animation: 'formwork-stake-drive 12s infinite' }}>
+          <rect x="15" y="120" width="12" height="70" fill="#8B6914" stroke="#5D4E37" strokeWidth="1" />
+          <polygon points="15,190 27,190 21,205" fill="#8B6914" stroke="#5D4E37" strokeWidth="1" />
+        </g>
+
+        {/* Right board */}
+        <rect x="265" y="110" width="20" height="50" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+
+        {/* Right stake - animated driving */}
+        <g style={{ animation: 'formwork-stake-drive 12s infinite', animationDelay: '0.2s' }}>
+          <rect x="293" y="120" width="12" height="70" fill="#8B6914" stroke="#5D4E37" strokeWidth="1" />
+          <polygon points="293,190 305,190 299,205" fill="#8B6914" stroke="#5D4E37" strokeWidth="1" />
+        </g>
+
+        {/* Hammer - animated */}
+        <g style={{ transformOrigin: '80px 90px', animation: 'formwork-hammer 12s infinite' }}>
+          {/* Handle */}
+          <rect x="60" y="55" width="8" height="45" fill="#8B4513" rx="2" />
+          {/* Head */}
+          <rect x="50" y="95" width="28" height="18" fill="#607D8B" rx="3" />
+        </g>
+
+        {/* Nail indicators */}
+        <circle cx="32" cy="125" r="3" fill="#607D8B" />
+        <circle cx="32" cy="145" r="3" fill="#607D8B" />
+        <circle cx="288" cy="125" r="3" fill="#607D8B" />
+        <circle cx="288" cy="145" r="3" fill="#607D8B" />
+
+        {/* Labels */}
+        <text x="21" y="215" textAnchor="middle" fill="#5D4E37" fontSize="9" fontWeight="500">{t.stake}</text>
+        <text x="45" y="215" textAnchor="middle" fill="#5D4E37" fontSize="9" fontWeight="500">{t.board}</text>
+
+        {/* Phase label */}
+        <rect x="20" y="215" width="280" height="45" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="1" rx="4" />
+        <text x="160" y="233" textAnchor="middle" fill="#2E7D32" fontSize="11" fontWeight="600">
+          {t.phase3Label1}
+        </text>
+        <text x="160" y="250" textAnchor="middle" fill="#2E7D32" fontSize="10">
+          {t.phase3Label2}
+        </text>
+      </svg>
+
+      {/* PHASE 4: Side View - Check Level */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'formwork-phase4-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step4Title}
+        </text>
+
+        {/* Gravel base */}
+        <rect x="20" y="160" width="280" height="25" fill="#A09080" />
+
+        {/* Ground */}
+        <rect x="20" y="185" width="280" height="20" fill="#8B7355" />
+
+        {/* Left formwork assembly */}
+        <rect x="35" y="110" width="20" height="50" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="15" y="120" width="12" height="70" fill="#8B6914" stroke="#5D4E37" strokeWidth="1" />
+        <polygon points="15,190 27,190 21,205" fill="#8B6914" stroke="#5D4E37" strokeWidth="1" />
+
+        {/* Right formwork assembly */}
+        <rect x="265" y="110" width="20" height="50" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="293" y="120" width="12" height="70" fill="#8B6914" stroke="#5D4E37" strokeWidth="1" />
+        <polygon points="293,190 305,190 299,205" fill="#8B6914" stroke="#5D4E37" strokeWidth="1" />
+
+        {/* String line across top */}
+        <line x1="35" y1="110" x2="285" y2="110" stroke="#E53935" strokeWidth="2" strokeDasharray="8,4" />
+
+        {/* Spirit level tool - animated appearance */}
+        <g style={{ animation: 'formwork-level-check 12s infinite' }}>
+          {/* Level body */}
+          <rect x="90" y="75" width="140" height="28" fill="#FFD54F" stroke="#F9A825" strokeWidth="2" rx="4" />
+          {/* Bubble vial */}
+          <rect x="145" y="81" width="30" height="16" fill="#81D4FA" stroke="#0288D1" strokeWidth="1" rx="3" />
+          {/* Center lines */}
+          <line x1="158" y1="81" x2="158" y2="97" stroke="#0288D1" strokeWidth="1" />
+          <line x1="162" y1="81" x2="162" y2="97" stroke="#0288D1" strokeWidth="1" />
+          {/* Bubble - centered (level!) */}
+          <circle cx="160" cy="89" r="5" fill="#4CAF50" />
+        </g>
+
+        {/* Checkmark indicator */}
+        <g style={{ animation: 'formwork-level-check 12s infinite' }}>
+          <circle cx="245" cy="89" r="14" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="2" />
+          <path d="M238 89 L243 94 L252 84" stroke="#4CAF50" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+
+        {/* Height dimension */}
+        <g>
+          <line x1="310" y1="110" x2="310" y2="160" stroke="#1565C0" strokeWidth="2" />
+          <line x1="303" y1="110" x2="317" y2="110" stroke="#1565C0" strokeWidth="2" />
+          <line x1="303" y1="160" x2="317" y2="160" stroke="#1565C0" strokeWidth="2" />
+        </g>
+        <rect x="275" y="122" width="50" height="18" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="300" y="135" textAnchor="middle" fill="#1565C0" fontSize="10" fontWeight="700">{t.thickness}</text>
+
+        {/* Phase label */}
+        <rect x="20" y="215" width="280" height="45" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="4" />
+        <text x="160" y="233" textAnchor="middle" fill="#0D47A1" fontSize="11" fontWeight="600">
+          {t.phase4Label1}
+        </text>
+        <text x="160" y="250" textAnchor="middle" fill="#0D47A1" fontSize="10">
+          {t.phase4Label2}
+        </text>
+      </svg>
+    </div>
+  );
+};
 
 // ============================================================================
 // REBAR GRID - Clean top view
@@ -1580,6 +1932,7 @@ export const GravelBaseAnimation: React.FC<AnimationProps> = ({ size = 320, temp
 export const IllustrationMap: Record<string, React.FC<AnimationProps>> = {
   'site_preparation': SitePreparationAnimation,
   'gravel_base': GravelBaseAnimation,
+  'formwork': FormworkAnimation,
 };
 
 // ============================================================================
