@@ -2639,6 +2639,418 @@ export const GravelBaseAnimation: React.FC<AnimationProps> = ({ size = 320, temp
 };
 
 // ============================================================================
+// CURING & CARE ANIMATION - Step 6
+// Phase 1: Wait for surface to set (2-4 hours)
+// Phase 2: Cover with plastic sheeting
+// Phase 3: Spray with water
+// Phase 4: Keep moist for 7 days
+// ============================================================================
+
+const curingTranslations = {
+  en: {
+    step1Title: 'STEP 1: WAIT FOR SURFACE TO SET',
+    step2Title: 'STEP 2: COVER WITH PLASTIC',
+    step3Title: 'STEP 3: SPRAY WITH WATER',
+    step4Title: 'STEP 4: KEEP MOIST FOR 7 DAYS',
+    hours: 'hours',
+    waitTime: '2-4',
+    phase1Label: 'Wait until surface is firm but not fully hardened',
+    phase2Label1: 'Cover entire slab with plastic sheeting',
+    phase2Label2: 'Secure edges to prevent wind from lifting',
+    phase3Label1: 'Spray water evenly over the plastic',
+    phase3Label2: 'Keep the surface moist at all times',
+    phase4Label1: 'Repeat watering daily for 7 days',
+    phase4Label2: 'Proper curing = stronger concrete',
+    day: 'DAY',
+    days7: '7 DAYS',
+  },
+  ka: {
+    step1Title: 'ნაბიჯი 1: დაელოდეთ გამაგრებას',
+    step2Title: 'ნაბიჯი 2: დაფარეთ პლასტმასით',
+    step3Title: 'ნაბიჯი 3: დაასველეთ წყლით',
+    step4Title: 'ნაბიჯი 4: შეინახეთ ნესტიანად 7 დღე',
+    hours: 'საათი',
+    waitTime: '2-4',
+    phase1Label: 'დაელოდეთ სანამ ზედაპირი გამაგრდება',
+    phase2Label1: 'დაფარეთ მთელი ფილა პლასტმასით',
+    phase2Label2: 'დაამაგრეთ კიდეები ქარისგან',
+    phase3Label1: 'თანაბრად დაასხით წყალი პლასტმასზე',
+    phase3Label2: 'შეინახეთ ზედაპირი მუდმივად ნესტიანი',
+    phase4Label1: 'გაიმეორეთ მორწყვა ყოველდღე 7 დღის განმავლობაში',
+    phase4Label2: 'სწორი გამაგრება = ძლიერი ბეტონი',
+    day: 'დღე',
+    days7: '7 დღე',
+  },
+};
+
+export const CuringAnimation: React.FC<AnimationProps> = ({ size = 320, templateInputs }) => {
+  const { i18n } = useTranslation();
+  const lang = i18n.language?.startsWith('ka') ? 'ka' : 'en';
+  const t = curingTranslations[lang];
+  const aspectRatio = 0.85;
+
+  return (
+    <div style={{
+      width: '100%',
+      maxWidth: size,
+      aspectRatio: `1 / ${aspectRatio}`,
+      margin: '0 auto',
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      <style>{`
+        @keyframes curing-phase1-container {
+          0%, 25% { opacity: 1; }
+          30%, 100% { opacity: 0; }
+        }
+        @keyframes curing-phase2-container {
+          0%, 25% { opacity: 0; }
+          30%, 50% { opacity: 1; }
+          55%, 100% { opacity: 0; }
+        }
+        @keyframes curing-phase3-container {
+          0%, 50% { opacity: 0; }
+          55%, 75% { opacity: 1; }
+          80%, 100% { opacity: 0; }
+        }
+        @keyframes curing-phase4-container {
+          0%, 75% { opacity: 0; }
+          80%, 100% { opacity: 1; }
+        }
+        @keyframes curing-clock-hand {
+          0%, 25% { transform: rotate(0deg); }
+          12.5% { transform: rotate(180deg); }
+          25%, 100% { transform: rotate(360deg); }
+        }
+        @keyframes curing-plastic-unroll {
+          0%, 30% { transform: translateX(-250px); }
+          50%, 100% { transform: translateX(0); }
+        }
+        @keyframes curing-spray-water {
+          0%, 55% { opacity: 0; }
+          60%, 70% { opacity: 1; }
+          75%, 100% { opacity: 0; }
+        }
+        @keyframes curing-spray-move {
+          0%, 55% { transform: translateX(0); }
+          65% { transform: translateX(60px); }
+          75%, 100% { transform: translateX(120px); }
+        }
+        @keyframes curing-droplets {
+          0% { transform: translateY(0); opacity: 1; }
+          100% { transform: translateY(30px); opacity: 0; }
+        }
+        @keyframes curing-day-counter {
+          0%, 80% { opacity: 0; }
+          82% { opacity: 1; }
+          84% { opacity: 0; }
+          86% { opacity: 1; }
+          88% { opacity: 0; }
+          90% { opacity: 1; }
+          92% { opacity: 0; }
+          94%, 100% { opacity: 1; }
+        }
+      `}</style>
+
+      {/* PHASE 1: Wait for surface to set */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'curing-phase1-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step1Title}
+        </text>
+
+        {/* Formwork sides */}
+        <rect x="30" y="120" width="15" height="50" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="275" y="120" width="15" height="50" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+
+        {/* Fresh concrete slab */}
+        <rect x="45" y="145" width="230" height="25" fill="#BDBDBD" />
+        <rect x="45" y="140" width="230" height="8" fill="#9E9E9E" />
+
+        {/* Wet surface indication - wavy lines */}
+        <path d="M60 144 Q80 142, 100 144 T140 144 T180 144 T220 144 T260 144" stroke="#78909C" strokeWidth="1.5" fill="none" opacity="0.6" />
+
+        {/* Clock/Timer */}
+        <circle cx="160" cy="95" r="35" fill="white" stroke="#1565C0" strokeWidth="3" />
+        <circle cx="160" cy="95" r="30" fill="#E3F2FD" />
+
+        {/* Clock numbers */}
+        <text x="160" y="70" textAnchor="middle" fill="#1565C0" fontSize="10" fontWeight="600">12</text>
+        <text x="185" y="98" textAnchor="middle" fill="#1565C0" fontSize="10" fontWeight="600">3</text>
+        <text x="160" y="125" textAnchor="middle" fill="#1565C0" fontSize="10" fontWeight="600">6</text>
+        <text x="135" y="98" textAnchor="middle" fill="#1565C0" fontSize="10" fontWeight="600">9</text>
+
+        {/* Clock center */}
+        <circle cx="160" cy="95" r="4" fill="#1565C0" />
+
+        {/* Clock hand - animated */}
+        <g style={{ transformOrigin: '160px 95px', animation: 'curing-clock-hand 12s linear infinite' }}>
+          <line x1="160" y1="95" x2="160" y2="70" stroke="#E53935" strokeWidth="3" strokeLinecap="round" />
+        </g>
+
+        {/* Time label */}
+        <rect x="200" y="78" width="55" height="34" fill="#FFF3E0" stroke="#FF9800" strokeWidth="2" rx="4" />
+        <text x="227" y="95" textAnchor="middle" fill="#E65100" fontSize="14" fontWeight="700">{t.waitTime}</text>
+        <text x="227" y="108" textAnchor="middle" fill="#E65100" fontSize="10">{t.hours}</text>
+
+        {/* Phase label */}
+        <rect x="20" y="220" width="280" height="35" fill="#FFF3E0" stroke="#FF9800" strokeWidth="1" rx="4" />
+        <text x="160" y="242" textAnchor="middle" fill="#E65100" fontSize="11" fontWeight="600">
+          {t.phase1Label}
+        </text>
+      </svg>
+
+      {/* PHASE 2: Cover with plastic */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'curing-phase2-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step2Title}
+        </text>
+
+        {/* Formwork sides */}
+        <rect x="30" y="120" width="15" height="50" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="275" y="120" width="15" height="50" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+
+        {/* Concrete slab */}
+        <rect x="45" y="145" width="230" height="25" fill="#BDBDBD" />
+        <rect x="45" y="140" width="230" height="8" fill="#9E9E9E" />
+
+        {/* Plastic sheeting being unrolled - animated */}
+        <g style={{ animation: 'curing-plastic-unroll 12s ease-out infinite' }}>
+          {/* Plastic sheet */}
+          <rect x="45" y="130" width="230" height="18" fill="#81D4FA" opacity="0.6" />
+          <rect x="45" y="130" width="230" height="2" fill="#29B6F6" />
+
+          {/* Shine reflections on plastic */}
+          <line x1="80" y1="132" x2="120" y2="132" stroke="white" strokeWidth="1" opacity="0.8" />
+          <line x1="150" y1="135" x2="200" y2="135" stroke="white" strokeWidth="1" opacity="0.6" />
+          <line x1="220" y1="133" x2="250" y2="133" stroke="white" strokeWidth="1" opacity="0.7" />
+
+          {/* Roll at the end */}
+          <ellipse cx="280" cy="139" rx="8" ry="12" fill="#29B6F6" />
+          <ellipse cx="280" cy="139" rx="4" ry="8" fill="#81D4FA" />
+        </g>
+
+        {/* Weights/rocks holding plastic edges */}
+        <ellipse cx="55" cy="172" rx="10" ry="6" fill="#757575" />
+        <ellipse cx="265" cy="172" rx="10" ry="6" fill="#757575" />
+        <ellipse cx="120" cy="172" rx="8" ry="5" fill="#616161" />
+        <ellipse cx="200" cy="172" rx="8" ry="5" fill="#616161" />
+
+        {/* Person placing plastic */}
+        <g>
+          {/* Body */}
+          <circle cx="70" cy="75" r="12" fill="#FDD835" /> {/* Head with hard hat */}
+          <ellipse cx="70" cy="73" rx="14" ry="8" fill="#FDD835" />
+          <rect x="60" y="85" width="20" height="35" fill="#1976D2" rx="3" /> {/* Torso */}
+
+          {/* Arms reaching toward plastic */}
+          <line x1="65" y1="95" x2="45" y2="120" stroke="#1976D2" strokeWidth="6" strokeLinecap="round" />
+          <circle cx="45" cy="120" r="5" fill="#FFCC80" />
+        </g>
+
+        {/* Phase label */}
+        <rect x="20" y="210" width="280" height="50" fill="#E1F5FE" stroke="#03A9F4" strokeWidth="1" rx="4" />
+        <text x="160" y="230" textAnchor="middle" fill="#0277BD" fontSize="11" fontWeight="600">
+          {t.phase2Label1}
+        </text>
+        <text x="160" y="248" textAnchor="middle" fill="#0277BD" fontSize="10">
+          {t.phase2Label2}
+        </text>
+      </svg>
+
+      {/* PHASE 3: Spray with water */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'curing-phase3-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step3Title}
+        </text>
+
+        {/* Formwork sides */}
+        <rect x="30" y="120" width="15" height="50" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="275" y="120" width="15" height="50" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+
+        {/* Concrete slab */}
+        <rect x="45" y="145" width="230" height="25" fill="#BDBDBD" />
+        <rect x="45" y="140" width="230" height="8" fill="#9E9E9E" />
+
+        {/* Plastic covering */}
+        <rect x="45" y="130" width="230" height="18" fill="#81D4FA" opacity="0.6" />
+        <rect x="45" y="130" width="230" height="2" fill="#29B6F6" />
+
+        {/* Hose and spray nozzle - animated movement */}
+        <g style={{ animation: 'curing-spray-move 12s ease-in-out infinite' }}>
+          {/* Hose */}
+          <path d="M-20 60 Q40 60, 80 70 T130 80" stroke="#43A047" strokeWidth="8" fill="none" strokeLinecap="round" />
+
+          {/* Spray nozzle */}
+          <rect x="125" y="72" width="25" height="12" fill="#616161" rx="3" />
+          <rect x="148" y="74" width="10" height="8" fill="#424242" rx="2" />
+
+          {/* Water droplets - animated */}
+          <g style={{ animation: 'curing-spray-water 12s infinite' }}>
+            {[0, 15, 30, 45, 60].map((offset, i) => (
+              <g key={`drop-${i}`} style={{ animation: `curing-droplets 0.5s ${i * 0.1}s infinite` }}>
+                <circle cx={165 + offset * 0.5} cy={95 + offset * 0.3} r="3" fill="#29B6F6" opacity="0.8" />
+              </g>
+            ))}
+
+            {/* Spray fan */}
+            <path d="M158 78 L180 100 L200 110 L220 115 L200 120 L180 115 L158 85 Z" fill="#29B6F6" opacity="0.3" />
+            <path d="M158 80 L175 105 L190 112 L175 118 L158 88 Z" fill="#29B6F6" opacity="0.4" />
+          </g>
+        </g>
+
+        {/* Water puddles on plastic */}
+        <ellipse cx="100" cy="138" rx="20" ry="3" fill="#29B6F6" opacity="0.5" />
+        <ellipse cx="180" cy="137" rx="25" ry="4" fill="#29B6F6" opacity="0.5" />
+        <ellipse cx="240" cy="138" rx="18" ry="3" fill="#29B6F6" opacity="0.5" />
+
+        {/* Phase label */}
+        <rect x="20" y="210" width="280" height="50" fill="#E1F5FE" stroke="#03A9F4" strokeWidth="1" rx="4" />
+        <text x="160" y="230" textAnchor="middle" fill="#0277BD" fontSize="11" fontWeight="600">
+          {t.phase3Label1}
+        </text>
+        <text x="160" y="248" textAnchor="middle" fill="#0277BD" fontSize="10">
+          {t.phase3Label2}
+        </text>
+      </svg>
+
+      {/* PHASE 4: Keep moist for 7 days */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'curing-phase4-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step4Title}
+        </text>
+
+        {/* Formwork sides */}
+        <rect x="30" y="130" width="15" height="45" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="275" y="130" width="15" height="45" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+
+        {/* Cured concrete slab - slightly darker */}
+        <rect x="45" y="150" width="230" height="25" fill="#9E9E9E" />
+        <rect x="45" y="145" width="230" height="8" fill="#757575" />
+
+        {/* Plastic covering with water */}
+        <rect x="45" y="137" width="230" height="15" fill="#81D4FA" opacity="0.5" />
+        <rect x="45" y="137" width="230" height="2" fill="#29B6F6" />
+
+        {/* Calendar/Days display */}
+        <rect x="85" y="50" width="150" height="75" fill="white" stroke="#1565C0" strokeWidth="2" rx="6" />
+        <rect x="85" y="50" width="150" height="22" fill="#1565C0" rx="6" />
+        <rect x="85" y="68" width="150" height="4" fill="#1565C0" />
+        <text x="160" y="66" textAnchor="middle" fill="white" fontSize="12" fontWeight="600">{t.days7}</text>
+
+        {/* Day boxes - 7 days */}
+        {[0, 1, 2, 3, 4, 5, 6].map((day, i) => (
+          <g key={`day-${i}`}>
+            <rect
+              x={95 + i * 19}
+              y="80"
+              width="16"
+              height="16"
+              fill={i < 7 ? '#4CAF50' : '#E0E0E0'}
+              stroke="#388E3C"
+              strokeWidth="1"
+              rx="2"
+              style={{ animation: `curing-day-counter 12s ${i * 0.3}s infinite` }}
+            />
+            <text
+              x={103 + i * 19}
+              y="92"
+              textAnchor="middle"
+              fill="white"
+              fontSize="10"
+              fontWeight="600"
+            >
+              {i + 1}
+            </text>
+          </g>
+        ))}
+
+        {/* Checkmark for completion */}
+        <g style={{ animation: 'curing-day-counter 12s 2s infinite' }}>
+          <circle cx="160" cy="115" r="8" fill="#4CAF50" />
+          <path d="M155 115 L158 118 L166 110" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+
+        {/* Water drops icon */}
+        <g>
+          <path d="M50 95 Q55 85, 60 95 Q55 105, 50 95" fill="#29B6F6" />
+          <path d="M65 100 Q68 93, 73 100 Q68 107, 65 100" fill="#29B6F6" />
+        </g>
+        <g>
+          <path d="M260 95 Q265 85, 270 95 Q265 105, 260 95" fill="#29B6F6" />
+          <path d="M247 100 Q250 93, 255 100 Q250 107, 247 100" fill="#29B6F6" />
+        </g>
+
+        {/* Strength indicator */}
+        <rect x="45" y="178" width="230" height="12" fill="#E0E0E0" rx="6" />
+        <rect x="45" y="178" width="230" height="12" fill="#4CAF50" rx="6" style={{ animation: 'curing-day-counter 12s infinite' }} />
+        <text x="160" y="187" textAnchor="middle" fill="white" fontSize="8" fontWeight="600">100%</text>
+
+        {/* Phase label */}
+        <rect x="20" y="210" width="280" height="50" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="1" rx="4" />
+        <text x="160" y="230" textAnchor="middle" fill="#2E7D32" fontSize="11" fontWeight="600">
+          {t.phase4Label1}
+        </text>
+        <text x="160" y="248" textAnchor="middle" fill="#2E7D32" fontSize="10">
+          {t.phase4Label2}
+        </text>
+      </svg>
+    </div>
+  );
+};
+
+// ============================================================================
 // Map of illustration keys to components
 // ============================================================================
 export const IllustrationMap: Record<string, React.FC<AnimationProps>> = {
@@ -2648,6 +3060,7 @@ export const IllustrationMap: Record<string, React.FC<AnimationProps>> = {
   'rebar': RebarAnimation,
   'concrete_pour': ConcretePourAnimation,
   'smoothing': ConcretePourAnimation,
+  'curing': CuringAnimation,
 };
 
 // ============================================================================
