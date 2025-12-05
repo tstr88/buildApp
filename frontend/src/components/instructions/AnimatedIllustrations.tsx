@@ -1,8 +1,7 @@
 /**
- * Animated Illustrations for Instructions
- * Professional, realistic CSS-based animations for construction steps
- * Designed to be clear, instructional, and visually accurate
- * No text labels - step names are shown above the illustrations
+ * Professional Construction Instruction Diagrams
+ * Technical, clear illustrations showing proper construction techniques
+ * Designed for professional use - no cartoon elements
  */
 
 import React from 'react';
@@ -12,1235 +11,1059 @@ interface AnimationProps {
   size?: number;
 }
 
-// Color palette for consistent, professional look
+// Professional muted color palette
 const palette = {
-  ground: '#8B7355',
-  groundDark: '#6B5344',
-  grass: '#7CB342',
-  grassDark: '#558B2F',
-  soil: '#5D4E37',
-  soilLight: '#8D7355',
-  wood: '#DEB887',
-  woodDark: '#8B4513',
-  metal: '#78909C',
-  metalDark: '#546E7A',
-  metalLight: '#90A4AE',
-  concrete: '#9E9E9E',
-  concreteDark: '#757575',
-  concreteLight: '#BDBDBD',
-  concreteWet: '#7E8B8E',
-  gravel: '#A1887F',
-  gravelDark: '#795548',
-  gravelLight: '#BCAAA4',
-  water: '#4FC3F7',
-  waterDark: '#0288D1',
-  rebar: '#5D4037',
-  rebarDark: '#3E2723',
-  highlight: colors.primary[500],
-  highlightLight: colors.primary[100],
-  warning: '#FFA726',
-  success: '#66BB6A',
+  // Earth tones
+  soil: '#6B5B4F',
+  soilDark: '#4A3F35',
+  soilLight: '#8B7B6B',
+
+  // Materials
+  wood: '#C4A574',
+  woodDark: '#8B6914',
+  woodGrain: '#9E8050',
+
+  concrete: '#858585',
+  concreteDark: '#5A5A5A',
+  concreteLight: '#A5A5A5',
+  concreteWet: '#707575',
+
+  gravel: '#9B8B7B',
+  gravelDark: '#6B5B4B',
+
+  metal: '#6B7B8B',
+  metalDark: '#4B5B6B',
+  metalLight: '#8B9BA5',
+
+  rebar: '#4A3A30',
+  rebarLight: '#6A5A50',
+
+  // Utility colors
+  grass: '#5B7B4B',
+
+  // Annotation colors
+  dimension: '#1565C0',
+  dimensionBg: '#E3F2FD',
+  arrow: '#D32F2F',
+  highlight: colors.primary[600],
+
+  // Neutral
   white: '#FFFFFF',
-  black: '#212121',
-  orange: '#FF7043',
-  orangeDark: '#E64A19',
-  blue: '#2196F3',
-  blueLight: '#BBDEFB',
-  yellow: '#FDD835',
-  yellowDark: '#F9A825',
+  black: '#2B2B2B',
+  gray: '#757575',
 };
 
 // ============================================================================
-// SITE PREPARATION Animation
-// Shows clearing grass, roots, and vegetation - not just digging
+// SITE PREPARATION - Cross-section showing excavation depth
 // ============================================================================
 export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
   <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
     <defs>
-      <linearGradient id="soilGradSite" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor={palette.soilLight} />
-        <stop offset="100%" stopColor={palette.soil} />
-      </linearGradient>
-      <pattern id="grassPattern" patternUnits="userSpaceOnUse" width="20" height="20">
-        <rect width="20" height="20" fill={palette.grass}/>
-        <path d="M5 20 Q5 10 3 5 M5 20 Q5 12 7 8" stroke={palette.grassDark} strokeWidth="1.5" fill="none"/>
-        <path d="M15 20 Q15 12 13 7 M15 20 Q15 14 17 10" stroke={palette.grassDark} strokeWidth="1.5" fill="none"/>
+      <pattern id="soilHatch" patternUnits="userSpaceOnUse" width="8" height="8">
+        <path d="M0 8 L8 0" stroke={palette.soilDark} strokeWidth="0.5" fill="none" />
       </pattern>
+      <pattern id="grassHatch" patternUnits="userSpaceOnUse" width="6" height="12">
+        <path d="M3 12 L3 6 M3 12 Q2 8 1 5 M3 12 Q4 8 5 5" stroke={palette.grass} strokeWidth="0.8" fill="none" />
+      </pattern>
+      <marker id="arrowDown" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+        <path d="M0 0 L8 4 L0 8 Z" fill={palette.arrow} />
+      </marker>
     </defs>
-    <style>{`
-      @keyframes shovelLift {
-        0%, 100% { transform: translate(0, 0) rotate(0deg); }
-        25% { transform: translate(-5px, -15px) rotate(-20deg); }
-        50% { transform: translate(30px, -25px) rotate(-15deg); }
-        75% { transform: translate(50px, 10px) rotate(5deg); }
-      }
-      @keyframes grassFly {
-        0%, 10% { opacity: 1; transform: translate(0, 0) rotate(0deg); }
-        100% { opacity: 0; transform: translate(60px, -30px) rotate(180deg); }
-      }
-      @keyframes grassFly2 {
-        0%, 20% { opacity: 1; transform: translate(0, 0) rotate(0deg); }
-        100% { opacity: 0; transform: translate(70px, -20px) rotate(-90deg); }
-      }
-      @keyframes rootFly {
-        0%, 15% { opacity: 1; transform: translate(0, 0); }
-        100% { opacity: 0; transform: translate(45px, -35px); }
-      }
-      @keyframes clearProgress {
-        0% { width: 0; }
-        100% { width: 120px; }
-      }
-      .shovel-action { animation: shovelLift 2s ease-in-out infinite; transform-origin: 100px 150px; }
-      .grass-chunk1 { animation: grassFly 2s ease-out infinite; }
-      .grass-chunk2 { animation: grassFly2 2s ease-out infinite 0.3s; }
-      .root-piece { animation: rootFly 2s ease-out infinite 0.5s; }
-      .clear-area { animation: clearProgress 2s ease-out infinite; }
-    `}</style>
 
-    {/* Background soil layer */}
-    <rect x="0" y="100" width="280" height="110" fill="url(#soilGradSite)" />
+    {/* Title bar */}
+    <rect x="0" y="0" width="280" height="24" fill={palette.dimensionBg} />
+    <text x="140" y="16" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">CROSS-SECTION VIEW</text>
 
-    {/* Grass surface - right side (uncleared) */}
-    <rect x="140" y="90" width="140" height="20" fill="url(#grassPattern)" />
+    {/* Original ground level with grass */}
+    <rect x="0" y="70" width="280" height="8" fill={palette.grass} />
+    <rect x="0" y="70" width="280" height="8" fill="url(#grassHatch)" />
 
-    {/* Grass blades on right */}
-    {[160, 180, 200, 220, 240, 260].map((x, i) => (
-      <g key={i}>
-        <path d={`M${x} 90 Q${x-3} 75 ${x-5} 60`} stroke={palette.grassDark} strokeWidth="2" fill="none" />
-        <path d={`M${x+5} 90 Q${x+7} 70 ${x+3} 55`} stroke={palette.grass} strokeWidth="2" fill="none" />
-      </g>
-    ))}
+    {/* Topsoil layer label */}
+    <text x="250" y="65" fill={palette.gray} fontSize="8">TOPSOIL</text>
 
-    {/* Cleared area - left side (brown soil) */}
-    <rect x="20" y="95" width="120" height="15" fill={palette.soilLight} />
-    <rect className="clear-area" x="20" y="95" height="15" fill={palette.soilLight} />
+    {/* Excavated area */}
+    <path d="M40 78 L40 140 L240 140 L240 78" fill={palette.soilLight} stroke={palette.soilDark} strokeWidth="1" />
+    <rect x="40" y="78" width="200" height="62" fill="url(#soilHatch)" opacity="0.3" />
 
-    {/* Exposed roots in transition area */}
-    <path d="M130 100 Q145 105 160 95 Q170 90 175 95" stroke="#6D4C41" strokeWidth="3" fill="none" />
-    <path d="M125 110 Q140 108 150 115" stroke="#5D4037" strokeWidth="2" fill="none" />
+    {/* Undisturbed soil on sides */}
+    <rect x="0" y="78" width="40" height="80" fill={palette.soil} />
+    <rect x="0" y="78" width="40" height="80" fill="url(#soilHatch)" opacity="0.5" />
+    <rect x="240" y="78" width="40" height="80" fill={palette.soil} />
+    <rect x="240" y="78" width="40" height="80" fill="url(#soilHatch)" opacity="0.5" />
 
-    {/* Flying grass chunks */}
-    <g className="grass-chunk1" transform="translate(120, 80)">
-      <ellipse cx="0" cy="0" rx="12" ry="8" fill={palette.grass} />
-      <path d="M-5 -8 Q-3 -15 0 -18 M5 -8 Q7 -14 4 -17" stroke={palette.grassDark} strokeWidth="1.5" fill="none" />
-    </g>
-    <g className="grass-chunk2" transform="translate(115, 90)">
-      <ellipse cx="0" cy="0" rx="10" ry="6" fill={palette.grass} />
-      <path d="M0 -6 Q2 -12 -1 -15" stroke={palette.grassDark} strokeWidth="1.5" fill="none" />
+    {/* Cut line indicators */}
+    <line x1="40" y1="70" x2="40" y2="145" stroke={palette.arrow} strokeWidth="2" strokeDasharray="4,2" />
+    <line x1="240" y1="70" x2="240" y2="145" stroke={palette.arrow} strokeWidth="2" strokeDasharray="4,2" />
+
+    {/* Depth dimension - right side */}
+    <g transform="translate(255, 78)">
+      <line x1="0" y1="0" x2="0" y2="62" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="-6" y1="0" x2="6" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="-6" y1="62" x2="6" y2="62" stroke={palette.dimension} strokeWidth="1.5" />
+      <rect x="8" y="22" width="45" height="18" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="2" />
+      <text x="30" y="35" textAnchor="middle" fill={palette.dimension} fontSize="10" fontWeight="600">15-20cm</text>
     </g>
 
-    {/* Flying root piece */}
-    <g className="root-piece" transform="translate(125, 100)">
-      <path d="M0 0 Q8 -3 15 2 Q20 5 25 3" stroke="#6D4C41" strokeWidth="3" fill="none" strokeLinecap="round" />
+    {/* Width dimension - bottom */}
+    <g transform="translate(40, 155)">
+      <line x1="0" y1="0" x2="200" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="0" y1="-6" x2="0" y2="6" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="200" y1="-6" x2="200" y2="6" stroke={palette.dimension} strokeWidth="1.5" />
+      <rect x="75" y="5" width="50" height="16" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="2" />
+      <text x="100" y="17" textAnchor="middle" fill={palette.dimension} fontSize="9" fontWeight="600">EXCAVATE</text>
     </g>
 
-    {/* Shovel with grass/soil */}
-    <g className="shovel-action">
-      {/* Shovel handle */}
-      <rect x="85" y="50" width="10" height="100" fill={palette.woodDark} rx="3" />
-      <ellipse cx="90" cy="45" rx="15" ry="7" fill={palette.woodDark} />
-
-      {/* Shovel blade */}
-      <path d="M75 145 L105 145 L95 185 L85 185 Z" fill={palette.metalDark} />
-      <path d="M78 145 L102 145 L93 180 L87 180 Z" fill={palette.metal} />
-
-      {/* Dirt and grass on shovel */}
-      <ellipse cx="90" cy="150" rx="12" ry="6" fill={palette.soil} />
-      <ellipse cx="90" cy="148" rx="8" ry="4" fill={palette.grass} />
+    {/* Removed material indication */}
+    <g transform="translate(140, 100)">
+      <path d="M0 -15 L0 15" stroke={palette.arrow} strokeWidth="2" markerEnd="url(#arrowDown)" />
+      <text x="0" y="-22" textAnchor="middle" fill={palette.arrow} fontSize="9" fontWeight="600">REMOVE</text>
     </g>
 
-    {/* Depth marker showing 15-20cm */}
-    <g transform="translate(40, 95)">
-      <line x1="0" y1="0" x2="0" y2="40" stroke={palette.highlight} strokeWidth="2" />
-      <line x1="-8" y1="0" x2="8" y2="0" stroke={palette.highlight} strokeWidth="2" />
-      <line x1="-8" y1="40" x2="8" y2="40" stroke={palette.highlight} strokeWidth="2" />
-      <rect x="-22" y="12" width="44" height="18" fill={palette.highlight} rx="3" />
-      <text x="0" y="25" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">15-20cm</text>
+    {/* Legend */}
+    <g transform="translate(10, 180)">
+      <rect x="0" y="0" width="12" height="12" fill={palette.grass} />
+      <text x="18" y="10" fill={palette.gray} fontSize="8">Grass/topsoil to remove</text>
+      <rect x="100" y="0" width="12" height="12" fill={palette.soilLight} stroke={palette.soilDark} strokeWidth="0.5" />
+      <text x="118" y="10" fill={palette.gray} fontSize="8">Excavation area</text>
     </g>
-
-    {/* Pile of removed material on the side */}
-    <ellipse cx="230" cy="150" rx="35" ry="20" fill={palette.soil} />
-    <ellipse cx="225" cy="145" rx="25" ry="12" fill={palette.grass} />
-    <path d="M215 135 Q212 120 218 110" stroke={palette.grassDark} strokeWidth="2" fill="none" />
-    <path d="M235 138 Q240 125 235 115" stroke={palette.grassDark} strokeWidth="2" fill="none" />
   </svg>
 );
 
 // ============================================================================
-// GRAVEL BASE Animation
-// Shows spreading and compacting gravel layer
+// GRAVEL BASE - Cross-section showing compacted gravel layer
 // ============================================================================
 export const GravelBaseAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
   <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
     <defs>
-      <pattern id="gravelPattern" patternUnits="userSpaceOnUse" width="15" height="15">
-        <rect width="15" height="15" fill={palette.gravel}/>
-        <circle cx="3" cy="3" r="2.5" fill={palette.gravelDark}/>
-        <circle cx="10" cy="5" r="3" fill={palette.gravelLight}/>
-        <circle cx="6" cy="11" r="2" fill={palette.gravelDark}/>
-        <circle cx="12" cy="12" r="2.5" fill={palette.gravel}/>
+      <pattern id="gravelDots" patternUnits="userSpaceOnUse" width="12" height="12">
+        <circle cx="3" cy="3" r="2" fill={palette.gravelDark} />
+        <circle cx="9" cy="7" r="2.5" fill={palette.gravel} />
+        <circle cx="5" cy="10" r="1.5" fill={palette.gravelDark} />
       </pattern>
+      <marker id="arrowCompact" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+        <path d="M0 0 L6 3 L0 6 Z" fill={palette.dimension} />
+      </marker>
     </defs>
-    <style>{`
-      @keyframes gravelSpread {
-        0%, 100% { transform: translateX(0); }
-        50% { transform: translateX(60px); }
-      }
-      @keyframes gravelFall {
-        0% { transform: translateY(-30px); opacity: 0; }
-        30% { opacity: 1; }
-        100% { transform: translateY(0); opacity: 1; }
-      }
-      @keyframes tamperPress {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(8px); }
-      }
-      @keyframes compactPulse {
-        0%, 100% { transform: scale(1); opacity: 0.5; }
-        50% { transform: scale(1.05); opacity: 0.8; }
-      }
-      .rake-motion { animation: gravelSpread 3s ease-in-out infinite; }
-      .gravel-piece1 { animation: gravelFall 1s ease-out infinite; }
-      .gravel-piece2 { animation: gravelFall 1s ease-out infinite 0.2s; }
-      .gravel-piece3 { animation: gravelFall 1s ease-out infinite 0.4s; }
-      .tamper { animation: tamperPress 0.8s ease-in-out infinite; }
-      .compact-wave { animation: compactPulse 0.8s ease-in-out infinite; }
-    `}</style>
 
-    {/* Soil base */}
-    <rect x="0" y="150" width="280" height="60" fill={palette.soil} />
+    {/* Title bar */}
+    <rect x="0" y="0" width="280" height="24" fill={palette.dimensionBg} />
+    <text x="140" y="16" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">GRAVEL BASE LAYER</text>
 
     {/* Formwork sides */}
-    <rect x="15" y="120" width="12" height="45" fill={palette.woodDark} />
-    <rect x="253" y="120" width="12" height="45" fill={palette.woodDark} />
+    <rect x="25" y="80" width="15" height="70" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" />
+    <rect x="240" y="80" width="15" height="70" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" />
 
-    {/* Gravel layer being spread */}
-    <rect x="27" y="135" width="226" height="25" fill="url(#gravelPattern)" />
+    {/* Soil base */}
+    <rect x="40" y="130" width="200" height="30" fill={palette.soil} />
 
-    {/* Individual gravel stones for detail */}
-    {[40, 70, 100, 130, 160, 190, 220].map((x, i) => (
-      <g key={i}>
-        <ellipse cx={x} cy={145} rx={5 + (i % 3)} ry={3 + (i % 2)} fill={i % 2 ? palette.gravelDark : palette.gravelLight} />
-        <ellipse cx={x + 12} cy={150} rx={4} ry={3} fill={palette.gravelDark} />
+    {/* Gravel layer */}
+    <rect x="40" y="100" width="200" height="30" fill={palette.gravel} />
+    <rect x="40" y="100" width="200" height="30" fill="url(#gravelDots)" />
+
+    {/* Compaction arrows */}
+    {[70, 110, 150, 190].map((x, i) => (
+      <g key={i} transform={`translate(${x}, 50)`}>
+        <line x1="0" y1="0" x2="0" y2="40" stroke={palette.dimension} strokeWidth="2" />
+        <polygon points="-5,35 5,35 0,48" fill={palette.dimension} />
       </g>
     ))}
+    <text x="140" y="42" textAnchor="middle" fill={palette.dimension} fontSize="9" fontWeight="600">COMPACT</text>
 
-    {/* Rake spreading gravel */}
-    <g className="rake-motion" transform="translate(50, 80)">
-      {/* Rake handle */}
-      <rect x="0" y="0" width="8" height="70" fill={palette.wood} rx="2" transform="rotate(25)" />
-      {/* Rake head */}
-      <rect x="50" y="55" width="50" height="8" fill={palette.metalDark} rx="2" />
-      {/* Rake teeth */}
-      {[55, 65, 75, 85, 95].map((x, i) => (
-        <rect key={i} x={x} y="63" width="4" height="15" fill={palette.metal} rx="1" />
-      ))}
+    {/* Depth dimension */}
+    <g transform="translate(260, 100)">
+      <line x1="5" y1="0" x2="5" y2="30" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="0" y1="0" x2="10" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="0" y1="30" x2="10" y2="30" stroke={palette.dimension} strokeWidth="1.5" />
+      <rect x="12" y="8" width="30" height="14" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="2" />
+      <text x="27" y="19" textAnchor="middle" fill={palette.dimension} fontSize="9" fontWeight="600">15cm</text>
     </g>
 
-    {/* Falling gravel pieces from wheelbarrow */}
-    <g transform="translate(200, 100)">
-      <ellipse className="gravel-piece1" cx="0" cy="30" rx="6" ry="4" fill={palette.gravelDark} />
-      <ellipse className="gravel-piece2" cx="15" cy="25" rx="5" ry="3" fill={palette.gravelLight} />
-      <ellipse className="gravel-piece3" cx="8" cy="35" rx="4" ry="3" fill={palette.gravel} />
+    {/* Layer labels */}
+    <g transform="translate(10, 115)">
+      <text fill={palette.white} fontSize="9" fontWeight="500">GRAVEL</text>
+    </g>
+    <g transform="translate(10, 145)">
+      <text fill={palette.soilLight} fontSize="9" fontWeight="500">SUBSOIL</text>
     </g>
 
-    {/* Plate compactor / tamper */}
-    <g className="tamper" transform="translate(160, 85)">
-      {/* Handle */}
-      <rect x="20" y="0" width="10" height="40" fill={palette.metalDark} rx="2" />
-      <ellipse cx="25" cy="0" rx="12" ry="6" fill={palette.black} />
-      {/* Plate body */}
-      <rect x="0" y="38" width="50" height="25" fill={palette.orange} rx="3" />
-      <rect x="5" y="43" width="40" height="15" fill={palette.orangeDark} rx="2" />
-      {/* Base plate */}
-      <rect x="-5" y="63" width="60" height="10" fill={palette.metalDark} rx="2" />
+    {/* Plate compactor illustration */}
+    <g transform="translate(100, 60)">
+      <rect x="0" y="0" width="60" height="8" fill={palette.metalDark} rx="2" />
+      <rect x="25" y="-25" width="10" height="25" fill={palette.metal} rx="1" />
+      <ellipse cx="30" cy="-28" rx="12" ry="5" fill={palette.black} />
+      <text x="30" y="20" textAnchor="middle" fill={palette.gray} fontSize="7">PLATE COMPACTOR</text>
     </g>
 
-    {/* Compaction wave effect */}
-    <ellipse className="compact-wave" cx="185" cy="145" rx="40" ry="8" fill={palette.gravelDark} opacity="0.3" />
-
-    {/* Depth indicator */}
-    <g transform="translate(250, 130)">
-      <line x1="0" y1="5" x2="0" y2="30" stroke={palette.highlight} strokeWidth="2" />
-      <line x1="-6" y1="5" x2="6" y2="5" stroke={palette.highlight} strokeWidth="2" />
-      <line x1="-6" y1="30" x2="6" y2="30" stroke={palette.highlight} strokeWidth="2" />
-      <text x="15" y="22" fill={palette.highlight} fontSize="10" fontWeight="bold">15cm</text>
-    </g>
-
-    {/* Wheelbarrow hint */}
-    <g transform="translate(195, 40)">
-      <path d="M0 40 L30 40 L40 60 L-10 60 Z" fill={palette.metalDark} />
-      <ellipse cx="15" cy="40" rx="20" ry="12" fill={palette.metal} />
-      <ellipse cx="15" cy="35" rx="15" ry="8" fill={palette.gravel} />
-      <circle cx="15" cy="65" r="10" fill={palette.black} />
-      <circle cx="15" cy="65" r="5" fill={palette.metal} />
+    {/* Legend */}
+    <g transform="translate(10, 175)">
+      <rect x="0" y="0" width="12" height="12" fill={palette.gravel} stroke={palette.gravelDark} strokeWidth="0.5" />
+      <text x="18" y="10" fill={palette.gray} fontSize="8">Compacted gravel 15cm</text>
+      <rect x="130" y="0" width="12" height="12" fill={palette.wood} stroke={palette.woodDark} strokeWidth="0.5" />
+      <text x="148" y="10" fill={palette.gray} fontSize="8">Formwork</text>
     </g>
   </svg>
 );
 
 // ============================================================================
-// FORMWORK Animation
-// Shows setting wooden boards at specific height
+// FORMWORK - Side view showing board height and stakes
 // ============================================================================
 export const FormworkAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
   <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    <style>{`
-      @keyframes boardPlace {
-        0%, 20% { transform: translateY(-30px) rotate(-5deg); opacity: 0.7; }
-        50%, 100% { transform: translateY(0) rotate(0deg); opacity: 1; }
-      }
-      @keyframes stakeHammer {
-        0%, 60% { transform: translateY(0); }
-        70% { transform: translateY(-20px); }
-        85% { transform: translateY(5px); }
-        100% { transform: translateY(0); }
-      }
-      @keyframes measureShow {
-        0%, 50% { opacity: 0; }
-        70%, 100% { opacity: 1; }
-      }
-      .board-placing { animation: boardPlace 3s ease-out infinite; }
-      .hammer { animation: stakeHammer 1.5s ease-out infinite; }
-      .height-measure { animation: measureShow 3s ease-out infinite; }
-    `}</style>
+    <defs>
+      <pattern id="woodGrain" patternUnits="userSpaceOnUse" width="4" height="20">
+        <path d="M2 0 Q1 10 2 20" stroke={palette.woodGrain} strokeWidth="0.5" fill="none" />
+      </pattern>
+    </defs>
+
+    {/* Title bar */}
+    <rect x="0" y="0" width="280" height="24" fill={palette.dimensionBg} />
+    <text x="140" y="16" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">FORMWORK SETUP - SIDE VIEW</text>
 
     {/* Ground/gravel base */}
-    <rect x="0" y="150" width="280" height="60" fill={palette.gravel} />
-    <rect x="0" y="145" width="280" height="10" fill={palette.gravelDark} />
+    <rect x="0" y="145" width="280" height="25" fill={palette.gravel} />
+    <text x="140" y="160" textAnchor="middle" fill={palette.white} fontSize="8">GRAVEL BASE</text>
 
-    {/* Left formwork - already set */}
-    <g>
-      {/* Board */}
-      <rect x="20" y="115" width="15" height="45" fill={palette.wood} />
-      <rect x="20" y="115" width="15" height="3" fill={palette.woodDark} opacity="0.5" />
-      {/* Stakes */}
-      <rect x="8" y="130" width="10" height="50" fill={palette.woodDark} />
-      <polygon points="8,180 18,180 13,195" fill={palette.woodDark} />
+    {/* Left formwork board */}
+    <g transform="translate(40, 100)">
+      <rect x="0" y="0" width="18" height="45" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" />
+      <rect x="0" y="0" width="18" height="45" fill="url(#woodGrain)" opacity="0.5" />
+      {/* Stake behind board */}
+      <rect x="-10" y="10" width="10" height="55" fill={palette.woodDark} stroke={palette.black} strokeWidth="0.5" />
+      <polygon points="-10,65 0,65 -5,80" fill={palette.woodDark} stroke={palette.black} strokeWidth="0.5" />
     </g>
 
-    {/* Right formwork - being placed */}
-    <g className="board-placing">
-      {/* Board */}
-      <rect x="245" y="115" width="15" height="45" fill={palette.wood} />
-      <rect x="245" y="115" width="15" height="3" fill={palette.woodDark} opacity="0.5" />
-    </g>
-
-    {/* Stake being hammered */}
-    <g transform="translate(262, 130)">
-      <rect x="0" y="0" width="10" height="50" fill={palette.woodDark} />
-      <polygon points="0,50 10,50 5,65" fill={palette.woodDark} />
-    </g>
-
-    {/* Hammer */}
-    <g className="hammer" transform="translate(255, 70)">
-      <rect x="0" y="0" width="8" height="50" fill={palette.wood} rx="2" />
-      <rect x="-8" y="45" width="24" height="20" fill={palette.metalDark} rx="2" />
-      <rect x="-6" y="47" width="20" height="8" fill={palette.metal} />
+    {/* Right formwork board */}
+    <g transform="translate(222, 100)">
+      <rect x="0" y="0" width="18" height="45" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" />
+      <rect x="0" y="0" width="18" height="45" fill="url(#woodGrain)" opacity="0.5" />
+      {/* Stake behind board */}
+      <rect x="18" y="10" width="10" height="55" fill={palette.woodDark} stroke={palette.black} strokeWidth="0.5" />
+      <polygon points="18,65 28,65 23,80" fill={palette.woodDark} stroke={palette.black} strokeWidth="0.5" />
     </g>
 
     {/* String line between boards */}
-    <line x1="35" y1="120" x2="245" y2="120" stroke="#E53935" strokeWidth="1.5" strokeDasharray="6,3" />
+    <line x1="58" y1="105" x2="222" y2="105" stroke={palette.arrow} strokeWidth="1.5" />
+    <text x="140" y="98" textAnchor="middle" fill={palette.arrow} fontSize="8">STRING LINE</text>
 
-    {/* Height measurement on left side */}
-    <g className="height-measure" transform="translate(45, 115)">
-      <line x1="0" y1="0" x2="0" y2="45" stroke={palette.highlight} strokeWidth="2" />
-      <line x1="-8" y1="0" x2="8" y2="0" stroke={palette.highlight} strokeWidth="2" />
-      <line x1="-8" y1="45" x2="8" y2="45" stroke={palette.highlight} strokeWidth="2" />
-      {/* Arrow pointing to height */}
-      <path d="M12 22 L25 22 M20 17 L25 22 L20 27" stroke={palette.highlight} strokeWidth="2" fill="none" />
-      <rect x="28" y="12" width="40" height="22" fill={palette.highlight} rx="3" />
-      <text x="48" y="27" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">15cm</text>
+    {/* Height dimension - left side */}
+    <g transform="translate(15, 100)">
+      <line x1="0" y1="0" x2="0" y2="45" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="-5" y1="0" x2="5" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="-5" y1="45" x2="5" y2="45" stroke={palette.dimension} strokeWidth="1.5" />
+      <rect x="-35" y="15" width="30" height="16" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="2" />
+      <text x="-20" y="27" textAnchor="middle" fill={palette.dimension} fontSize="10" fontWeight="700">15cm</text>
     </g>
 
-    {/* Level tool checking height */}
-    <g transform="translate(100, 100)">
-      <rect x="0" y="0" width="80" height="18" fill={palette.yellow} stroke={palette.yellowDark} strokeWidth="2" rx="3" />
-      {/* Level vial */}
-      <rect x="28" y="4" width="24" height="10" fill="#B3E5FC" stroke="#0288D1" strokeWidth="1" rx="2" />
-      <line x1="38" y1="4" x2="38" y2="14" stroke="#0288D1" strokeWidth="1" />
-      <line x1="42" y1="4" x2="42" y2="14" stroke="#0288D1" strokeWidth="1" />
-      <circle cx="40" cy="9" r="3" fill="#4CAF50" />
+    {/* Level indicator */}
+    <g transform="translate(120, 75)">
+      <rect x="0" y="0" width="60" height="16" fill="#FFD54F" stroke="#F9A825" strokeWidth="1" rx="2" />
+      <rect x="20" y="4" width="20" height="8" fill="#81D4FA" stroke="#0288D1" strokeWidth="0.5" rx="1" />
+      <circle cx="30" cy="8" r="2.5" fill="#4CAF50" />
+      <text x="30" y="28" textAnchor="middle" fill={palette.gray} fontSize="7">LEVEL</text>
     </g>
 
-    {/* Corner square tool */}
-    <g transform="translate(20, 100)">
-      <rect x="0" y="15" width="40" height="5" fill={palette.metal} />
-      <rect x="0" y="0" width="5" height="45" fill={palette.metal} />
+    {/* Width dimension - bottom */}
+    <g transform="translate(58, 175)">
+      <line x1="0" y1="0" x2="164" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="0" y1="-5" x2="0" y2="5" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="164" y1="-5" x2="164" y2="5" stroke={palette.dimension} strokeWidth="1.5" />
+      <rect x="60" y="5" width="45" height="14" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="2" />
+      <text x="82" y="15" textAnchor="middle" fill={palette.dimension} fontSize="8" fontWeight="600">SLAB WIDTH</text>
+    </g>
+
+    {/* Annotations */}
+    <g transform="translate(30, 55)">
+      <line x1="30" y1="0" x2="30" y2="35" stroke={palette.gray} strokeWidth="0.5" strokeDasharray="2,2" />
+      <text x="30" y="-5" textAnchor="middle" fill={palette.gray} fontSize="7">BOARD</text>
+    </g>
+    <g transform="translate(20, 55)">
+      <line x1="0" y1="0" x2="0" y2="60" stroke={palette.gray} strokeWidth="0.5" strokeDasharray="2,2" />
+      <text x="0" y="-5" textAnchor="middle" fill={palette.gray} fontSize="7">STAKE</text>
     </g>
   </svg>
 );
 
 // ============================================================================
-// REBAR GRID Animation - Top-down view
-// Shows clear grid pattern being created
+// REBAR GRID - Top view showing grid pattern and spacing
 // ============================================================================
 export const RebarAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
   <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    <style>{`
-      @keyframes rebarHPlace {
-        0%, 10% { opacity: 0; transform: translateX(-20px); }
-        40%, 100% { opacity: 1; transform: translateX(0); }
-      }
-      @keyframes rebarVPlace {
-        0%, 30% { opacity: 0; transform: translateY(-20px); }
-        60%, 100% { opacity: 1; transform: translateY(0); }
-      }
-      @keyframes tieTwist {
-        0%, 70% { transform: rotate(0deg) scale(0); opacity: 0; }
-        85% { transform: rotate(180deg) scale(1.2); opacity: 1; }
-        100% { transform: rotate(360deg) scale(1); opacity: 1; }
-      }
-      @keyframes gridPulse {
-        0%, 100% { opacity: 0.1; }
-        50% { opacity: 0.3; }
-      }
-      .rebar-h1 { animation: rebarHPlace 3s ease-out infinite; }
-      .rebar-h2 { animation: rebarHPlace 3s ease-out infinite 0.15s; }
-      .rebar-h3 { animation: rebarHPlace 3s ease-out infinite 0.3s; }
-      .rebar-h4 { animation: rebarHPlace 3s ease-out infinite 0.45s; }
-      .rebar-v1 { animation: rebarVPlace 3s ease-out infinite 0.5s; }
-      .rebar-v2 { animation: rebarVPlace 3s ease-out infinite 0.65s; }
-      .rebar-v3 { animation: rebarVPlace 3s ease-out infinite 0.8s; }
-      .rebar-v4 { animation: rebarVPlace 3s ease-out infinite 0.95s; }
-      .tie { animation: tieTwist 3s ease-out infinite 1.2s; transform-origin: center; }
-      .grid-bg { animation: gridPulse 2s ease-in-out infinite; }
-    `}</style>
+    {/* Title bar */}
+    <rect x="0" y="0" width="280" height="24" fill={palette.dimensionBg} />
+    <text x="140" y="16" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">REBAR GRID - TOP VIEW</text>
 
-    {/* Formwork frame - top view */}
-    <rect x="30" y="25" width="220" height="160" fill="none" stroke={palette.woodDark} strokeWidth="10" />
-    <rect x="40" y="35" width="200" height="140" fill={palette.soil} />
-
-    {/* Grid pattern background hint */}
-    <g className="grid-bg">
-      {[0, 1, 2, 3].map((i) => (
-        <line key={`gh${i}`} x1="40" y1={55 + i * 35} x2="240" y2={55 + i * 35} stroke={palette.highlight} strokeWidth="1" strokeDasharray="4,4" />
-      ))}
-      {[0, 1, 2, 3, 4].map((i) => (
-        <line key={`gv${i}`} x1={60 + i * 45} y1="35" x2={60 + i * 45} y2="175" stroke={palette.highlight} strokeWidth="1" strokeDasharray="4,4" />
-      ))}
-    </g>
+    {/* Formwork outline */}
+    <rect x="35" y="35" width="210" height="140" fill={palette.concreteLight} stroke={palette.woodDark} strokeWidth="8" />
 
     {/* Horizontal rebars */}
-    <rect className="rebar-h1" x="40" y="52" width="200" height="6" fill={palette.rebar} rx="3" />
-    <rect className="rebar-h2" x="40" y="87" width="200" height="6" fill={palette.rebar} rx="3" />
-    <rect className="rebar-h3" x="40" y="122" width="200" height="6" fill={palette.rebar} rx="3" />
-    <rect className="rebar-h4" x="40" y="157" width="200" height="6" fill={palette.rebar} rx="3" />
-
-    {/* Vertical rebars - crossing over horizontal */}
-    <rect className="rebar-v1" x="57" y="35" width="6" height="140" fill={palette.rebarDark} rx="3" />
-    <rect className="rebar-v2" x="102" y="35" width="6" height="140" fill={palette.rebarDark} rx="3" />
-    <rect className="rebar-v3" x="147" y="35" width="6" height="140" fill={palette.rebarDark} rx="3" />
-    <rect className="rebar-v4" x="192" y="35" width="6" height="140" fill={palette.rebarDark} rx="3" />
-
-    {/* Wire ties at intersections */}
-    {[[60, 55], [105, 55], [150, 55], [195, 55],
-      [60, 90], [105, 90], [150, 90], [195, 90],
-      [60, 125], [105, 125], [150, 125], [195, 125]].map(([x, y], i) => (
-      <circle key={i} className="tie" cx={x} cy={y} r="5" fill="none" stroke={palette.metal} strokeWidth="2" />
+    {[55, 90, 125, 160].map((y, i) => (
+      <g key={`h${i}`}>
+        <rect x="45" y={y} width="190" height="5" fill={palette.rebar} rx="2" />
+        <rect x="45" y={y} width="190" height="2" fill={palette.rebarLight} rx="1" />
+      </g>
     ))}
 
-    {/* Dimension arrows */}
-    <g transform="translate(60, 195)">
-      <line x1="0" y1="0" x2="45" y2="0" stroke={palette.highlight} strokeWidth="1.5" />
-      <line x1="0" y1="-5" x2="0" y2="5" stroke={palette.highlight} strokeWidth="2" />
-      <line x1="45" y1="-5" x2="45" y2="5" stroke={palette.highlight} strokeWidth="2" />
-      <rect x="12" y="-10" width="22" height="14" fill={palette.highlight} rx="2" />
-      <text x="23" y="1" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">15cm</text>
+    {/* Vertical rebars */}
+    {[60, 95, 130, 165, 200].map((x, i) => (
+      <g key={`v${i}`}>
+        <rect x={x} y="45" width="5" height="120" fill={palette.rebar} rx="2" />
+        <rect x={x} y="45" width="2" height="120" fill={palette.rebarLight} rx="1" />
+      </g>
+    ))}
+
+    {/* Wire tie indicators at intersections */}
+    {[55, 90, 125, 160].flatMap((y) =>
+      [60, 95, 130, 165, 200].map((x) => (
+        <circle key={`t${x}${y}`} cx={x + 2.5} cy={y + 2.5} r="4" fill="none" stroke={palette.metalDark} strokeWidth="1.5" />
+      ))
+    )}
+
+    {/* Grid spacing dimension - horizontal */}
+    <g transform="translate(60, 182)">
+      <line x1="0" y1="0" x2="35" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="0" y1="-4" x2="0" y2="4" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="35" y1="-4" x2="35" y2="4" stroke={palette.dimension} strokeWidth="1.5" />
+      <rect x="8" y="3" width="20" height="12" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="1" />
+      <text x="18" y="12" textAnchor="middle" fill={palette.dimension} fontSize="8" fontWeight="600">15cm</text>
     </g>
 
-    {/* Second dimension */}
-    <g transform="translate(105, 195)">
-      <line x1="0" y1="0" x2="45" y2="0" stroke={palette.highlight} strokeWidth="1.5" />
-      <line x1="0" y1="-5" x2="0" y2="5" stroke={palette.highlight} strokeWidth="2" />
-      <line x1="45" y1="-5" x2="45" y2="5" stroke={palette.highlight} strokeWidth="2" />
-      <rect x="12" y="-10" width="22" height="14" fill={palette.highlight} rx="2" />
-      <text x="23" y="1" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">15cm</text>
+    {/* Grid spacing dimension - second */}
+    <g transform="translate(95, 182)">
+      <line x1="0" y1="0" x2="35" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="0" y1="-4" x2="0" y2="4" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="35" y1="-4" x2="35" y2="4" stroke={palette.dimension} strokeWidth="1.5" />
+      <rect x="8" y="3" width="20" height="12" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="1" />
+      <text x="18" y="12" textAnchor="middle" fill={palette.dimension} fontSize="8" fontWeight="600">15cm</text>
     </g>
 
-    {/* Wire spool in corner */}
-    <g transform="translate(250, 10)">
-      <ellipse cx="15" cy="15" rx="12" ry="10" fill={palette.metalDark} />
-      <ellipse cx="15" cy="15" rx="7" ry="5" fill={palette.metal} />
+    {/* Vertical spacing */}
+    <g transform="translate(255, 55)">
+      <line x1="0" y1="0" x2="0" y2="35" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="-4" y1="0" x2="4" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="-4" y1="35" x2="4" y2="35" stroke={palette.dimension} strokeWidth="1.5" />
+      <text x="12" y="20" fill={palette.dimension} fontSize="8" fontWeight="600">15cm</text>
+    </g>
+
+    {/* Legend */}
+    <g transform="translate(140, 200)">
+      <circle cx="0" cy="0" r="4" fill="none" stroke={palette.metalDark} strokeWidth="1.5" />
+      <text x="10" y="3" fill={palette.gray} fontSize="8">= Wire tie at intersection</text>
     </g>
   </svg>
 );
 
 // ============================================================================
-// CONCRETE POUR Animation - More realistic
-// Shows mixer truck pouring concrete into formwork
+// CONCRETE POUR - Side view showing pour process
 // ============================================================================
 export const ConcretePourAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
   <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
     <defs>
-      <linearGradient id="drumGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor="#BDBDBD" />
-        <stop offset="50%" stopColor="#9E9E9E" />
-        <stop offset="100%" stopColor="#757575" />
-      </linearGradient>
-      <linearGradient id="concreteFlowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <linearGradient id="concreteGrad" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" stopColor={palette.concreteLight} />
         <stop offset="100%" stopColor={palette.concreteDark} />
       </linearGradient>
     </defs>
-    <style>{`
-      @keyframes drumSpin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      @keyframes concreteFlow {
-        0%, 100% {
-          d: path('M175 75 Q185 100 180 130 Q178 145 182 155');
-          stroke-width: 22;
-        }
-        50% {
-          d: path('M175 75 Q190 95 185 130 Q180 148 185 155');
-          stroke-width: 26;
-        }
-      }
-      @keyframes fillRise {
-        0% { y: 165; height: 0; }
-        100% { y: 140; height: 25; }
-      }
-      @keyframes splashDrop {
-        0%, 20% { opacity: 0; transform: translate(0, 0); }
-        40% { opacity: 1; transform: translate(5px, -10px); }
-        100% { opacity: 0; transform: translate(10px, 15px); }
-      }
-      .drum-stripes { animation: drumSpin 2s linear infinite; transform-origin: 95px 55px; }
-      .flow-path { animation: concreteFlow 1.5s ease-in-out infinite; }
-      .concrete-fill { animation: fillRise 4s ease-out infinite; }
-      .splash1 { animation: splashDrop 1s ease-out infinite; }
-      .splash2 { animation: splashDrop 1s ease-out infinite 0.3s; }
-    `}</style>
+
+    {/* Title bar */}
+    <rect x="0" y="0" width="280" height="24" fill={palette.dimensionBg} />
+    <text x="140" y="16" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">CONCRETE POUR - SIDE VIEW</text>
 
     {/* Ground */}
-    <rect x="0" y="180" width="280" height="30" fill={palette.ground} />
+    <rect x="0" y="170" width="280" height="40" fill={palette.soil} />
 
     {/* Formwork */}
-    <g transform="translate(140, 140)">
-      <rect x="0" y="0" width="130" height="45" fill="none" stroke={palette.woodDark} strokeWidth="6" />
-      <rect x="5" y="5" width="120" height="35" fill={palette.soil} />
-      {/* Concrete filling up */}
-      <rect className="concrete-fill" x="5" width="120" fill={palette.concrete} />
-      {/* Stakes */}
-      <rect x="-8" y="-5" width="8" height="55" fill={palette.wood} />
-      <rect x="130" y="-5" width="8" height="55" fill={palette.wood} />
+    <rect x="80" y="130" width="15" height="45" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" />
+    <rect x="220" y="130" width="15" height="45" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" />
+
+    {/* Gravel base */}
+    <rect x="95" y="155" width="125" height="15" fill={palette.gravel} />
+
+    {/* Concrete already poured */}
+    <rect x="95" y="140" width="70" height="15" fill="url(#concreteGrad)" />
+
+    {/* Concrete being poured */}
+    <path d="M170 50 Q175 80 172 100 Q170 115 173 135" stroke={palette.concrete} strokeWidth="20" fill="none" strokeLinecap="round" />
+
+    {/* Mixer chute */}
+    <g transform="translate(120, 30)">
+      <rect x="0" y="0" width="80" height="15" fill={palette.metal} stroke={palette.metalDark} strokeWidth="1" rx="2" transform="rotate(20)" />
+      <text x="30" y="-5" fill={palette.gray} fontSize="8">CHUTE</text>
     </g>
 
-    {/* Concrete mixer truck */}
-    <g transform="translate(5, 25)">
-      {/* Cab */}
-      <rect x="0" y="75" width="50" height="45" fill={palette.blue} rx="5" />
-      <rect x="8" y="82" width="30" height="22" fill={palette.blueLight} rx="3" />
-      <rect x="0" y="110" width="50" height="12" fill={palette.metalDark} />
-
-      {/* Drum */}
-      <ellipse cx="95" cy="45" rx="50" ry="35" fill="url(#drumGrad)" />
-      <ellipse cx="95" cy="95" rx="45" ry="28" fill={palette.metalDark} />
-      <rect x="50" y="45" width="90" height="50" fill={palette.metal} />
-
-      {/* Drum spiral stripes */}
-      <g className="drum-stripes">
-        <path d="M55 55 Q75 35 95 55 Q115 75 135 55" stroke={palette.metalDark} strokeWidth="6" fill="none" />
-        <path d="M55 75 Q75 55 95 75 Q115 95 135 75" stroke={palette.metalDark} strokeWidth="6" fill="none" />
-      </g>
-
-      {/* Chute */}
-      <rect x="130" y="50" width="50" height="15" fill={palette.metal} rx="2" transform="rotate(30, 130, 57)" />
-      <rect x="165" y="65" width="30" height="12" fill={palette.metalDark} rx="2" transform="rotate(45, 165, 71)" />
+    {/* Pour direction arrow */}
+    <g transform="translate(160, 75)">
+      <path d="M0 0 L0 30" stroke={palette.arrow} strokeWidth="2" />
+      <polygon points="-5,25 5,25 0,35" fill={palette.arrow} />
     </g>
 
-    {/* Concrete flow stream */}
-    <path className="flow-path" d="M175 75 Q185 100 180 130 Q178 145 182 155"
-          stroke="url(#concreteFlowGrad)" strokeWidth="24" fill="none" strokeLinecap="round" />
+    {/* Rebar visible in section */}
+    {[105, 130, 155, 180, 205].map((x, i) => (
+      <circle key={i} cx={x} cy={148} r="3" fill={palette.rebar} stroke={palette.rebarLight} strokeWidth="0.5" />
+    ))}
 
-    {/* Splash drops */}
-    <ellipse className="splash1" cx="185" cy="160" rx="8" ry="4" fill={palette.concrete} />
-    <ellipse className="splash2" cx="195" cy="158" rx="6" ry="3" fill={palette.concreteDark} />
+    {/* Thickness dimension */}
+    <g transform="translate(240, 140)">
+      <line x1="5" y1="0" x2="5" y2="15" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="0" y1="0" x2="10" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="0" y1="15" x2="10" y2="15" stroke={palette.dimension} strokeWidth="1.5" />
+      <rect x="12" y="2" width="28" height="12" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="1" />
+      <text x="26" y="11" textAnchor="middle" fill={palette.dimension} fontSize="8" fontWeight="600">15cm</text>
+    </g>
 
-    {/* Truck wheels */}
-    <circle cx="25" cy="135" r="14" fill={palette.black} />
-    <circle cx="25" cy="135" r="7" fill={palette.metal} />
-    <circle cx="80" cy="135" r="14" fill={palette.black} />
-    <circle cx="80" cy="135" r="7" fill={palette.metal} />
-    <circle cx="115" cy="135" r="14" fill={palette.black} />
-    <circle cx="115" cy="135" r="7" fill={palette.metal} />
+    {/* Labels */}
+    <g transform="translate(100, 148)">
+      <text fill={palette.white} fontSize="8" fontWeight="500">CONCRETE</text>
+    </g>
+    <g transform="translate(100, 168)">
+      <text fill={palette.white} fontSize="7">GRAVEL</text>
+    </g>
 
-    {/* Worker with vibrator hint */}
-    <g transform="translate(230, 130)">
-      <ellipse cx="15" cy="5" rx="8" ry="10" fill="#FFCCBC" />
-      <rect x="8" y="15" width="14" height="25" fill={palette.orange} rx="2" />
-      <rect x="5" y="35" width="8" height="20" fill="#455A64" rx="1" />
-      <rect x="17" y="35" width="8" height="20" fill="#455A64" rx="1" />
-      {/* Hard hat */}
-      <ellipse cx="15" cy="2" rx="10" ry="6" fill={palette.yellow} />
+    {/* Instructions */}
+    <g transform="translate(10, 195)">
+      <text fill={palette.gray} fontSize="8">• Pour evenly across formwork</text>
+    </g>
+    <g transform="translate(150, 195)">
+      <text fill={palette.gray} fontSize="8">• Use vibrator to remove air</text>
     </g>
   </svg>
 );
 
 // ============================================================================
-// SMOOTHING Animation - Float ON concrete surface
-// Shows hand float leveling concrete properly
+// SMOOTHING - Shows float technique on concrete surface
 // ============================================================================
 export const SmoothingAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
   <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    <style>{`
-      @keyframes floatSlide {
-        0%, 100% { transform: translateX(0); }
-        50% { transform: translateX(100px); }
-      }
-      @keyframes surfaceSmooth {
-        0% { opacity: 0; }
-        100% { opacity: 1; }
-      }
-      @keyframes armMove {
-        0%, 100% { transform: rotate(0deg); }
-        25% { transform: rotate(-5deg); }
-        75% { transform: rotate(5deg); }
-      }
-      @keyframes rippleEffect {
-        0% { r: 5; opacity: 0.8; }
-        100% { r: 25; opacity: 0; }
-      }
-      .float-tool { animation: floatSlide 3s ease-in-out infinite; }
-      .smooth-surface { animation: surfaceSmooth 3s ease-out forwards; }
-      .worker-arm { animation: armMove 3s ease-in-out infinite; transform-origin: 230px 70px; }
-      .ripple { animation: rippleEffect 1s ease-out infinite; }
-    `}</style>
+    {/* Title bar */}
+    <rect x="0" y="0" width="280" height="24" fill={palette.dimensionBg} />
+    <text x="140" y="16" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">SURFACE FINISHING - SIDE VIEW</text>
 
-    {/* Formwork frame */}
-    <rect x="15" y="120" width="12" height="55" fill={palette.woodDark} />
-    <rect x="253" y="120" width="12" height="55" fill={palette.woodDark} />
-    <rect x="15" y="170" width="250" height="8" fill={palette.woodDark} />
+    {/* Formwork sides */}
+    <rect x="20" y="100" width="12" height="60" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" />
+    <rect x="248" y="100" width="12" height="60" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" />
 
-    {/* Wet concrete - rough surface on left */}
-    <rect x="27" y="125" width="226" height="45" fill={palette.concreteWet} />
+    {/* Concrete surface - rough on left, smooth on right */}
+    <rect x="32" y="115" width="216" height="45" fill={palette.concrete} />
 
-    {/* Rough texture on unsmoothed part */}
+    {/* Rough surface texture (left side) */}
     <g>
-      {[35, 50, 65, 80].map((x, i) => (
-        <ellipse key={i} cx={x} cy={130 + (i % 2) * 5} rx="8" ry="3" fill={palette.concreteDark} opacity="0.5" />
+      {[40, 55, 70, 85, 100].map((x, i) => (
+        <ellipse key={i} cx={x} cy={118 + (i % 2) * 3} rx="6" ry="2" fill={palette.concreteDark} opacity="0.5" />
       ))}
     </g>
 
-    {/* Smooth surface appearing after float passes */}
-    <rect className="smooth-surface" x="100" y="125" width="153" height="45" fill={palette.concrete} />
+    {/* Smooth surface (right side) */}
+    <rect x="130" y="115" width="118" height="3" fill={palette.concreteLight} />
 
-    {/* Ripple effect under float */}
-    <circle className="ripple" cx="90" cy="145" fill="none" stroke={palette.concreteDark} strokeWidth="2" />
+    {/* Float tool on surface */}
+    <g transform="translate(110, 95)">
+      {/* Float blade - flat on surface */}
+      <rect x="0" y="17" width="50" height="6" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" rx="1" />
 
-    {/* Float tool - directly on surface */}
-    <g className="float-tool" transform="translate(40, 110)">
-      {/* Float pad - sitting flat on concrete */}
-      <rect x="0" y="15" width="60" height="8" fill={palette.wood} rx="2" />
-      <rect x="0" y="21" width="60" height="4" fill={palette.metal} rx="1" />
+      {/* Handle */}
+      <rect x="20" y="5" width="10" height="14" fill={palette.wood} stroke={palette.woodDark} strokeWidth="0.5" rx="1" />
+      <rect x="22" y="-25" width="6" height="32" fill={palette.wood} stroke={palette.woodDark} strokeWidth="0.5" rx="1" />
 
-      {/* Handle connection */}
-      <rect x="25" y="5" width="10" height="12" fill={palette.wood} rx="1" />
-
-      {/* Handle going up to worker */}
-      <rect x="27" y="-40" width="6" height="48" fill={palette.wood} rx="2" />
+      {/* Direction of movement */}
+      <path d="M60 20 L80 20" stroke={palette.arrow} strokeWidth="2" />
+      <polygon points="75,15 85,20 75,25" fill={palette.arrow} />
     </g>
 
-    {/* Worker */}
-    <g transform="translate(200, 30)">
-      {/* Head */}
-      <ellipse cx="30" cy="20" rx="15" ry="18" fill="#FFCCBC" />
-      {/* Hard hat */}
-      <ellipse cx="30" cy="12" rx="18" ry="10" fill={palette.yellow} />
-      <rect x="12" y="10" width="36" height="8" fill={palette.yellowDark} rx="2" />
-
-      {/* Body */}
-      <rect x="15" y="38" width="30" height="40" fill={palette.orange} rx="3" />
-
-      {/* Arms */}
-      <g className="worker-arm">
-        <rect x="-15" y="40" width="35" height="10" fill={palette.orange} rx="3" transform="rotate(-30, 15, 45)" />
-        <ellipse cx="-20" cy="55" rx="6" ry="7" fill="#FFCCBC" />
-      </g>
-      <rect x="40" y="42" width="25" height="10" fill={palette.orange} rx="3" transform="rotate(20, 45, 47)" />
-
-      {/* Legs */}
-      <rect x="18" y="78" width="12" height="30" fill="#455A64" rx="2" />
-      <rect x="34" y="78" width="12" height="30" fill="#455A64" rx="2" />
+    {/* Labels */}
+    <g transform="translate(50, 138)">
+      <text fill={palette.gray} fontSize="8">ROUGH</text>
+    </g>
+    <g transform="translate(180, 138)">
+      <text fill={palette.gray} fontSize="8">SMOOTH</text>
     </g>
 
-    {/* Direction indicator */}
-    <g transform="translate(130, 95)">
-      <path d="M0 0 L40 0 M30 -8 L40 0 L30 8" stroke={palette.highlight} strokeWidth="3" fill="none" strokeLinecap="round" />
+    {/* Float label */}
+    <text x="135" y="85" textAnchor="middle" fill={palette.gray} fontSize="8">HAND FLOAT</text>
+
+    {/* Technique instructions */}
+    <g transform="translate(20, 175)">
+      <rect x="0" y="0" width="240" height="30" fill={palette.dimensionBg} rx="3" />
+      <text x="10" y="12" fill={palette.dimension} fontSize="8" fontWeight="500">TECHNIQUE:</text>
+      <text x="10" y="24" fill={palette.gray} fontSize="8">Move float in sweeping arcs, keeping blade flat on surface</text>
     </g>
   </svg>
 );
 
 // ============================================================================
-// MEASURING Animation
-// Shows tape measure, stakes, string line
+// MEASURING - Shows proper layout technique
 // ============================================================================
 export const MeasuringAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
   <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    <defs>
-      <linearGradient id="groundGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor={palette.grass} />
-        <stop offset="30%" stopColor={palette.ground} />
-        <stop offset="100%" stopColor={palette.groundDark} />
-      </linearGradient>
-      <linearGradient id="tapeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor="#FFE082" />
-        <stop offset="100%" stopColor="#FFD54F" />
-      </linearGradient>
-    </defs>
-    <style>{`
-      @keyframes tapeExtend {
-        0%, 10% { width: 30px; }
-        40%, 100% { width: 180px; }
-      }
-      @keyframes measurePulse {
-        0%, 100% { opacity: 0; transform: scale(0.8); }
-        50% { opacity: 1; transform: scale(1); }
-      }
-      @keyframes stakeDrive {
-        0%, 20% { transform: translateY(-15px); }
-        40%, 100% { transform: translateY(0); }
-      }
-      .tape-body { animation: tapeExtend 3s ease-out infinite; }
-      .measure-mark { animation: measurePulse 3s ease-in-out infinite; }
-      .measure-mark-2 { animation: measurePulse 3s ease-in-out infinite 0.5s; }
-      .stake-1 { animation: stakeDrive 3s ease-out infinite; }
-      .stake-2 { animation: stakeDrive 3s ease-out infinite 0.3s; }
-    `}</style>
+    {/* Title bar */}
+    <rect x="0" y="0" width="280" height="24" fill={palette.dimensionBg} />
+    <text x="140" y="16" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">SITE LAYOUT - TOP VIEW</text>
 
-    {/* Ground */}
-    <rect x="0" y="140" width="280" height="70" fill="url(#groundGrad)" />
+    {/* Ground area */}
+    <rect x="20" y="40" width="240" height="130" fill={palette.grass} opacity="0.3" stroke={palette.grass} strokeWidth="1" />
 
-    {/* Stakes */}
-    <g className="stake-1">
-      <rect x="45" y="100" width="10" height="60" fill={palette.woodDark} rx="2" />
-      <polygon points="45,160 55,160 50,175" fill={palette.woodDark} />
+    {/* Corner stakes */}
+    <g transform="translate(40, 60)">
+      <rect x="-5" y="-5" width="10" height="10" fill={palette.woodDark} stroke={palette.black} strokeWidth="1" />
+      <text x="0" y="-12" textAnchor="middle" fill={palette.gray} fontSize="8">A</text>
     </g>
-    <g className="stake-2">
-      <rect x="225" y="100" width="10" height="60" fill={palette.woodDark} rx="2" />
-      <polygon points="225,160 235,160 230,175" fill={palette.woodDark} />
+    <g transform="translate(240, 60)">
+      <rect x="-5" y="-5" width="10" height="10" fill={palette.woodDark} stroke={palette.black} strokeWidth="1" />
+      <text x="0" y="-12" textAnchor="middle" fill={palette.gray} fontSize="8">B</text>
+    </g>
+    <g transform="translate(40, 150)">
+      <rect x="-5" y="-5" width="10" height="10" fill={palette.woodDark} stroke={palette.black} strokeWidth="1" />
+      <text x="0" y="20" textAnchor="middle" fill={palette.gray} fontSize="8">C</text>
+    </g>
+    <g transform="translate(240, 150)">
+      <rect x="-5" y="-5" width="10" height="10" fill={palette.woodDark} stroke={palette.black} strokeWidth="1" />
+      <text x="0" y="20" textAnchor="middle" fill={palette.gray} fontSize="8">D</text>
     </g>
 
-    {/* String line between stakes */}
-    <path d="M50 120 Q140 118 230 120" stroke="#E53935" strokeWidth="2" fill="none" strokeDasharray="8,4" />
+    {/* String lines */}
+    <line x1="40" y1="60" x2="240" y2="60" stroke={palette.arrow} strokeWidth="1.5" />
+    <line x1="40" y1="150" x2="240" y2="150" stroke={palette.arrow} strokeWidth="1.5" />
+    <line x1="40" y1="60" x2="40" y2="150" stroke={palette.arrow} strokeWidth="1.5" />
+    <line x1="240" y1="60" x2="240" y2="150" stroke={palette.arrow} strokeWidth="1.5" />
 
-    {/* Tape measure body */}
-    <g transform="translate(30, 95)">
-      <rect x="0" y="0" width="45" height="40" fill="#FFC107" stroke="#F57F17" strokeWidth="2" rx="6" />
-      <circle cx="22" cy="20" r="12" fill="#F57F17" />
-      <circle cx="22" cy="20" r="8" fill="#FFE082" />
-      {/* Tape extending */}
-      <rect className="tape-body" x="45" y="15" height="10" fill="url(#tapeGrad)" rx="1" />
-      {/* Tick marks on tape */}
-      <g>
-        <line x1="60" y1="15" x2="60" y2="25" stroke={palette.black} strokeWidth="1" />
-        <line x1="90" y1="15" x2="90" y2="25" stroke={palette.black} strokeWidth="1" />
-        <line x1="120" y1="15" x2="120" y2="25" stroke={palette.black} strokeWidth="1" />
-        <line x1="150" y1="15" x2="150" y2="25" stroke={palette.black} strokeWidth="1" />
-        <line x1="180" y1="15" x2="180" y2="25" stroke={palette.black} strokeWidth="1" />
-      </g>
+    {/* Diagonal for square check */}
+    <line x1="40" y1="60" x2="240" y2="150" stroke={palette.dimension} strokeWidth="1" strokeDasharray="5,5" />
+    <line x1="240" y1="60" x2="40" y2="150" stroke={palette.dimension} strokeWidth="1" strokeDasharray="5,5" />
+
+    {/* Dimensions */}
+    <g transform="translate(40, 175)">
+      <line x1="0" y1="0" x2="200" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="0" y1="-5" x2="0" y2="5" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="200" y1="-5" x2="200" y2="5" stroke={palette.dimension} strokeWidth="1.5" />
+      <rect x="85" y="3" width="30" height="14" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="2" />
+      <text x="100" y="13" textAnchor="middle" fill={palette.dimension} fontSize="9" fontWeight="600">5.0m</text>
     </g>
 
-    {/* Measurement markers floating above */}
-    <g className="measure-mark" transform="translate(100, 60)">
-      <rect x="-18" y="-10" width="36" height="20" fill={palette.highlight} rx="4" />
-      <text x="0" y="4" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">2.5m</text>
-    </g>
-    <g className="measure-mark-2" transform="translate(180, 60)">
-      <rect x="-18" y="-10" width="36" height="20" fill={palette.highlight} rx="4" />
-      <text x="0" y="4" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">5.0m</text>
+    <g transform="translate(255, 60)">
+      <line x1="0" y1="0" x2="0" y2="90" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="-5" y1="0" x2="5" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="-5" y1="90" x2="5" y2="90" stroke={palette.dimension} strokeWidth="1.5" />
+      <rect x="7" y="38" width="25" height="14" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="2" />
+      <text x="19" y="48" textAnchor="middle" fill={palette.dimension} fontSize="9" fontWeight="600">3.0m</text>
     </g>
 
-    {/* Ground markers */}
-    <circle cx="100" cy="145" r="4" fill="#E53935" />
-    <circle cx="180" cy="145" r="4" fill="#E53935" />
+    {/* Square check note */}
+    <g transform="translate(130, 105)">
+      <text fill={palette.dimension} fontSize="8" fontWeight="500" textAnchor="middle">DIAGONALS</text>
+      <text fill={palette.dimension} fontSize="8" fontWeight="500" textAnchor="middle" y="12">MUST BE EQUAL</text>
+    </g>
+
+    {/* Legend */}
+    <g transform="translate(20, 195)">
+      <rect x="0" y="0" width="8" height="8" fill={palette.woodDark} />
+      <text x="12" y="7" fill={palette.gray} fontSize="7">Corner stake</text>
+      <line x1="70" y1="4" x2="90" y2="4" stroke={palette.arrow} strokeWidth="1.5" />
+      <text x="95" y="7" fill={palette.gray} fontSize="7">String line</text>
+      <line x1="150" y1="4" x2="170" y2="4" stroke={palette.dimension} strokeWidth="1" strokeDasharray="3,3" />
+      <text x="175" y="7" fill={palette.gray} fontSize="7">Square check</text>
+    </g>
   </svg>
 );
 
 // ============================================================================
-// DIGGING Animation (for fence posts)
-// Shows hole digging with depth marker
+// DIGGING - Cross-section for post holes
 // ============================================================================
 export const DiggingAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
   <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
     <defs>
-      <linearGradient id="dirtGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor={palette.ground} />
-        <stop offset="100%" stopColor={palette.soil} />
-      </linearGradient>
+      <pattern id="soilHatch2" patternUnits="userSpaceOnUse" width="8" height="8">
+        <path d="M0 8 L8 0" stroke={palette.soilDark} strokeWidth="0.5" fill="none" />
+      </pattern>
     </defs>
-    <style>{`
-      @keyframes shovelDig {
-        0%, 100% { transform: rotate(0deg) translate(0, 0); }
-        20% { transform: rotate(-25deg) translate(-10px, -20px); }
-        40% { transform: rotate(0deg) translate(0, 5px); }
-        60% { transform: rotate(10deg) translate(5px, -5px); }
-      }
-      @keyframes dirtFly1 {
-        0%, 30% { opacity: 0; transform: translate(0, 0); }
-        50% { opacity: 1; transform: translate(-30px, -40px); }
-        100% { opacity: 0; transform: translate(-50px, 20px); }
-      }
-      @keyframes dirtFly2 {
-        0%, 35% { opacity: 0; transform: translate(0, 0); }
-        55% { opacity: 1; transform: translate(-15px, -50px); }
-        100% { opacity: 0; transform: translate(-25px, 30px); }
-      }
-      @keyframes depthPulse {
-        0%, 100% { opacity: 0.7; }
-        50% { opacity: 1; }
-      }
-      .shovel { animation: shovelDig 2s ease-in-out infinite; transform-origin: 180px 180px; }
-      .dirt-1 { animation: dirtFly1 2s ease-out infinite; }
-      .dirt-2 { animation: dirtFly2 2s ease-out infinite; }
-      .depth-marker { animation: depthPulse 2s ease-in-out infinite; }
-    `}</style>
+
+    {/* Title bar */}
+    <rect x="0" y="0" width="280" height="24" fill={palette.dimensionBg} />
+    <text x="140" y="16" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">POST HOLE - CROSS-SECTION</text>
 
     {/* Ground surface */}
-    <rect x="0" y="120" width="280" height="90" fill={palette.ground} />
-    <rect x="0" y="115" width="280" height="10" fill={palette.grass} />
+    <rect x="0" y="60" width="280" height="10" fill={palette.grass} />
+    <line x1="0" y1="70" x2="280" y2="70" stroke={palette.soilDark} strokeWidth="1" />
 
-    {/* Hole in ground */}
-    <ellipse cx="100" cy="130" rx="45" ry="15" fill={palette.soil} />
-    <rect x="55" y="130" width="90" height="60" fill={palette.soil} />
-    <ellipse cx="100" cy="190" rx="45" ry="12" fill={palette.groundDark} />
+    {/* Soil */}
+    <rect x="0" y="70" width="280" height="110" fill={palette.soil} />
+    <rect x="0" y="70" width="280" height="110" fill="url(#soilHatch2)" opacity="0.3" />
 
-    {/* Depth measurement */}
-    <g className="depth-marker">
-      <line x1="150" y1="130" x2="150" y2="190" stroke={palette.highlight} strokeWidth="2" strokeDasharray="4,4" />
-      <line x1="145" y1="130" x2="155" y2="130" stroke={palette.highlight} strokeWidth="2" />
-      <line x1="145" y1="190" x2="155" y2="190" stroke={palette.highlight} strokeWidth="2" />
-      <rect x="155" y="150" width="40" height="20" fill={palette.highlight} rx="3" />
-      <text x="175" y="164" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">60cm</text>
+    {/* Post hole */}
+    <path d="M100 70 L100 155 Q100 165 115 165 L165 165 Q180 165 180 155 L180 70" fill={palette.soilLight} stroke={palette.soilDark} strokeWidth="2" />
+
+    {/* Hole width dimension */}
+    <g transform="translate(100, 45)">
+      <line x1="0" y1="0" x2="80" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="0" y1="-5" x2="0" y2="5" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="80" y1="-5" x2="80" y2="5" stroke={palette.dimension} strokeWidth="1.5" />
+      <rect x="25" y="-15" width="30" height="14" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="2" />
+      <text x="40" y="-5" textAnchor="middle" fill={palette.dimension} fontSize="9" fontWeight="600">30cm</text>
     </g>
 
-    {/* Dirt pile */}
-    <ellipse cx="200" cy="155" rx="35" ry="20" fill={palette.ground} />
-    <ellipse cx="200" cy="145" rx="28" ry="15" fill="#9E8B7A" />
-
-    {/* Flying dirt particles */}
-    <g transform="translate(100, 120)">
-      <circle className="dirt-1" cx="0" cy="0" r="8" fill={palette.ground} />
-      <circle className="dirt-2" cx="10" cy="5" r="6" fill="#9E8B7A" />
+    {/* Depth dimension */}
+    <g transform="translate(195, 70)">
+      <line x1="0" y1="0" x2="0" y2="95" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="-5" y1="0" x2="5" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="-5" y1="95" x2="5" y2="95" stroke={palette.dimension} strokeWidth="1.5" />
+      <rect x="8" y="38" width="30" height="18" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="2" />
+      <text x="23" y="51" textAnchor="middle" fill={palette.dimension} fontSize="10" fontWeight="700">60cm</text>
     </g>
 
-    {/* Shovel */}
-    <g className="shovel">
-      <rect x="165" y="40" width="12" height="120" fill={palette.woodDark} rx="3" />
-      <ellipse cx="171" cy="35" rx="18" ry="8" fill={palette.woodDark} />
-      <path d="M155 155 L187 155 L175 195 L167 195 Z" fill={palette.metalDark} />
-      <path d="M158 155 L184 155 L175 190 L167 190 Z" fill={palette.metal} />
+    {/* Post-hole digger tool illustration */}
+    <g transform="translate(50, 80)">
+      <rect x="15" y="-50" width="8" height="100" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" rx="2" />
+      <rect x="30" y="-50" width="8" height="100" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" rx="2" />
+      {/* Blades */}
+      <path d="M10 50 Q5 60 15 70 Q25 75 25 60 Q20 50 10 50" fill={palette.metal} stroke={palette.metalDark} strokeWidth="1" />
+      <path d="M43 50 Q48 60 38 70 Q28 75 28 60 Q33 50 43 50" fill={palette.metal} stroke={palette.metalDark} strokeWidth="1" />
+      <text x="26" y="-55" textAnchor="middle" fill={palette.gray} fontSize="7">POST-HOLE</text>
+      <text x="26" y="-45" textAnchor="middle" fill={palette.gray} fontSize="7">DIGGER</text>
+    </g>
+
+    {/* Excavated soil pile */}
+    <g transform="translate(220, 140)">
+      <ellipse cx="0" cy="0" rx="30" ry="15" fill={palette.soil} stroke={palette.soilDark} strokeWidth="1" />
+      <text x="0" y="25" textAnchor="middle" fill={palette.gray} fontSize="7">EXCAVATED SOIL</text>
+    </g>
+
+    {/* Note */}
+    <g transform="translate(10, 190)">
+      <text fill={palette.gray} fontSize="8">• Hole depth = 1/3 of total post length • Keep sides vertical</text>
     </g>
   </svg>
 );
 
 // ============================================================================
-// POST INSTALL Animation
-// Shows post being set with level check
+// POST INSTALL - Shows post placement and leveling
 // ============================================================================
 export const PostInstallAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
   <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    <defs>
-      <linearGradient id="postGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor={palette.metal} />
-        <stop offset="50%" stopColor="#90A4AE" />
-        <stop offset="100%" stopColor={palette.metal} />
-      </linearGradient>
-    </defs>
-    <style>{`
-      @keyframes postDrop {
-        0%, 10% { transform: translateY(-40px); opacity: 0.5; }
-        50%, 100% { transform: translateY(0); opacity: 1; }
-      }
-      @keyframes levelCheck {
-        0%, 40% { transform: rotate(-8deg); }
-        60%, 100% { transform: rotate(0deg); }
-      }
-      @keyframes bubbleMove {
-        0%, 40% { cx: 220; }
-        60%, 100% { cx: 230; }
-      }
-      @keyframes checkAppear {
-        0%, 70% { opacity: 0; transform: scale(0); }
-        100% { opacity: 1; transform: scale(1); }
-      }
-      .post { animation: postDrop 3s ease-out infinite; }
-      .level-tool { animation: levelCheck 3s ease-out infinite; transform-origin: 230px 90px; }
-      .bubble { animation: bubbleMove 3s ease-out infinite; }
-      .check { animation: checkAppear 3s ease-out infinite; transform-origin: center; }
-    `}</style>
+    {/* Title bar */}
+    <rect x="0" y="0" width="280" height="24" fill={palette.dimensionBg} />
+    <text x="140" y="16" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">POST INSTALLATION - FRONT VIEW</text>
 
-    {/* Ground */}
-    <rect x="0" y="150" width="280" height="60" fill={palette.ground} />
-    <rect x="0" y="145" width="280" height="10" fill={palette.grass} />
+    {/* Ground surface */}
+    <rect x="0" y="130" width="280" height="10" fill={palette.grass} />
+    <rect x="0" y="140" width="280" height="50" fill={palette.soil} />
 
-    {/* Hole */}
-    <ellipse cx="100" cy="155" rx="30" ry="10" fill={palette.soil} />
-    <rect x="70" y="155" width="60" height="45" fill={palette.soil} />
+    {/* Post hole */}
+    <rect x="105" y="140" width="70" height="50" fill={palette.soilLight} />
 
-    {/* Post */}
-    <g className="post">
-      <rect x="88" y="20" width="24" height="180" fill="url(#postGrad)" rx="2" />
-      <rect x="85" y="15" width="30" height="12" fill={palette.metalDark} rx="2" />
-      <line x1="92" y1="30" x2="92" y2="190" stroke={palette.metalDark} strokeWidth="1" opacity="0.5" />
-      <line x1="108" y1="30" x2="108" y2="190" stroke="white" strokeWidth="1" opacity="0.3" />
+    {/* Concrete footing */}
+    <rect x="110" y="155" width="60" height="35" fill={palette.concrete} stroke={palette.concreteDark} strokeWidth="1" />
+
+    {/* Metal post */}
+    <rect x="130" y="40" width="20" height="150" fill={palette.metal} stroke={palette.metalDark} strokeWidth="1" />
+    <rect x="127" y="35" width="26" height="10" fill={palette.metalDark} stroke={palette.black} strokeWidth="0.5" rx="1" />
+
+    {/* Level on post */}
+    <g transform="translate(155, 70)">
+      <rect x="0" y="0" width="60" height="15" fill="#FFD54F" stroke="#F9A825" strokeWidth="1" rx="2" />
+      <rect x="20" y="3" width="20" height="9" fill="#81D4FA" stroke="#0288D1" strokeWidth="0.5" rx="1" />
+      <circle cx="30" cy="7.5" r="2" fill="#4CAF50" />
+    </g>
+    <text x="185" y="100" textAnchor="middle" fill={palette.gray} fontSize="7">LEVEL</text>
+
+    {/* Plumb line indicator */}
+    <line x1="140" y1="30" x2="140" y2="195" stroke={palette.dimension} strokeWidth="1" strokeDasharray="4,4" />
+    <text x="145" y="28" fill={palette.dimension} fontSize="7">PLUMB</text>
+
+    {/* Vertical check arrows */}
+    <g transform="translate(90, 85)">
+      <line x1="0" y1="0" x2="0" y2="50" stroke={palette.arrow} strokeWidth="1.5" />
+      <polygon points="-4,5 4,5 0,0" fill={palette.arrow} />
+      <polygon points="-4,45 4,45 0,50" fill={palette.arrow} />
+      <text x="-8" y="28" textAnchor="end" fill={palette.gray} fontSize="7" transform="rotate(-90, -8, 28)">VERTICAL</text>
     </g>
 
-    {/* Level tool */}
-    <g className="level-tool">
-      <rect x="180" y="60" width="100" height="25" fill={palette.yellow} stroke={palette.yellowDark} strokeWidth="2" rx="4" />
-      <rect x="210" y="67" width="40" height="11" fill="#81D4FA" stroke="#0288D1" strokeWidth="1" rx="3" />
-      <line x1="228" y1="67" x2="228" y2="78" stroke="#0288D1" strokeWidth="1" />
-      <line x1="232" y1="67" x2="232" y2="78" stroke="#0288D1" strokeWidth="1" />
-      <circle className="bubble" cy="72.5" r="4" fill="#4CAF50" />
-    </g>
+    {/* Concrete label */}
+    <text x="140" y="175" textAnchor="middle" fill={palette.white} fontSize="8">CONCRETE</text>
 
-    {/* Success check */}
-    <g className="check" transform="translate(55, 60)">
-      <circle cx="0" cy="0" r="20" fill={palette.success} />
-      <path d="M-8 0 L-3 5 L8 -6" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    {/* Instructions */}
+    <g transform="translate(10, 195)">
+      <text fill={palette.gray} fontSize="8">• Check plumb on 2 adjacent faces • Brace until concrete sets</text>
     </g>
   </svg>
 );
 
 // ============================================================================
-// CONCRETE MIXING Animation
-// Shows mixer preparing concrete
+// CONCRETE MIXING - Shows proper mixing setup
 // ============================================================================
 export const ConcreteMixingAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
   <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    <defs>
-      <linearGradient id="mixerGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor={palette.orange} />
-        <stop offset="100%" stopColor={palette.orangeDark} />
-      </linearGradient>
-    </defs>
-    <style>{`
-      @keyframes drumRotate {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      @keyframes mixSplash {
-        0%, 100% { transform: translateY(0) scale(1); opacity: 0.8; }
-        50% { transform: translateY(-10px) scale(1.1); opacity: 1; }
-      }
-      @keyframes pourFlow {
-        0% { stroke-dashoffset: 50; }
-        100% { stroke-dashoffset: 0; }
-      }
-      .drum-blade { animation: drumRotate 1.5s linear infinite; transform-origin: 90px 95px; }
-      .mix-content { animation: mixSplash 0.8s ease-in-out infinite; }
-      .pour-stream { stroke-dasharray: 50; animation: pourFlow 1s linear infinite; }
-    `}</style>
+    {/* Title bar */}
+    <rect x="0" y="0" width="280" height="24" fill={palette.dimensionBg} />
+    <text x="140" y="16" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">CONCRETE MIXING</text>
 
     {/* Ground */}
-    <rect x="0" y="180" width="280" height="30" fill={palette.ground} />
+    <rect x="0" y="170" width="280" height="40" fill={palette.soil} />
 
     {/* Mixer drum */}
-    <g transform="translate(30, 40)">
-      <ellipse cx="60" cy="30" rx="55" ry="25" fill="#FF8A65" />
-      <ellipse cx="60" cy="110" rx="55" ry="25" fill={palette.orangeDark} />
-      <rect x="5" y="30" width="110" height="80" fill="url(#mixerGrad)" />
-      <ellipse className="mix-content" cx="60" cy="70" rx="45" ry="20" fill={palette.concrete} />
-      <g className="drum-blade">
-        <rect x="55" y="40" width="10" height="60" fill={palette.metalDark} rx="2" />
-        <rect x="35" y="63" width="50" height="8" fill={palette.metalDark} rx="2" />
-      </g>
-      <ellipse cx="60" cy="30" rx="35" ry="15" fill={palette.concreteDark} />
+    <g transform="translate(80, 50)">
+      <ellipse cx="50" cy="20" rx="45" ry="20" fill={palette.metalLight} stroke={palette.metalDark} strokeWidth="2" />
+      <rect x="5" y="20" width="90" height="70" fill={palette.metal} stroke={palette.metalDark} strokeWidth="2" />
+      <ellipse cx="50" cy="90" rx="45" ry="20" fill={palette.metalDark} stroke={palette.black} strokeWidth="1" />
+
+      {/* Opening */}
+      <ellipse cx="50" cy="20" rx="30" ry="12" fill={palette.concreteDark} />
+
+      {/* Drum stripes */}
+      <path d="M15 40 Q35 25 50 40 Q65 55 85 40" stroke={palette.metalDark} strokeWidth="3" fill="none" />
+      <path d="M15 60 Q35 45 50 60 Q65 75 85 60" stroke={palette.metalDark} strokeWidth="3" fill="none" />
     </g>
 
-    {/* Pour spout and stream */}
-    <g transform="translate(140, 80)">
-      <rect x="0" y="0" width="60" height="15" fill={palette.metal} rx="3" transform="rotate(25)" />
-      <path className="pour-stream" d="M50 25 Q70 60 65 100" stroke={palette.concrete} strokeWidth="20" fill="none" strokeLinecap="round" />
+    {/* Chute */}
+    <g transform="translate(170, 80)">
+      <rect x="0" y="0" width="60" height="12" fill={palette.metal} stroke={palette.metalDark} strokeWidth="1" rx="2" transform="rotate(30)" />
     </g>
 
-    {/* Target container */}
-    <g transform="translate(180, 140)">
-      <rect x="0" y="0" width="80" height="40" fill={palette.metalDark} rx="3" />
-      <rect x="5" y="5" width="70" height="30" fill={palette.concrete} rx="2" />
+    {/* Wheelbarrow */}
+    <g transform="translate(195, 120)">
+      <path d="M0 30 L50 30 L55 50 L-5 50 Z" fill={palette.metal} stroke={palette.metalDark} strokeWidth="1" />
+      <ellipse cx="25" cy="25" rx="22" ry="12" fill={palette.metalLight} />
+      <ellipse cx="25" cy="22" rx="18" ry="8" fill={palette.concrete} />
+      <circle cx="25" cy="58" r="10" fill={palette.black} />
+      <circle cx="25" cy="58" r="5" fill={palette.metal} />
+      <text x="25" y="80" textAnchor="middle" fill={palette.gray} fontSize="7">WHEELBARROW</text>
     </g>
 
     {/* Mixer wheels */}
-    <circle cx="50" cy="175" r="15" fill={palette.black} />
-    <circle cx="50" cy="175" r="8" fill={palette.metal} />
-    <circle cx="130" cy="175" r="15" fill={palette.black} />
-    <circle cx="130" cy="175" r="8" fill={palette.metal} />
+    <circle cx="100" cy="165" r="12" fill={palette.black} />
+    <circle cx="100" cy="165" r="6" fill={palette.metal} />
+    <circle cx="160" cy="165" r="12" fill={palette.black} />
+    <circle cx="160" cy="165" r="6" fill={palette.metal} />
+
+    {/* Mix ratio diagram */}
+    <g transform="translate(15, 50)">
+      <rect x="0" y="0" width="50" height="100" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="3" />
+      <text x="25" y="15" textAnchor="middle" fill={palette.dimension} fontSize="8" fontWeight="600">MIX RATIO</text>
+      <line x1="5" y1="20" x2="45" y2="20" stroke={palette.dimension} strokeWidth="0.5" />
+
+      <rect x="10" y="28" width="12" height="12" fill={palette.concrete} />
+      <text x="28" y="38" fill={palette.gray} fontSize="7">1 Cement</text>
+
+      <rect x="10" y="45" width="12" height="12" fill="#F5DEB3" />
+      <text x="28" y="55" fill={palette.gray} fontSize="7">2 Sand</text>
+
+      <rect x="10" y="62" width="12" height="12" fill={palette.gravel} />
+      <text x="28" y="72" fill={palette.gray} fontSize="7">3 Gravel</text>
+
+      <rect x="10" y="79" width="12" height="12" fill="#B3E5FC" />
+      <text x="28" y="89" fill={palette.gray} fontSize="7">½ Water</text>
+    </g>
+
+    {/* Instructions */}
+    <g transform="translate(10, 190)">
+      <text fill={palette.gray} fontSize="8">• Mix dry ingredients first • Add water gradually • Mix until uniform color</text>
+    </g>
   </svg>
 );
 
 // ============================================================================
-// PANEL ATTACH Animation
-// Shows fence panel being attached
+// PANEL ATTACH - Shows fence panel installation
 // ============================================================================
 export const PanelAttachAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
   <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    <style>{`
-      @keyframes panelSlide {
-        0%, 20% { transform: translateX(40px); opacity: 0.6; }
-        50%, 100% { transform: translateX(0); opacity: 1; }
-      }
-      @keyframes drillVibrate {
-        0%, 100% { transform: translate(0, 0); }
-        25% { transform: translate(-1px, 1px); }
-        50% { transform: translate(1px, -1px); }
-        75% { transform: translate(-1px, -1px); }
-      }
-      @keyframes screwIn {
-        0%, 40% { transform: translateX(20px); opacity: 0; }
-        100% { transform: translateX(0); opacity: 1; }
-      }
-      .panel { animation: panelSlide 3s ease-out infinite; }
-      .drill { animation: drillVibrate 0.1s linear infinite; }
-      .screw-1 { animation: screwIn 3s ease-out infinite; }
-      .screw-2 { animation: screwIn 3s ease-out infinite 0.3s; }
-      .screw-3 { animation: screwIn 3s ease-out infinite 0.6s; }
-    `}</style>
+    {/* Title bar */}
+    <rect x="0" y="0" width="280" height="24" fill={palette.dimensionBg} />
+    <text x="140" y="16" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">PANEL ATTACHMENT - FRONT VIEW</text>
 
     {/* Ground */}
-    <rect x="0" y="180" width="280" height="30" fill={palette.ground} />
-    <rect x="0" y="175" width="280" height="8" fill={palette.grass} />
+    <rect x="0" y="165" width="280" height="45" fill={palette.grass} />
 
-    {/* Posts */}
-    <rect x="25" y="30" width="20" height="150" fill={palette.metal} rx="2" />
-    <rect x="22" y="25" width="26" height="10" fill={palette.metalDark} rx="2" />
-    <rect x="235" y="30" width="20" height="150" fill={palette.metal} rx="2" />
-    <rect x="232" y="25" width="26" height="10" fill={palette.metalDark} rx="2" />
+    {/* Left post */}
+    <rect x="30" y="40" width="18" height="130" fill={palette.metal} stroke={palette.metalDark} strokeWidth="1" />
+    <rect x="27" y="35" width="24" height="10" fill={palette.metalDark} rx="1" />
 
-    {/* Fence panels */}
-    <g className="panel">
-      <rect x="45" y="50" width="190" height="12" fill={palette.wood} rx="2" />
-      <rect x="45" y="95" width="190" height="12" fill={palette.wood} rx="2" />
-      <rect x="45" y="140" width="190" height="12" fill={palette.wood} rx="2" />
-      {[60, 90, 120, 150, 180, 210].map((x, i) => (
-        <rect key={i} x={x} y="45" width="8" height="115" fill={palette.wood} rx="1" />
-      ))}
+    {/* Right post */}
+    <rect x="232" y="40" width="18" height="130" fill={palette.metal} stroke={palette.metalDark} strokeWidth="1" />
+    <rect x="229" y="35" width="24" height="10" fill={palette.metalDark} rx="1" />
+
+    {/* Horizontal rails */}
+    <rect x="48" y="55" width="184" height="10" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" />
+    <rect x="48" y="100" width="184" height="10" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" />
+    <rect x="48" y="145" width="184" height="10" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" />
+
+    {/* Vertical slats */}
+    {[60, 85, 110, 135, 160, 185, 210].map((x, i) => (
+      <rect key={i} x={x} y="50" width="8" height="110" fill={palette.wood} stroke={palette.woodDark} strokeWidth="0.5" />
+    ))}
+
+    {/* Bracket/screw detail */}
+    <g transform="translate(48, 58)">
+      <circle cx="0" cy="0" r="4" fill={palette.metalDark} stroke={palette.black} strokeWidth="0.5" />
+      <line x1="-2" y1="0" x2="2" y2="0" stroke={palette.metalLight} strokeWidth="1" />
+    </g>
+    <g transform="translate(48, 103)">
+      <circle cx="0" cy="0" r="4" fill={palette.metalDark} stroke={palette.black} strokeWidth="0.5" />
+      <line x1="-2" y1="0" x2="2" y2="0" stroke={palette.metalLight} strokeWidth="1" />
+    </g>
+    <g transform="translate(48, 148)">
+      <circle cx="0" cy="0" r="4" fill={palette.metalDark} stroke={palette.black} strokeWidth="0.5" />
+      <line x1="-2" y1="0" x2="2" y2="0" stroke={palette.metalLight} strokeWidth="1" />
     </g>
 
-    {/* Screws */}
-    <g className="screw-1" transform="translate(42, 54)">
-      <circle cx="0" cy="0" r="5" fill={palette.metalDark} />
-      <line x1="-3" y1="0" x2="3" y2="0" stroke={palette.metal} strokeWidth="2" />
-    </g>
-    <g className="screw-2" transform="translate(42, 99)">
-      <circle cx="0" cy="0" r="5" fill={palette.metalDark} />
-      <line x1="-3" y1="0" x2="3" y2="0" stroke={palette.metal} strokeWidth="2" />
-    </g>
-    <g className="screw-3" transform="translate(42, 144)">
-      <circle cx="0" cy="0" r="5" fill={palette.metalDark} />
-      <line x1="-3" y1="0" x2="3" y2="0" stroke={palette.metal} strokeWidth="2" />
+    {/* Screw callout */}
+    <g transform="translate(55, 58)">
+      <line x1="0" y1="0" x2="25" y2="-15" stroke={palette.gray} strokeWidth="0.5" />
+      <text x="28" y="-12" fill={palette.gray} fontSize="7">SCREWS</text>
     </g>
 
-    {/* Drill */}
-    <g className="drill" transform="translate(55, 90)">
-      <rect x="0" y="-12" width="50" height="24" fill={palette.orange} rx="4" />
-      <rect x="50" y="-8" width="15" height="16" fill="#BF360C" rx="2" />
-      <rect x="-25" y="-5" width="28" height="10" fill={palette.metalDark} rx="2" />
+    {/* Post spacing dimension */}
+    <g transform="translate(48, 180)">
+      <line x1="0" y1="0" x2="184" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="0" y1="-5" x2="0" y2="5" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="184" y1="-5" x2="184" y2="5" stroke={palette.dimension} strokeWidth="1.5" />
+      <rect x="70" y="3" width="45" height="14" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="2" />
+      <text x="92" y="13" textAnchor="middle" fill={palette.dimension} fontSize="8" fontWeight="600">PANEL WIDTH</text>
+    </g>
+
+    {/* Height dimension */}
+    <g transform="translate(260, 55)">
+      <line x1="0" y1="0" x2="0" y2="100" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="-5" y1="0" x2="5" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="-5" y1="100" x2="5" y2="100" stroke={palette.dimension} strokeWidth="1.5" />
+      <text x="10" y="55" fill={palette.dimension} fontSize="8" fontWeight="600" transform="rotate(90, 10, 55)">HEIGHT</text>
     </g>
   </svg>
 );
 
 // ============================================================================
-// GATE INSTALL Animation
+// GATE INSTALL - Shows gate hanging detail
 // ============================================================================
 export const GateInstallAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
   <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    <style>{`
-      @keyframes gateSwing {
-        0%, 100% { transform: rotate(0deg); }
-        30% { transform: rotate(-35deg); }
-        60% { transform: rotate(-20deg); }
-      }
-      @keyframes hingeGlow {
-        0%, 100% { fill: ${palette.metal}; }
-        50% { fill: ${palette.yellow}; }
-      }
-      .gate { animation: gateSwing 4s ease-in-out infinite; transform-origin: 50px 100px; }
-      .hinge { animation: hingeGlow 2s ease-in-out infinite; }
-    `}</style>
+    {/* Title bar */}
+    <rect x="0" y="0" width="280" height="24" fill={palette.dimensionBg} />
+    <text x="140" y="16" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">GATE INSTALLATION - FRONT VIEW</text>
 
     {/* Ground */}
-    <rect x="0" y="175" width="280" height="35" fill={palette.ground} />
-    <rect x="0" y="170" width="280" height="8" fill={palette.grass} />
+    <rect x="0" y="170" width="280" height="40" fill={palette.grass} />
 
-    {/* Posts */}
-    <rect x="35" y="30" width="25" height="145" fill={palette.metal} rx="3" />
-    <rect x="32" y="25" width="31" height="12" fill={palette.metalDark} rx="2" />
-    <rect x="220" y="30" width="25" height="145" fill={palette.metal} rx="3" />
-    <rect x="217" y="25" width="31" height="12" fill={palette.metalDark} rx="2" />
+    {/* Hinge post */}
+    <rect x="40" y="40" width="22" height="135" fill={palette.metal} stroke={palette.metalDark} strokeWidth="1" />
+    <rect x="37" y="35" width="28" height="10" fill={palette.metalDark} rx="1" />
 
-    {/* Gate */}
-    <g className="gate">
-      <rect x="60" y="45" width="95" height="125" fill="none" stroke={palette.metalDark} strokeWidth="6" rx="3" />
-      <rect x="60" y="70" width="95" height="5" fill={palette.metal} />
-      <rect x="60" y="100" width="95" height="5" fill={palette.metal} />
-      <rect x="60" y="130" width="95" height="5" fill={palette.metal} />
-      <line x1="63" y1="167" x2="152" y2="48" stroke={palette.metal} strokeWidth="4" />
-      <circle cx="140" cy="115" r="10" fill={palette.yellow} stroke={palette.yellowDark} strokeWidth="2" />
-    </g>
+    {/* Latch post */}
+    <rect x="218" y="40" width="22" height="135" fill={palette.metal} stroke={palette.metalDark} strokeWidth="1" />
+    <rect x="215" y="35" width="28" height="10" fill={palette.metalDark} rx="1" />
+
+    {/* Gate frame */}
+    <rect x="70" y="55" width="100" height="110" fill="none" stroke={palette.metalDark} strokeWidth="5" rx="2" />
+
+    {/* Gate rails */}
+    <rect x="70" y="80" width="100" height="4" fill={palette.metal} />
+    <rect x="70" y="110" width="100" height="4" fill={palette.metal} />
+    <rect x="70" y="140" width="100" height="4" fill={palette.metal} />
+
+    {/* Diagonal brace */}
+    <line x1="73" y1="162" x2="167" y2="58" stroke={palette.metal} strokeWidth="4" />
 
     {/* Hinges */}
-    <rect className="hinge" x="45" y="55" width="20" height="18" rx="3" />
-    <rect className="hinge" x="45" y="145" width="20" height="18" rx="3" />
+    <g transform="translate(55, 70)">
+      <rect x="0" y="0" width="20" height="15" fill={palette.metalDark} stroke={palette.black} strokeWidth="0.5" rx="2" />
+      <circle cx="10" cy="7.5" r="4" fill={palette.metal} stroke={palette.black} strokeWidth="0.5" />
+      <text x="30" y="10" fill={palette.gray} fontSize="7">HINGE</text>
+    </g>
+    <g transform="translate(55, 145)">
+      <rect x="0" y="0" width="20" height="15" fill={palette.metalDark} stroke={palette.black} strokeWidth="0.5" rx="2" />
+      <circle cx="10" cy="7.5" r="4" fill={palette.metal} stroke={palette.black} strokeWidth="0.5" />
+    </g>
+
+    {/* Latch */}
+    <g transform="translate(170, 105)">
+      <rect x="0" y="0" width="35" height="20" fill={palette.metalDark} stroke={palette.black} strokeWidth="0.5" rx="2" />
+      <circle cx="25" cy="10" r="6" fill="#FFD54F" stroke="#F9A825" strokeWidth="1" />
+      <text x="17" y="32" textAnchor="middle" fill={palette.gray} fontSize="7">LATCH</text>
+    </g>
+
+    {/* Ground clearance */}
+    <g transform="translate(120, 165)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="-8" y1="0" x2="8" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="-8" y1="8" x2="8" y2="8" stroke={palette.dimension} strokeWidth="1.5" />
+      <text x="15" y="6" fill={palette.dimension} fontSize="7">5cm GAP</text>
+    </g>
+
+    {/* Gate width */}
+    <g transform="translate(70, 185)">
+      <line x1="0" y1="0" x2="100" y2="0" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="0" y1="-5" x2="0" y2="5" stroke={palette.dimension} strokeWidth="1.5" />
+      <line x1="100" y1="-5" x2="100" y2="5" stroke={palette.dimension} strokeWidth="1.5" />
+      <rect x="35" y="3" width="30" height="14" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="2" />
+      <text x="50" y="13" textAnchor="middle" fill={palette.dimension} fontSize="8" fontWeight="600">WIDTH</text>
+    </g>
   </svg>
 );
 
 // ============================================================================
-// LEVELING Animation
+// LEVELING - Shows level usage
 // ============================================================================
 export const LevelingAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
   <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    <style>{`
-      @keyframes bubbleFloat {
-        0%, 100% { cx: 140; }
-        30% { cx: 135; }
-        70% { cx: 145; }
-      }
-      @keyframes levelAdjust {
-        0%, 20% { transform: rotate(-3deg); }
-        50%, 100% { transform: rotate(0deg); }
-      }
-      .level { animation: levelAdjust 4s ease-out infinite; transform-origin: 140px 100px; }
-      .bubble { animation: bubbleFloat 4s ease-in-out infinite; }
-    `}</style>
+    {/* Title bar */}
+    <rect x="0" y="0" width="280" height="24" fill={palette.dimensionBg} />
+    <text x="140" y="16" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">USING A SPIRIT LEVEL</text>
 
-    {/* Ground */}
-    <rect x="0" y="160" width="280" height="50" fill={palette.ground} />
+    {/* Surface */}
+    <rect x="30" y="120" width="220" height="12" fill={palette.metal} stroke={palette.metalDark} strokeWidth="1" rx="2" />
 
-    {/* Surface being leveled */}
-    <g className="level">
-      <rect x="20" y="110" width="240" height="15" fill={palette.metal} rx="3" />
+    {/* Level tool - large detail */}
+    <g transform="translate(60, 75)">
+      <rect x="0" y="0" width="160" height="35" fill="#FFD54F" stroke="#F9A825" strokeWidth="2" rx="4" />
 
-      {/* Level tool */}
-      <g transform="translate(60, 70)">
-        <rect x="0" y="0" width="160" height="35" fill={palette.yellow} stroke={palette.yellowDark} strokeWidth="2" rx="5" />
-        <rect x="60" y="8" width="40" height="19" fill="#B3E5FC" stroke="#0288D1" strokeWidth="1" rx="4" />
-        <line x1="78" y1="8" x2="78" y2="27" stroke="#0288D1" strokeWidth="1" />
-        <line x1="82" y1="8" x2="82" y2="27" stroke="#0288D1" strokeWidth="1" />
-        <circle className="bubble" cy="17.5" r="6" fill="#4CAF50" />
-      </g>
+      {/* Level vial - center */}
+      <rect x="60" y="8" width="40" height="19" fill="#B3E5FC" stroke="#0288D1" strokeWidth="1" rx="3" />
+      <line x1="78" y1="8" x2="78" y2="27" stroke="#0288D1" strokeWidth="1" />
+      <line x1="82" y1="8" x2="82" y2="27" stroke="#0288D1" strokeWidth="1" />
+      <circle cx="80" cy="17.5" r="5" fill="#4CAF50" />
+
+      {/* End markings */}
+      <line x1="10" y1="10" x2="10" y2="25" stroke="#F9A825" strokeWidth="1" />
+      <line x1="150" y1="10" x2="150" y2="25" stroke="#F9A825" strokeWidth="1" />
     </g>
 
-    {/* Support posts */}
-    <rect x="35" y="125" width="15" height="40" fill={palette.metal} rx="2" />
-    <rect x="230" y="125" width="15" height="40" fill={palette.metal} rx="2" />
+    {/* Bubble position diagrams */}
+    <g transform="translate(30, 145)">
+      <rect x="0" y="0" width="65" height="55" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="3" />
+      <text x="32" y="15" textAnchor="middle" fill={palette.dimension} fontSize="8" fontWeight="600">LEVEL</text>
+      <rect x="15" y="22" width="35" height="15" fill="#B3E5FC" stroke="#0288D1" strokeWidth="1" rx="2" />
+      <line x1="31" y1="22" x2="31" y2="37" stroke="#0288D1" strokeWidth="1" />
+      <line x1="34" y1="22" x2="34" y2="37" stroke="#0288D1" strokeWidth="1" />
+      <circle cx="32.5" cy="29.5" r="4" fill="#4CAF50" />
+      <text x="32" y="50" textAnchor="middle" fill="#4CAF50" fontSize="8" fontWeight="600">✓ CORRECT</text>
+    </g>
 
-    {/* Success indicator */}
-    <g transform="translate(240, 40)">
-      <circle cx="0" cy="0" r="20" fill={palette.success} />
-      <path d="M-8 0 L-4 4 L8 -6" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" />
+    <g transform="translate(108, 145)">
+      <rect x="0" y="0" width="65" height="55" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="3" />
+      <text x="32" y="15" textAnchor="middle" fill={palette.dimension} fontSize="8" fontWeight="600">HIGH LEFT</text>
+      <rect x="15" y="22" width="35" height="15" fill="#B3E5FC" stroke="#0288D1" strokeWidth="1" rx="2" />
+      <line x1="31" y1="22" x2="31" y2="37" stroke="#0288D1" strokeWidth="1" />
+      <line x1="34" y1="22" x2="34" y2="37" stroke="#0288D1" strokeWidth="1" />
+      <circle cx="24" cy="29.5" r="4" fill={palette.arrow} />
+      <text x="32" y="50" textAnchor="middle" fill={palette.arrow} fontSize="8" fontWeight="600">✗ ADJUST</text>
+    </g>
+
+    <g transform="translate(186, 145)">
+      <rect x="0" y="0" width="65" height="55" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="3" />
+      <text x="32" y="15" textAnchor="middle" fill={palette.dimension} fontSize="8" fontWeight="600">HIGH RIGHT</text>
+      <rect x="15" y="22" width="35" height="15" fill="#B3E5FC" stroke="#0288D1" strokeWidth="1" rx="2" />
+      <line x1="31" y1="22" x2="31" y2="37" stroke="#0288D1" strokeWidth="1" />
+      <line x1="34" y1="22" x2="34" y2="37" stroke="#0288D1" strokeWidth="1" />
+      <circle cx="41" cy="29.5" r="4" fill={palette.arrow} />
+      <text x="32" y="50" textAnchor="middle" fill={palette.arrow} fontSize="8" fontWeight="600">✗ ADJUST</text>
     </g>
   </svg>
 );
 
 // ============================================================================
-// CURING Animation
+// CURING - Shows concrete curing process
 // ============================================================================
 export const CuringAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
   <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    <style>{`
-      @keyframes waterDrop {
-        0% { transform: translateY(0); opacity: 1; }
-        100% { transform: translateY(60px); opacity: 0; }
-      }
-      @keyframes clockTick {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      .drop-1 { animation: waterDrop 1.2s ease-in infinite; }
-      .drop-2 { animation: waterDrop 1.2s ease-in infinite 0.2s; }
-      .drop-3 { animation: waterDrop 1.2s ease-in infinite 0.4s; }
-      .clock-hand { animation: clockTick 8s linear infinite; transform-origin: 230px 55px; }
-    `}</style>
+    {/* Title bar */}
+    <rect x="0" y="0" width="280" height="24" fill={palette.dimensionBg} />
+    <text x="140" y="16" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">CONCRETE CURING</text>
 
     {/* Concrete slab */}
-    <rect x="20" y="130" width="240" height="50" fill={palette.concrete} rx="3" />
+    <rect x="30" y="110" width="220" height="40" fill={palette.concrete} stroke={palette.concreteDark} strokeWidth="2" rx="2" />
 
-    {/* Plastic cover */}
-    <path d="M15 125 Q70 115 140 125 Q210 115 265 125 L265 135 Q210 128 140 135 Q70 128 15 135 Z" fill={palette.water} opacity="0.4" />
-    <path d="M15 125 Q70 115 140 125 Q210 115 265 125" stroke="#0288D1" strokeWidth="2" fill="none" />
+    {/* Plastic sheeting cover */}
+    <path d="M25 105 Q80 95 140 105 Q200 95 255 105 L255 115 Q200 108 140 115 Q80 108 25 115 Z" fill="#B3E5FC" opacity="0.5" stroke="#0288D1" strokeWidth="1" />
+    <text x="140" y="90" textAnchor="middle" fill="#0288D1" fontSize="8">PLASTIC SHEETING</text>
 
-    {/* Water spray */}
-    <g transform="translate(50, 30)">
-      <path d="M0 30 Q-20 20 -30 30 Q-50 50 -40 0" stroke="#388E3C" strokeWidth="10" fill="none" strokeLinecap="round" />
-      <ellipse cx="0" cy="35" rx="12" ry="8" fill="#2E7D32" />
-      <ellipse className="drop-1" cx="-5" cy="45" rx="4" ry="6" fill={palette.water} />
-      <ellipse className="drop-2" cx="15" cy="48" rx="3" ry="5" fill={palette.water} />
-      <ellipse className="drop-3" cx="35" cy="44" rx="4" ry="6" fill={palette.water} />
-    </g>
+    {/* Water droplets */}
+    {[60, 100, 140, 180, 220].map((x, i) => (
+      <g key={i} transform={`translate(${x}, 60)`}>
+        <path d="M0 0 Q-5 10 0 15 Q5 10 0 0" fill="#81D4FA" />
+      </g>
+    ))}
+    <text x="140" y="50" textAnchor="middle" fill="#0288D1" fontSize="8">KEEP MOIST</text>
 
-    {/* Timer */}
-    <g transform="translate(200, 25)">
-      <circle cx="30" cy="30" r="28" fill="white" stroke={palette.highlight} strokeWidth="3" />
-      <circle cx="30" cy="30" r="3" fill={palette.highlight} />
-      <line x1="30" y1="8" x2="30" y2="14" stroke={palette.highlight} strokeWidth="2" />
-      <line x1="30" y1="46" x2="30" y2="52" stroke={palette.highlight} strokeWidth="2" />
-      <line x1="8" y1="30" x2="14" y2="30" stroke={palette.highlight} strokeWidth="2" />
-      <line x1="46" y1="30" x2="52" y2="30" stroke={palette.highlight} strokeWidth="2" />
-      <line x1="30" y1="30" x2="30" y2="16" stroke={palette.black} strokeWidth="2" strokeLinecap="round" />
-      <line className="clock-hand" x1="30" y1="30" x2="30" y2="12" stroke={palette.highlight} strokeWidth="1.5" strokeLinecap="round" />
-      <text x="30" y="80" textAnchor="middle" fill={palette.highlight} fontSize="12" fontWeight="bold">7 days</text>
+    {/* Timeline */}
+    <g transform="translate(30, 165)">
+      <rect x="0" y="0" width="220" height="35" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="3" />
+      <text x="110" y="12" textAnchor="middle" fill={palette.dimension} fontSize="8" fontWeight="600">CURING TIMELINE</text>
+
+      <line x1="10" y1="25" x2="210" y2="25" stroke={palette.dimension} strokeWidth="2" />
+
+      {/* Day markers */}
+      <g transform="translate(10, 20)">
+        <line x1="0" y1="0" x2="0" y2="10" stroke={palette.dimension} strokeWidth="2" />
+        <text x="0" y="-3" textAnchor="middle" fill={palette.gray} fontSize="7">Day 1</text>
+      </g>
+      <g transform="translate(77, 20)">
+        <line x1="0" y1="0" x2="0" y2="10" stroke={palette.dimension} strokeWidth="2" />
+        <text x="0" y="-3" textAnchor="middle" fill={palette.gray} fontSize="7">Day 3</text>
+      </g>
+      <g transform="translate(143, 20)">
+        <line x1="0" y1="0" x2="0" y2="10" stroke={palette.dimension} strokeWidth="2" />
+        <text x="0" y="-3" textAnchor="middle" fill={palette.gray} fontSize="7">Day 7</text>
+      </g>
+      <g transform="translate(210, 20)">
+        <line x1="0" y1="0" x2="0" y2="10" stroke="#4CAF50" strokeWidth="2" />
+        <text x="0" y="-3" textAnchor="middle" fill="#4CAF50" fontSize="7" fontWeight="600">Day 28</text>
+      </g>
+
+      {/* Strength indicator */}
+      <rect x="10" y="22" width="67" height="6" fill="#FFCC80" rx="1" />
+      <rect x="77" y="22" width="66" height="6" fill="#FFB74D" rx="1" />
+      <rect x="143" y="22" width="67" height="6" fill="#4CAF50" rx="1" />
     </g>
   </svg>
 );
 
 // ============================================================================
-// COMPLETION Animation
+// COMPLETION - Project complete checklist
 // ============================================================================
 export const CompletionAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
   <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    <style>{`
-      @keyframes checkDraw {
-        0% { stroke-dashoffset: 120; }
-        100% { stroke-dashoffset: 0; }
-      }
-      @keyframes circleDraw {
-        0% { stroke-dashoffset: 380; }
-        100% { stroke-dashoffset: 0; }
-      }
-      @keyframes confetti1 {
-        0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-        100% { transform: translate(-40px, 100px) rotate(360deg); opacity: 0; }
-      }
-      @keyframes confetti2 {
-        0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-        100% { transform: translate(30px, 110px) rotate(-360deg); opacity: 0; }
-      }
-      @keyframes starPop {
-        0%, 100% { transform: scale(0); opacity: 0; }
-        50% { transform: scale(1); opacity: 1; }
-      }
-      @keyframes bounce {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
-      }
-      .circle-path { stroke-dasharray: 380; animation: circleDraw 1.5s ease-out forwards; }
-      .check-path { stroke-dasharray: 120; animation: checkDraw 1s ease-out 0.5s forwards; stroke-dashoffset: 120; }
-      .confetti-1 { animation: confetti1 2s ease-out infinite; }
-      .confetti-2 { animation: confetti2 2s ease-out infinite 0.3s; }
-      .star-1 { animation: starPop 2s ease-out infinite; }
-      .star-2 { animation: starPop 2s ease-out infinite 0.4s; }
-      .badge { animation: bounce 2s ease-in-out infinite; }
-    `}</style>
+    {/* Title bar */}
+    <rect x="0" y="0" width="280" height="24" fill="#E8F5E9" />
+    <text x="140" y="16" textAnchor="middle" fill="#2E7D32" fontSize="11" fontWeight="600">PROJECT COMPLETE</text>
 
-    {/* Confetti */}
-    <rect className="confetti-1" x="140" y="40" width="12" height="12" fill={palette.orange} rx="2" />
-    <rect className="confetti-2" x="140" y="40" width="10" height="10" fill={palette.blue} rx="2" />
-
-    {/* Main success circle */}
-    <g className="badge" transform="translate(140, 105)">
-      <circle cx="0" cy="0" r="60" fill={palette.success} opacity="0.15" />
-      <circle className="circle-path" cx="0" cy="0" r="55" fill="none" stroke={palette.success} strokeWidth="6" />
-      <path className="check-path" d="M-25 5 L-8 22 L28 -18" fill="none" stroke={palette.success} strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+    {/* Success icon */}
+    <g transform="translate(140, 75)">
+      <circle cx="0" cy="0" r="40" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="4" />
+      <path d="M-18 0 L-6 12 L18 -12" fill="none" stroke="#4CAF50" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
     </g>
 
-    {/* Stars */}
-    <g className="star-1" transform="translate(50, 40)">
-      <polygon points="0,-15 4,-5 15,-5 6,2 10,13 0,6 -10,13 -6,2 -15,-5 -4,-5" fill={palette.yellow} />
-    </g>
-    <g className="star-2" transform="translate(230, 50)">
-      <polygon points="0,-12 3,-4 12,-4 5,1.5 8,10 0,5 -8,10 -5,1.5 -12,-4 -3,-4" fill={palette.yellow} />
+    {/* Checklist */}
+    <g transform="translate(40, 130)">
+      <rect x="0" y="0" width="200" height="70" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="3" />
+      <text x="100" y="15" textAnchor="middle" fill={palette.dimension} fontSize="9" fontWeight="600">FINAL CHECKLIST</text>
+      <line x1="10" y1="22" x2="190" y2="22" stroke={palette.dimension} strokeWidth="0.5" />
+
+      {/* Checklist items */}
+      <g transform="translate(15, 32)">
+        <rect x="0" y="0" width="10" height="10" fill="#4CAF50" rx="2" />
+        <path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" fill="none" />
+        <text x="15" y="8" fill={palette.gray} fontSize="8">All dimensions verified</text>
+      </g>
+      <g transform="translate(15, 46)">
+        <rect x="0" y="0" width="10" height="10" fill="#4CAF50" rx="2" />
+        <path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" fill="none" />
+        <text x="15" y="8" fill={palette.gray} fontSize="8">Level and plumb confirmed</text>
+      </g>
+      <g transform="translate(15, 60)">
+        <rect x="0" y="0" width="10" height="10" fill="#4CAF50" rx="2" />
+        <path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" fill="none" />
+        <text x="15" y="8" fill={palette.gray} fontSize="8">Curing time completed</text>
+      </g>
+
+      <g transform="translate(115, 32)">
+        <rect x="0" y="0" width="10" height="10" fill="#4CAF50" rx="2" />
+        <path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" fill="none" />
+        <text x="15" y="8" fill={palette.gray} fontSize="8">Tools cleaned</text>
+      </g>
+      <g transform="translate(115, 46)">
+        <rect x="0" y="0" width="10" height="10" fill="#4CAF50" rx="2" />
+        <path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" fill="none" />
+        <text x="15" y="8" fill={palette.gray} fontSize="8">Site cleaned</text>
+      </g>
+      <g transform="translate(115, 60)">
+        <rect x="0" y="0" width="10" height="10" fill="#4CAF50" rx="2" />
+        <path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" fill="none" />
+        <text x="15" y="8" fill={palette.gray} fontSize="8">Photos taken</text>
+      </g>
     </g>
   </svg>
 );
@@ -1278,21 +1101,12 @@ export const InstructionIllustration: React.FC<InstructionIllustrationProps> = (
   const IllustrationComponent = IllustrationMap[type];
 
   if (!IllustrationComponent) {
-    // Default fallback
     return (
       <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-        <style>{`
-          @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-          }
-          .pulse { animation: pulse 2s ease-in-out infinite; transform-origin: center; }
-        `}</style>
-        <g className="pulse">
-          <circle cx="140" cy="105" r="70" fill={colors.primary[100]} />
-          <path d="M100 140 L140 60 L180 140 Z" fill={colors.primary[600]} />
-          <circle cx="140" cy="100" r="12" fill={colors.primary[100]} />
-        </g>
+        <rect x="0" y="0" width="280" height="24" fill={palette.dimensionBg} />
+        <text x="140" y="16" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">INSTRUCTION</text>
+        <rect x="40" y="50" width="200" height="120" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="3" />
+        <text x="140" y="115" textAnchor="middle" fill={palette.gray} fontSize="10">Diagram not available</text>
       </svg>
     );
   }
