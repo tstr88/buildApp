@@ -35,52 +35,73 @@ const palette = {
 };
 
 // ============================================================================
-// SITE PREPARATION - Simple cross-section
+// SITE PREPARATION - Shows clearing and leveling a large area
+// Instruction: "Clear and level a 9m × 10m area. Remove grass, roots, and topsoil to 15-20cm depth."
 // ============================================================================
 export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
   <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
     {/* Title */}
     <rect x="0" y="0" width="280" height="28" fill={palette.dimensionBg} />
-    <text x="140" y="18" textAnchor="middle" fill={palette.dimension} fontSize="12" fontWeight="600">CROSS-SECTION VIEW</text>
+    <text x="140" y="18" textAnchor="middle" fill={palette.dimension} fontSize="12" fontWeight="600">SITE PREPARATION - CROSS SECTION</text>
 
-    {/* Ground level line */}
-    <line x1="0" y1="80" x2="280" y2="80" stroke={palette.grass} strokeWidth="4" />
+    {/* BEFORE section - left side showing original ground */}
+    <text x="70" y="48" textAnchor="middle" fill={palette.gray} fontSize="10" fontWeight="600">BEFORE</text>
 
-    {/* Original ground with grass */}
-    <rect x="0" y="80" width="50" height="80" fill={palette.soil} />
-    <rect x="230" y="80" width="50" height="80" fill={palette.soil} />
+    {/* Original ground with grass layer */}
+    <rect x="20" y="70" width="100" height="8" fill={palette.grass} />
+    {/* Grass blades */}
+    {[30, 45, 60, 75, 90, 105].map((x, i) => (
+      <path key={i} d={`M${x} 70 Q${x-2} 62 ${x} 58 M${x} 70 Q${x+2} 64 ${x+3} 60`} stroke={palette.grass} strokeWidth="1.5" fill="none" />
+    ))}
 
-    {/* Excavated area - lighter */}
-    <rect x="50" y="80" width="180" height="70" fill={palette.lightGray} stroke={palette.soilDark} strokeWidth="2" strokeDasharray="5,3" />
+    {/* Topsoil layer (dark brown) */}
+    <rect x="20" y="78" width="100" height="35" fill={palette.soilDark} />
+    <text x="70" y="100" textAnchor="middle" fill={palette.white} fontSize="9">TOPSOIL</text>
 
-    {/* Remove arrows */}
-    <g transform="translate(140, 100)">
-      <path d="M0 0 L0 35" stroke={palette.arrow} strokeWidth="3" />
-      <polygon points="-8,30 8,30 0,45" fill={palette.arrow} />
-      <text x="0" y="-10" textAnchor="middle" fill={palette.arrow} fontSize="11" fontWeight="600">REMOVE</text>
+    {/* Deep soil */}
+    <rect x="20" y="113" width="100" height="40" fill={palette.soil} />
+
+    {/* AFTER section - right side showing excavated area */}
+    <text x="200" y="48" textAnchor="middle" fill={palette.gray} fontSize="10" fontWeight="600">AFTER</text>
+
+    {/* Excavated flat surface */}
+    <rect x="150" y="113" width="110" height="40" fill={palette.soil} />
+
+    {/* Empty excavated area */}
+    <rect x="150" y="70" width="110" height="43" fill={palette.lightGray} stroke={palette.soilDark} strokeWidth="1" strokeDasharray="4,2" />
+
+    {/* Flat leveled surface line */}
+    <line x1="150" y1="113" x2="260" y2="113" stroke={palette.soilDark} strokeWidth="2" />
+
+    {/* Arrow showing transformation */}
+    <g transform="translate(130, 95)">
+      <line x1="0" y1="0" x2="12" y2="0" stroke={palette.arrow} strokeWidth="2" />
+      <polygon points="10,-4 10,4 18,0" fill={palette.arrow} />
     </g>
 
-    {/* Depth dimension - right side */}
-    <g transform="translate(240, 80)">
-      <line x1="15" y1="0" x2="15" y2="70" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="8" y1="0" x2="22" y2="0" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="8" y1="70" x2="22" y2="70" stroke={palette.dimension} strokeWidth="2" />
-      <rect x="25" y="25" width="50" height="22" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="3" />
-      <text x="50" y="41" textAnchor="middle" fill={palette.dimension} fontSize="12" fontWeight="700">15-20cm</text>
+    {/* Depth dimension on right */}
+    <g transform="translate(265, 70)">
+      <line x1="8" y1="0" x2="8" y2="43" stroke={palette.dimension} strokeWidth="2" />
+      <line x1="2" y1="0" x2="14" y2="0" stroke={palette.dimension} strokeWidth="2" />
+      <line x1="2" y1="43" x2="14" y2="43" stroke={palette.dimension} strokeWidth="2" />
     </g>
 
-    {/* Width indicator */}
-    <g transform="translate(50, 165)">
-      <line x1="0" y1="0" x2="180" y2="0" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="0" y1="-8" x2="0" y2="8" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="180" y1="-8" x2="180" y2="8" stroke={palette.dimension} strokeWidth="2" />
-      <rect x="60" y="5" width="60" height="20" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="3" />
-      <text x="90" y="19" textAnchor="middle" fill={palette.dimension} fontSize="10" fontWeight="600">EXCAVATE</text>
+    {/* Depth label */}
+    <g transform="translate(150, 155)">
+      <rect x="0" y="0" width="110" height="22" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="3" />
+      <text x="55" y="15" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="700">DEPTH: 15-20cm</text>
     </g>
 
-    {/* Labels */}
-    <text x="25" y="125" textAnchor="middle" fill={palette.white} fontSize="9" fontWeight="500">SOIL</text>
-    <text x="255" y="125" textAnchor="middle" fill={palette.white} fontSize="9" fontWeight="500">SOIL</text>
+    {/* What to remove - legend at bottom */}
+    <g transform="translate(20, 185)">
+      <rect x="0" y="0" width="12" height="12" fill={palette.grass} />
+      <text x="18" y="10" fill={palette.gray} fontSize="9">Grass</text>
+
+      <rect x="60" y="0" width="12" height="12" fill={palette.soilDark} />
+      <text x="78" y="10" fill={palette.gray} fontSize="9">Topsoil + roots</text>
+
+      <text x="155" y="10" fill={palette.arrow} fontSize="9" fontWeight="600">= REMOVE ALL</text>
+    </g>
   </svg>
 );
 
