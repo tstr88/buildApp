@@ -443,16 +443,17 @@ export const InstructionsTab: React.FC<InstructionsTabProps> = ({
                   {step.illustration_type && (
                     <div style={{
                       width: '100%',
-                      backgroundColor: colors.neutral[50],
+                      backgroundColor: '#FAFAFA',
                       borderRadius: borderRadius.lg,
                       marginBottom: spacing[4],
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      padding: spacing[4],
-                      border: `1px solid ${colors.border.light}`,
+                      padding: spacing[6],
+                      border: `2px solid ${colors.border.light}`,
+                      boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)',
                     }}>
-                      <InstructionIllustration type={step.illustration_type} size={180} />
+                      <InstructionIllustration type={step.illustration_type} size={320} />
                     </div>
                   )}
 
