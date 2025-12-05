@@ -5,10 +5,49 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface AnimationProps {
   size?: number;
 }
+
+// Translations for Site Preparation Animation
+const sitePreparationTranslations = {
+  en: {
+    step1Title: 'STEP 1: MARK THE AREA',
+    step2Title: 'STEP 2: REMOVE GRASS & TOPSOIL',
+    step3Title: 'STEP 3: LEVEL THE SURFACE',
+    step4Title: 'STEP 4: COMPACT THE SOIL',
+    topsoilRoots: 'TOPSOIL + ROOTS',
+    subsoil: 'SUBSOIL',
+    levelLine: 'LEVEL LINE',
+    remove: 'REMOVE',
+    phase1Label: 'Mark corners with stakes, stretch string line',
+    phase2Label1: 'Dig out grass, roots, and topsoil',
+    phase2Label2: 'Depth: 15-20cm across entire marked area',
+    phase3Label1: 'Use rake to level the excavated surface',
+    phase3Label2: 'Remove high spots, fill low spots',
+    phase4Label1: 'Compact soil with plate compactor or tamper',
+    phase4Label2: 'Creates stable base for gravel layer',
+  },
+  ka: {
+    step1Title: 'ნაბიჯი 1: მონიშნეთ ფართობი',
+    step2Title: 'ნაბიჯი 2: მოაშორეთ ბალახი',
+    step3Title: 'ნაბიჯი 3: გაასწორეთ ზედაპირი',
+    step4Title: 'ნაბიჯი 4: დატკეპნეთ ნიადაგი',
+    topsoilRoots: 'ტოპსოილი + ფესვები',
+    subsoil: 'ქვენიადაგი',
+    levelLine: 'დონის ხაზი',
+    remove: 'მოშორება',
+    phase1Label: 'მონიშნეთ კუთხეები პალებით, გაჭიმეთ თოკი',
+    phase2Label1: 'ამოთხარეთ ბალახი, ფესვები და ტოპსოილი',
+    phase2Label2: 'სიღრმე: 15-20სმ მთელ მონიშნულ ფართობზე',
+    phase3Label1: 'გამოიყენეთ ფოცხი ზედაპირის გასასწორებლად',
+    phase3Label2: 'მოაშორეთ ამობურცულები, შეავსეთ ჩაზნექილები',
+    phase4Label1: 'დატკეპნეთ ნიადაგი ვიბროტამპით ან ხელით',
+    phase4Label2: 'ქმნის სტაბილურ საფუძველს ხრეშის ფენისთვის',
+  },
+};
 
 // Clean professional color palette
 const palette = {
@@ -42,6 +81,9 @@ const palette = {
 // Phase 4: Compact the soil
 // ============================================================================
 export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 }) => {
+  const { i18n } = useTranslation();
+  const lang = i18n.language?.startsWith('ka') ? 'ka' : 'en';
+  const t = sitePreparationTranslations[lang];
   const aspectRatio = 0.85;
 
   return (
@@ -143,7 +185,7 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
         {/* Title */}
         <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
         <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
-          STEP 1: MARK THE AREA
+          {t.step1Title}
         </text>
 
         {/* Green grass background */}
@@ -199,7 +241,7 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
         <g style={{ animation: 'phase-label 12s infinite' }}>
           <rect x="20" y="240" width="280" height="24" fill="#FFF3E0" stroke="#FF9800" strokeWidth="1" rx="4" />
           <text x="160" y="257" textAnchor="middle" fill="#E65100" fontSize="11" fontWeight="600">
-            Mark corners with stakes, stretch string line
+            {t.phase1Label}
           </text>
         </g>
       </svg>
@@ -220,7 +262,7 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
         {/* Title */}
         <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
         <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
-          STEP 2: REMOVE GRASS & TOPSOIL
+          {t.step2Title}
         </text>
 
         {/* Ground cross-section */}
@@ -242,12 +284,12 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
           {[50, 120, 200, 260].map((x, i) => (
             <path key={`root-${i}`} d={`M${x} 125 Q${x+10} 140 ${x-5} 150`} stroke="#3E2723" strokeWidth="2" fill="none" opacity="0.5" />
           ))}
-          <text x="160" y="145" textAnchor="middle" fill="#FFF" fontSize="10" fontWeight="500">TOPSOIL + ROOTS</text>
+          <text x="160" y="145" textAnchor="middle" fill="#FFF" fontSize="10" fontWeight="500">{t.topsoilRoots}</text>
         </g>
 
         {/* Subsoil (stays) */}
         <rect x="20" y="157" width="280" height="50" fill="#8B7355" />
-        <text x="160" y="185" textAnchor="middle" fill="#FFF" fontSize="10" opacity="0.7">SUBSOIL</text>
+        <text x="160" y="185" textAnchor="middle" fill="#FFF" fontSize="10" opacity="0.7">{t.subsoil}</text>
 
         {/* Depth dimension */}
         <g>
@@ -269,7 +311,7 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
         {/* Removed material indicator */}
         <g>
           <path d="M160 90 L180 70 L200 70" stroke="#E53935" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" />
-          <text x="205" y="75" fill="#E53935" fontSize="10" fontWeight="600">REMOVE</text>
+          <text x="205" y="75" fill="#E53935" fontSize="10" fontWeight="600">{t.remove}</text>
         </g>
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -280,10 +322,10 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
         {/* Phase label */}
         <rect x="20" y="215" width="280" height="45" fill="#FFEBEE" stroke="#E53935" strokeWidth="1" rx="4" />
         <text x="160" y="233" textAnchor="middle" fill="#C62828" fontSize="11" fontWeight="600">
-          Dig out grass, roots, and topsoil
+          {t.phase2Label1}
         </text>
         <text x="160" y="250" textAnchor="middle" fill="#C62828" fontSize="10">
-          Depth: 15-20cm across entire marked area
+          {t.phase2Label2}
         </text>
       </svg>
 
@@ -303,7 +345,7 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
         {/* Title */}
         <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
         <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
-          STEP 3: LEVEL THE SURFACE
+          {t.step3Title}
         </text>
 
         {/* Sky/excavated area */}
@@ -317,7 +359,7 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
 
         {/* Level line indicator */}
         <line x1="20" y1="130" x2="300" y2="130" stroke="#1565C0" strokeWidth="2" strokeDasharray="8,4" />
-        <text x="160" y="145" textAnchor="middle" fill="#1565C0" fontSize="10" fontWeight="600">LEVEL LINE</text>
+        <text x="160" y="145" textAnchor="middle" fill="#1565C0" fontSize="10" fontWeight="600">{t.levelLine}</text>
 
         {/* Rake tool */}
         <g style={{ transformOrigin: '160px 100px', animation: 'phase3-rake 12s infinite' }}>
@@ -343,10 +385,10 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
         {/* Phase label */}
         <rect x="20" y="215" width="280" height="45" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="1" rx="4" />
         <text x="160" y="233" textAnchor="middle" fill="#2E7D32" fontSize="11" fontWeight="600">
-          Use rake to level the excavated surface
+          {t.phase3Label1}
         </text>
         <text x="160" y="250" textAnchor="middle" fill="#2E7D32" fontSize="10">
-          Remove high spots, fill low spots
+          {t.phase3Label2}
         </text>
       </svg>
 
@@ -366,7 +408,7 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
         {/* Title */}
         <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
         <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
-          STEP 4: COMPACT THE SOIL
+          {t.step4Title}
         </text>
 
         {/* Excavated area */}
@@ -420,10 +462,10 @@ export const SitePreparationAnimation: React.FC<AnimationProps> = ({ size = 320 
         {/* Phase label */}
         <rect x="20" y="215" width="280" height="45" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="4" />
         <text x="160" y="233" textAnchor="middle" fill="#0D47A1" fontSize="11" fontWeight="600">
-          Compact soil with plate compactor or tamper
+          {t.phase4Label1}
         </text>
         <text x="160" y="250" textAnchor="middle" fill="#0D47A1" fontSize="10">
-          Creates stable base for gravel layer
+          {t.phase4Label2}
         </text>
       </svg>
     </div>
