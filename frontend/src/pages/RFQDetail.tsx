@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -43,7 +43,11 @@ interface RFQDetail {
 export const RFQDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [rfq, setRfq] = useState<RFQDetail | null>(null);
+
+  // Get the source page to navigate back to (from location state or default to /rfqs)
+  const fromPath = (location.state as { from?: string } | null)?.from || '/rfqs';
   const [loading, setLoading] = useState(true);
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [showDeclineModal, setShowDeclineModal] = useState(false);
@@ -71,12 +75,12 @@ export const RFQDetail: React.FC = () => {
         setRfq(data.data);
       } else {
         alert('Failed to load RFQ');
-        navigate('/rfqs');
+        navigate(fromPath);
       }
     } catch (error) {
       console.error('Failed to fetch RFQ detail:', error);
       alert('Failed to load RFQ');
-      navigate('/rfqs');
+      navigate(fromPath);
     } finally {
       setLoading(false);
     }
@@ -319,7 +323,7 @@ export const RFQDetail: React.FC = () => {
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         {/* Header */}
         <button
-          onClick={() => navigate('/rfqs')}
+          onClick={() => navigate(fromPath)}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -334,7 +338,7 @@ export const RFQDetail: React.FC = () => {
           }}
         >
           <Icons.ArrowLeft size={16} />
-          Back to RFQs
+          {fromPath.includes('/projects/') ? 'Back to Project' : 'Back to RFQs'}
         </button>
 
         {/* Title Section */}

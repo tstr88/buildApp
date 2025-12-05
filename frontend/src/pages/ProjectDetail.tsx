@@ -358,8 +358,8 @@ export default function ProjectDetail() {
         {activeTab === 'overview' && <OverviewTab project={project} onDelete={handleDelete} />}
         {activeTab === 'materials' && <MaterialsTab projectId={project.id} navigate={navigate} />}
         {activeTab === 'tools' && <ToolsTab projectId={project.id} navigate={navigate} />}
-        {activeTab === 'rfqs' && <RFQsTab rfqs={rfqs} navigate={navigate} />}
-        {activeTab === 'orders' && <OrdersTab orders={orders} navigate={navigate} />}
+        {activeTab === 'rfqs' && <RFQsTab rfqs={rfqs} navigate={navigate} projectId={project.id} />}
+        {activeTab === 'orders' && <OrdersTab orders={orders} navigate={navigate} projectId={project.id} />}
         {activeTab === 'deliveries' && <DeliveriesTab deliveries={deliveries} />}
         {activeTab === 'rentals' && <RentalsTab rentals={rentals} />}
       </div>
@@ -514,7 +514,8 @@ function OverviewTab({ project, onDelete }: { project: ProjectDetailType['projec
 }
 
 // RFQs Tab Component
-function RFQsTab({ rfqs, navigate }: { rfqs: ProjectDetailType['rfqs']; navigate: (path: string) => void }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function RFQsTab({ rfqs, navigate, projectId }: { rfqs: ProjectDetailType['rfqs']; navigate: any; projectId: string }) {
   const { t } = useTranslation();
 
   if (rfqs.length === 0) {
@@ -539,7 +540,7 @@ function RFQsTab({ rfqs, navigate }: { rfqs: ProjectDetailType['rfqs']; navigate
       {rfqs.map((rfq, index) => (
         <div
           key={rfq.id}
-          onClick={() => navigate(`/rfqs/${rfq.id}`)}
+          onClick={() => navigate(`/rfqs/${rfq.id}`, { state: { from: `/projects/${projectId}` } })}
           style={{
             backgroundColor: colors.neutral[0],
             borderRadius: borderRadius.lg,
@@ -608,7 +609,8 @@ function RFQsTab({ rfqs, navigate }: { rfqs: ProjectDetailType['rfqs']; navigate
 }
 
 // Orders Tab Component
-function OrdersTab({ orders, navigate }: { orders: ProjectDetailType['orders']; navigate: (path: string) => void }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function OrdersTab({ orders, navigate, projectId }: { orders: ProjectDetailType['orders']; navigate: any; projectId: string }) {
   const { t } = useTranslation();
 
   if (orders.length === 0) {
@@ -633,7 +635,7 @@ function OrdersTab({ orders, navigate }: { orders: ProjectDetailType['orders']; 
       {orders.map((order, index) => (
         <div
           key={order.id}
-          onClick={() => navigate(`/orders/${order.order_number}`)}
+          onClick={() => navigate(`/orders/${order.order_number}`, { state: { from: `/projects/${projectId}` } })}
           style={{
             backgroundColor: colors.neutral[0],
             borderRadius: borderRadius.lg,

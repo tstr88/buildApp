@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { colors, spacing, typography, borderRadius, shadows } from '../theme/tokens';
 import { OrderTimeline } from '../components/orders/OrderTimeline';
@@ -71,7 +71,11 @@ interface OrderDetail {
 export const OrderDetail: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const location = useLocation();
   const [order, setOrder] = useState<OrderDetail | null>(null);
+
+  // Get the source page to navigate back to (from location state or default to /orders)
+  const fromPath = (location.state as { from?: string } | null)?.from || '/orders';
   const [loading, setLoading] = useState(true);
   const [showDisputeForm, setShowDisputeForm] = useState(false);
   const [showCounterProposeModal, setShowCounterProposeModal] = useState(false);
@@ -134,12 +138,12 @@ export const OrderDetail: React.FC = () => {
         const errorData = await response.json();
         console.error('[fetchOrder] Error:', errorData);
         toast.error('Order not found');
-        navigate('/orders');
+        navigate(fromPath);
       }
     } catch (error) {
       console.error('Failed to fetch order:', error);
       toast.error('Failed to load order');
-      navigate('/orders');
+      navigate(fromPath);
     } finally {
       setLoading(false);
     }
@@ -516,7 +520,7 @@ export const OrderDetail: React.FC = () => {
         }}
       >
         <button
-          onClick={() => navigate('/orders')}
+          onClick={() => navigate(fromPath)}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -537,7 +541,7 @@ export const OrderDetail: React.FC = () => {
           }}
         >
           <Icons.ArrowLeft size={16} />
-          Back to Orders
+          {fromPath.includes('/projects/') ? 'Back to Project' : 'Back to Orders'}
         </button>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
