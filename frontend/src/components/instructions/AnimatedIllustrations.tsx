@@ -2154,48 +2154,6 @@ export const LevelingAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
 );
 
 // ============================================================================
-// CURING - Simple curing timeline
-// ============================================================================
-export const CuringAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
-  <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    {/* Title */}
-    <rect x="0" y="0" width="280" height="28" fill={palette.dimensionBg} />
-    <text x="140" y="18" textAnchor="middle" fill={palette.dimension} fontSize="12" fontWeight="600">CONCRETE CURING</text>
-
-    {/* Concrete slab */}
-    <rect x="40" y="85" width="200" height="40" fill={palette.concrete} stroke={palette.concreteDark} strokeWidth="2" rx="3" />
-
-    {/* Plastic cover */}
-    <path d="M35 80 Q100 70 140 80 Q180 70 245 80 L245 90 Q180 82 140 90 Q100 82 35 90 Z" fill="#B3E5FC" opacity="0.6" stroke="#0288D1" strokeWidth="1.5" />
-    <text x="140" y="60" textAnchor="middle" fill="#0288D1" fontSize="10" fontWeight="500">COVER WITH PLASTIC</text>
-
-    {/* Water drops */}
-    {[80, 140, 200].map((x, i) => (
-      <path key={i} d={`M${x} 42 Q${x - 4} 50 ${x} 55 Q${x + 4} 50 ${x} 42`} fill="#81D4FA" />
-    ))}
-    <text x="140" y="38" textAnchor="middle" fill="#0288D1" fontSize="10" fontWeight="500">KEEP MOIST</text>
-
-    {/* Timeline */}
-    <g transform="translate(30, 140)">
-      <rect x="0" y="0" width="220" height="55" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="4" />
-      <text x="110" y="16" textAnchor="middle" fill={palette.dimension} fontSize="11" fontWeight="600">CURING TIMELINE</text>
-
-      {/* Progress bar */}
-      <rect x="15" y="28" width="190" height="12" fill="#E0E0E0" rx="2" />
-      <rect x="15" y="28" width="50" height="12" fill="#FFCC80" rx="2" />
-      <rect x="65" y="28" width="50" height="12" fill="#FFB74D" rx="2" />
-      <rect x="115" y="28" width="90" height="12" fill="#4CAF50" rx="2" />
-
-      {/* Day markers */}
-      <text x="15" y="50" fill={palette.gray} fontSize="8">Day 1</text>
-      <text x="65" y="50" fill={palette.gray} fontSize="8">Day 3</text>
-      <text x="115" y="50" fill={palette.gray} fontSize="8">Day 7</text>
-      <text x="180" y="50" fill="#4CAF50" fontSize="9" fontWeight="600">Day 28 ✓</text>
-    </g>
-  </svg>
-);
-
-// ============================================================================
 // COMPLETION - Simple success state
 // ============================================================================
 export const CompletionAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
