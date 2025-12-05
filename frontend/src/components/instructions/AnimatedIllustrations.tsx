@@ -696,7 +696,7 @@ export const FormworkAnimation: React.FC<AnimationProps> = ({ size = 320, templa
         </g>
       </svg>
 
-      {/* PHASE 2: Side View - Place Boards */}
+      {/* PHASE 2: Top View - Place Boards on all 4 sides */}
       <svg
         width="100%"
         height="100%"
@@ -715,45 +715,67 @@ export const FormworkAnimation: React.FC<AnimationProps> = ({ size = 320, templa
           {t.step2Title}
         </text>
 
-        {/* Gravel base - side view */}
-        <rect x="20" y="160" width="280" height="25" fill="#A09080" />
-        <text x="160" y="177" textAnchor="middle" fill="#FFF" fontSize="10" fontWeight="500">{t.gravel}</text>
+        {/* Gravel base - top view */}
+        <rect x="40" y="55" width="240" height="150" fill="#A09080" rx="2" />
 
-        {/* Ground line */}
-        <line x1="20" y1="160" x2="300" y2="160" stroke="#706050" strokeWidth="2" />
+        {/* Gravel texture */}
+        {[70, 120, 170, 220, 250].map((x, i) => (
+          [80, 110, 140, 170].map((y, j) => (
+            <circle key={`grav2-${i}-${j}`} cx={x} cy={y} r="3" fill="#706050" opacity="0.4" />
+          ))
+        ))}
 
-        {/* Left board - animated placement */}
+        {/* Top board - animated */}
         <g style={{ animation: 'formwork-board-place 12s infinite' }}>
-          <rect x="35" y="110" width="20" height="50" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
-          <text x="45" y="195" textAnchor="middle" fill="#5D4E37" fontSize="9" fontWeight="500">{t.board}</text>
+          <rect x="40" y="45" width="240" height="15" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
         </g>
 
-        {/* Right board - animated placement */}
+        {/* Bottom board - animated */}
+        <g style={{ animation: 'formwork-board-place 12s infinite', animationDelay: '0.15s' }}>
+          <rect x="40" y="200" width="240" height="15" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        </g>
+
+        {/* Left board - animated */}
         <g style={{ animation: 'formwork-board-place 12s infinite', animationDelay: '0.3s' }}>
-          <rect x="265" y="110" width="20" height="50" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+          <rect x="30" y="55" width="15" height="150" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
         </g>
 
-        {/* Board height dimension */}
-        <g>
-          <line x1="15" y1="110" x2="15" y2="160" stroke="#1565C0" strokeWidth="2" />
-          <line x1="8" y1="110" x2="22" y2="110" stroke="#1565C0" strokeWidth="2" />
-          <line x1="8" y1="160" x2="22" y2="160" stroke="#1565C0" strokeWidth="2" />
+        {/* Right board - animated */}
+        <g style={{ animation: 'formwork-board-place 12s infinite', animationDelay: '0.45s' }}>
+          <rect x="275" y="55" width="15" height="150" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
         </g>
-        <rect x="-25" y="122" width="50" height="20" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
-        <text x="0" y="137" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">{t.thickness}</text>
 
-        {/* Slab area indicator */}
-        <rect x="55" y="115" width="210" height="45" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" strokeDasharray="8,4" />
-        <text x="160" y="142" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="500">
+        {/* Corner joints highlighted */}
+        {[[40, 55], [265, 55], [40, 190], [265, 190]].map(([x, y], i) => (
+          <rect key={`joint-${i}`} x={x} y={y} width="15" height="15" fill="#8B6914" opacity="0.6" />
+        ))}
+
+        {/* Center label */}
+        <text x="160" y="125" textAnchor="middle" fill="#FFF" fontSize="11" fontWeight="600">
           {isGeorgian ? 'ფილის არე' : 'SLAB AREA'}
         </text>
+        <text x="160" y="140" textAnchor="middle" fill="#FFF" fontSize="10">
+          {t.gravel}
+        </text>
+
+        {/* Board label with arrow */}
+        <g>
+          <line x1="160" y1="35" x2="160" y2="45" stroke="#5D4E37" strokeWidth="1.5" />
+          <text x="160" y="30" textAnchor="middle" fill="#5D4E37" fontSize="10" fontWeight="600">{t.board}</text>
+        </g>
+
+        {/* 4 sides indicator */}
+        <g>
+          <circle cx="300" cy="130" r="16" fill="#E3F2FD" stroke="#1565C0" strokeWidth="2" />
+          <text x="300" y="135" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="700">4</text>
+        </g>
 
         {/* Phase label */}
-        <rect x="20" y="215" width="280" height="45" fill="#FFF3E0" stroke="#FF9800" strokeWidth="1" rx="4" />
-        <text x="160" y="233" textAnchor="middle" fill="#E65100" fontSize="11" fontWeight="600">
+        <rect x="20" y="220" width="280" height="40" fill="#FFF3E0" stroke="#FF9800" strokeWidth="1" rx="4" />
+        <text x="160" y="237" textAnchor="middle" fill="#E65100" fontSize="11" fontWeight="600">
           {t.phase2Label1}
         </text>
-        <text x="160" y="250" textAnchor="middle" fill="#E65100" fontSize="10">
+        <text x="160" y="252" textAnchor="middle" fill="#E65100" fontSize="10">
           {t.phase2Label2}
         </text>
       </svg>
