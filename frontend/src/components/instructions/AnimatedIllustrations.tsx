@@ -1376,109 +1376,407 @@ export const RebarAnimation: React.FC<AnimationProps> = ({ size = 320, templateI
 };
 
 // ============================================================================
-// CONCRETE POUR - Simple side view
+// CONCRETE POUR - Animated 4-phase sequence (includes smoothing)
+// Phase 1: Side view - pour concrete from one side
+// Phase 2: Side view - spread concrete evenly
+// Phase 3: Side view - level with screed board
+// Phase 4: Side view - smooth surface with float
 // ============================================================================
-export const ConcretePourAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
-  <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    {/* Title */}
-    <rect x="0" y="0" width="280" height="28" fill={palette.dimensionBg} />
-    <text x="140" y="18" textAnchor="middle" fill={palette.dimension} fontSize="12" fontWeight="600">CONCRETE POUR</text>
 
-    {/* Ground */}
-    <rect x="0" y="165" width="280" height="45" fill={palette.soil} />
+// Translations for Concrete Pour Animation
+const concretePourTranslations = {
+  en: {
+    step1Title: 'STEP 1: POUR CONCRETE',
+    step2Title: 'STEP 2: SPREAD EVENLY',
+    step3Title: 'STEP 3: LEVEL SURFACE',
+    step4Title: 'STEP 4: SMOOTH FINISH',
+    concrete: 'CONCRETE',
+    gravel: 'GRAVEL',
+    rebar: 'REBAR',
+    thickness: '15 cm',
+    phase1Label: 'Pour concrete starting from one corner',
+    phase2Label1: 'Spread concrete with shovel or rake',
+    phase2Label2: 'Work quickly before concrete sets',
+    phase3Label1: 'Level with screed board',
+    phase3Label2: 'Pull screed in sawing motion',
+    phase4Label1: 'Smooth surface with float or trowel',
+    phase4Label2: 'Wait for bleed water to disappear first',
+  },
+  ka: {
+    step1Title: 'ნაბიჯი 1: ჩაასხით ბეტონი',
+    step2Title: 'ნაბიჯი 2: გადაანაწილეთ თანაბრად',
+    step3Title: 'ნაბიჯი 3: გაასწორეთ ზედაპირი',
+    step4Title: 'ნაბიჯი 4: დააგლუვეთ ზედაპირი',
+    concrete: 'ბეტონი',
+    gravel: 'ხრეში',
+    rebar: 'არმატურა',
+    thickness: '15 სმ',
+    phase1Label: 'ჩაასხით ბეტონი ერთი კუთხიდან',
+    phase2Label1: 'გადაანაწილეთ ბეტონი ნიჩბით ან ფოცხით',
+    phase2Label2: 'იმუშავეთ სწრაფად, სანამ ბეტონი გამაგრდება',
+    phase3Label1: 'გაასწორეთ რეიკით',
+    phase3Label2: 'გადაწიეთ რეიკა ხერხის მოძრაობით',
+    phase4Label1: 'დააგლუვეთ ზედაპირი მალით ან მისტრით',
+    phase4Label2: 'დაელოდეთ ზედაპირული წყლის გაშრობას',
+  },
+};
 
-    {/* Formwork */}
-    <rect x="50" y="115" width="18" height="55" fill={palette.wood} stroke={palette.woodDark} strokeWidth="2" />
-    <rect x="212" y="115" width="18" height="55" fill={palette.wood} stroke={palette.woodDark} strokeWidth="2" />
+export const ConcretePourAnimation: React.FC<AnimationProps> = ({ size = 320, templateInputs }) => {
+  const { i18n } = useTranslation();
+  const lang = i18n.language?.startsWith('ka') ? 'ka' : 'en';
+  const isGeorgian = lang === 'ka';
+  const aspectRatio = 0.85;
 
-    {/* Gravel */}
-    <rect x="68" y="150" width="144" height="15" fill={palette.gravel} />
+  const thickness = templateInputs?.thickness || 15;
+  const unitCm = isGeorgian ? 'სმ' : 'cm';
 
-    {/* Concrete already poured */}
-    <rect x="68" y="125" width="80" height="25" fill={palette.concrete} />
+  const t = {
+    ...concretePourTranslations[lang],
+    thickness: `${thickness} ${unitCm}`,
+  };
 
-    {/* Concrete being poured */}
-    <path d="M165 50 Q170 70 168 90 L172 90 Q175 70 170 50 Z" fill={palette.concrete} />
-    <ellipse cx="170" cy="115" rx="15" ry="8" fill={palette.concrete} />
+  return (
+    <div style={{
+      width: '100%',
+      maxWidth: size,
+      aspectRatio: `1 / ${aspectRatio}`,
+      position: 'relative',
+      overflow: 'hidden',
+      margin: '0 auto'
+    }}>
+      {/* CSS Keyframes */}
+      <style>{`
+        @keyframes pour-phase1-container {
+          0%, 25% { opacity: 1; }
+          30%, 100% { opacity: 0; }
+        }
+        @keyframes pour-phase2-container {
+          0%, 25% { opacity: 0; }
+          30%, 50% { opacity: 1; }
+          55%, 100% { opacity: 0; }
+        }
+        @keyframes pour-phase3-container {
+          0%, 50% { opacity: 0; }
+          55%, 75% { opacity: 1; }
+          80%, 100% { opacity: 0; }
+        }
+        @keyframes pour-phase4-container {
+          0%, 75% { opacity: 0; }
+          80%, 100% { opacity: 1; }
+        }
+        @keyframes pour-stream {
+          0%, 5% { opacity: 0; transform: scaleY(0); }
+          10%, 25% { opacity: 1; transform: scaleY(1); }
+        }
+        @keyframes pour-fill {
+          0%, 5% { width: 0; }
+          25% { width: 180px; }
+        }
+        @keyframes pour-shovel {
+          0%, 30% { transform: translateX(-20px) rotate(0deg); }
+          35% { transform: translateX(0) rotate(-15deg); }
+          40% { transform: translateX(20px) rotate(0deg); }
+          45% { transform: translateX(0) rotate(15deg); }
+          50% { transform: translateX(-10px) rotate(0deg); }
+        }
+        @keyframes pour-screed {
+          0%, 55% { transform: translateX(-30px); }
+          60% { transform: translateX(0); }
+          65% { transform: translateX(-10px); }
+          70% { transform: translateX(10px); }
+          75% { transform: translateX(0); }
+        }
+        @keyframes pour-surface-level {
+          0%, 55% { d: path('M48 115 Q100 105 160 120 Q200 108 272 115'); }
+          75% { d: path('M48 115 L272 115'); }
+        }
+        @keyframes pour-float {
+          0%, 80% { transform: translateX(-40px); opacity: 0; }
+          85% { transform: translateX(0); opacity: 1; }
+          90% { transform: translateX(20px); opacity: 1; }
+          95% { transform: translateX(40px); opacity: 1; }
+          100% { transform: translateX(60px); opacity: 1; }
+        }
+        @keyframes pour-phase-label {
+          0%, 5% { opacity: 0; }
+          10%, 90% { opacity: 1; }
+          95%, 100% { opacity: 0; }
+        }
+      `}</style>
 
-    {/* Chute */}
-    <rect x="130" y="35" width="70" height="12" fill={palette.metalDark} rx="2" transform="rotate(15, 165, 41)" />
+      {/* PHASE 1: Side View - Pour Concrete */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'pour-phase1-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step1Title}
+        </text>
 
-    {/* Pour direction */}
-    <g transform="translate(185, 65)">
-      <path d="M0 0 L0 30" stroke={palette.arrow} strokeWidth="3" />
-      <polygon points="-6,25 6,25 0,38" fill={palette.arrow} />
-    </g>
-    <text x="205" y="75" fill={palette.arrow} fontSize="10" fontWeight="500">POUR</text>
+        {/* Formwork sides */}
+        <rect x="30" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="272" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
 
-    {/* Rebar circles */}
-    {[85, 115, 145, 175].map((x, i) => (
-      <circle key={i} cx={x} cy={138} r="4" fill={palette.rebar} />
-    ))}
+        {/* Gravel base */}
+        <rect x="48" y="155" width="224" height="15" fill="#A09080" />
 
-    {/* Thickness dimension */}
-    <g transform="translate(235, 125)">
-      <line x1="10" y1="0" x2="10" y2="25" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="3" y1="0" x2="17" y2="0" stroke={palette.dimension} strokeWidth="2" />
-      <line x1="3" y1="25" x2="17" y2="25" stroke={palette.dimension} strokeWidth="2" />
-      <text x="25" y="17" fill={palette.dimension} fontSize="11" fontWeight="700">15cm</text>
-    </g>
+        {/* Rebar in gravel */}
+        {[80, 120, 160, 200, 240].map((x, i) => (
+          <circle key={`rebar-${i}`} cx={x} cy="145" r="4" fill="#5D4037" />
+        ))}
 
-    {/* Labels */}
-    <text x="100" y="142" textAnchor="middle" fill={palette.white} fontSize="10" fontWeight="500">CONCRETE</text>
-    <text x="140" y="162" textAnchor="middle" fill={palette.white} fontSize="9">GRAVEL</text>
-  </svg>
-);
+        {/* Concrete being poured - animated stream */}
+        <g style={{ transformOrigin: '100px 50px', animation: 'pour-stream 12s infinite' }}>
+          {/* Chute */}
+          <rect x="60" y="40" width="80" height="14" fill="#607D8B" rx="3" transform="rotate(20, 100, 47)" />
+          {/* Stream */}
+          <path d="M115 55 Q118 80 116 100 L120 100 Q123 80 120 55 Z" fill="#9E9E9E" />
+          {/* Splash */}
+          <ellipse cx="118" cy="115" rx="20" ry="10" fill="#9E9E9E" opacity="0.8" />
+        </g>
 
-// ============================================================================
-// SMOOTHING - Clear float technique
-// ============================================================================
-export const SmoothingAnimation: React.FC<AnimationProps> = ({ size = 280 }) => (
-  <svg width={size} height={size * 0.75} viewBox="0 0 280 210">
-    {/* Title */}
-    <rect x="0" y="0" width="280" height="28" fill={palette.dimensionBg} />
-    <text x="140" y="18" textAnchor="middle" fill={palette.dimension} fontSize="12" fontWeight="600">SURFACE FINISHING</text>
+        {/* Concrete filling - animated */}
+        <rect x="48" y="115" width="0" height="40" fill="#9E9E9E" style={{ animation: 'pour-fill 12s infinite' }} />
 
-    {/* Formwork */}
-    <rect x="25" y="100" width="15" height="50" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" />
-    <rect x="240" y="100" width="15" height="50" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" />
+        {/* Pour direction arrow */}
+        <g>
+          <path d="M135 70 L135 95" stroke="#E53935" strokeWidth="3" />
+          <polygon points="129 90, 141 90, 135 102" fill="#E53935" />
+        </g>
 
-    {/* Concrete surface */}
-    <rect x="40" y="110" width="200" height="40" fill={palette.concrete} />
+        {/* Thickness dimension */}
+        <g>
+          <line x1="295" y1="115" x2="295" y2="155" stroke="#1565C0" strokeWidth="2" />
+          <line x1="288" y1="115" x2="302" y2="115" stroke="#1565C0" strokeWidth="2" />
+          <line x1="288" y1="155" x2="302" y2="155" stroke="#1565C0" strokeWidth="2" />
+        </g>
+        <rect x="255" y="125" width="50" height="18" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="280" y="138" textAnchor="middle" fill="#1565C0" fontSize="10" fontWeight="700">{t.thickness}</text>
 
-    {/* Rough texture (left) */}
-    {[55, 75, 95].map((x, i) => (
-      <ellipse key={i} cx={x} cy={113} rx="8" ry="3" fill={palette.concreteDark} />
-    ))}
+        {/* Phase label */}
+        <g style={{ animation: 'pour-phase-label 12s infinite' }}>
+          <rect x="20" y="240" width="280" height="24" fill="#FFF3E0" stroke="#FF9800" strokeWidth="1" rx="4" />
+          <text x="160" y="257" textAnchor="middle" fill="#E65100" fontSize="11" fontWeight="600">
+            {t.phase1Label}
+          </text>
+        </g>
+      </svg>
 
-    {/* Smooth surface (right) */}
-    <rect x="130" y="110" width="110" height="5" fill={palette.concreteLight} />
+      {/* PHASE 2: Side View - Spread Evenly */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'pour-phase2-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step2Title}
+        </text>
 
-    {/* Float tool */}
-    <g transform="translate(100, 75)">
-      <rect x="0" y="25" width="60" height="10" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1.5" rx="2" />
-      <rect x="25" y="5" width="10" height="22" fill={palette.wood} stroke={palette.woodDark} strokeWidth="1" />
-      <text x="30" y="-5" textAnchor="middle" fill={palette.gray} fontSize="10" fontWeight="500">FLOAT</text>
-    </g>
+        {/* Formwork sides */}
+        <rect x="30" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="272" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
 
-    {/* Direction arrow */}
-    <g transform="translate(170, 88)">
-      <line x1="0" y1="0" x2="40" y2="0" stroke={palette.arrow} strokeWidth="3" />
-      <polygon points="35,-6 35,6 48,0" fill={palette.arrow} />
-    </g>
+        {/* Gravel base */}
+        <rect x="48" y="155" width="224" height="15" fill="#A09080" />
 
-    {/* Labels */}
-    <text x="70" y="135" textAnchor="middle" fill={palette.gray} fontSize="10">ROUGH</text>
-    <text x="185" y="135" textAnchor="middle" fill={palette.gray} fontSize="10">SMOOTH</text>
+        {/* Uneven concrete */}
+        <path d="M48 155 L48 115 Q100 100 160 125 Q200 105 272 115 L272 155 Z" fill="#9E9E9E" />
 
-    {/* Technique box */}
-    <g transform="translate(30, 160)">
-      <rect x="0" y="0" width="220" height="35" fill={palette.dimensionBg} stroke={palette.dimension} strokeWidth="1" rx="4" />
-      <text x="110" y="15" textAnchor="middle" fill={palette.dimension} fontSize="10" fontWeight="600">TECHNIQUE</text>
-      <text x="110" y="28" textAnchor="middle" fill={palette.gray} fontSize="9">Sweep float in arcs, keep blade flat</text>
-    </g>
-  </svg>
-);
+        {/* Rebar showing through */}
+        {[80, 120, 160, 200, 240].map((x, i) => (
+          <circle key={`rebar2-${i}`} cx={x} cy="140" r="4" fill="#5D4037" />
+        ))}
+
+        {/* Shovel spreading - animated */}
+        <g style={{ transformOrigin: '160px 90px', animation: 'pour-shovel 12s infinite' }}>
+          {/* Handle */}
+          <rect x="155" y="45" width="10" height="50" fill="#8B4513" rx="3" />
+          {/* Blade */}
+          <path d="M145 93 L175 93 L170 115 Q160 120 150 115 Z" fill="#607D8B" stroke="#455A64" strokeWidth="1" />
+        </g>
+
+        {/* Phase label */}
+        <rect x="20" y="215" width="280" height="45" fill="#FFF3E0" stroke="#FF9800" strokeWidth="1" rx="4" />
+        <text x="160" y="233" textAnchor="middle" fill="#E65100" fontSize="11" fontWeight="600">
+          {t.phase2Label1}
+        </text>
+        <text x="160" y="250" textAnchor="middle" fill="#E65100" fontSize="10">
+          {t.phase2Label2}
+        </text>
+      </svg>
+
+      {/* PHASE 3: Side View - Level with Screed */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'pour-phase3-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step3Title}
+        </text>
+
+        {/* Formwork sides */}
+        <rect x="30" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="272" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+
+        {/* Gravel base */}
+        <rect x="48" y="155" width="224" height="15" fill="#A09080" />
+
+        {/* Concrete being leveled - surface animates flat */}
+        <path
+          d="M48 155 L48 115 Q100 105 160 120 Q200 108 272 115 L272 155 Z"
+          fill="#9E9E9E"
+        />
+        {/* Level surface overlay */}
+        <rect x="48" y="115" width="224" height="40" fill="#9E9E9E" />
+
+        {/* Rebar */}
+        {[80, 120, 160, 200, 240].map((x, i) => (
+          <circle key={`rebar3-${i}`} cx={x} cy="140" r="4" fill="#5D4037" />
+        ))}
+
+        {/* Screed board - animated */}
+        <g style={{ animation: 'pour-screed 12s infinite' }}>
+          {/* Board */}
+          <rect x="100" y="95" width="120" height="22" fill="#D4A574" stroke="#8B6914" strokeWidth="2" rx="2" />
+          {/* Handles */}
+          <rect x="95" y="85" width="15" height="12" fill="#8B4513" rx="2" />
+          <rect x="210" y="85" width="15" height="12" fill="#8B4513" rx="2" />
+        </g>
+
+        {/* Level line */}
+        <line x1="48" y1="115" x2="272" y2="115" stroke="#1565C0" strokeWidth="2" strokeDasharray="8,4" />
+
+        {/* Sawing motion arrows */}
+        <g>
+          <path d="M145 80 L125 80" stroke="#E53935" strokeWidth="2" />
+          <polygon points="127 76, 127 84, 120 80" fill="#E53935" />
+          <path d="M175 80 L195 80" stroke="#E53935" strokeWidth="2" />
+          <polygon points="193 76, 193 84, 200 80" fill="#E53935" />
+        </g>
+
+        {/* Phase label */}
+        <rect x="20" y="215" width="280" height="45" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="1" rx="4" />
+        <text x="160" y="233" textAnchor="middle" fill="#2E7D32" fontSize="11" fontWeight="600">
+          {t.phase3Label1}
+        </text>
+        <text x="160" y="250" textAnchor="middle" fill="#2E7D32" fontSize="10">
+          {t.phase3Label2}
+        </text>
+      </svg>
+
+      {/* PHASE 4: Side View - Smooth with Float */}
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 320 270"
+        preserveAspectRatio="xMidYMid meet"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          animation: 'pour-phase4-container 12s infinite'
+        }}
+      >
+        {/* Title */}
+        <rect x="0" y="0" width="320" height="32" fill="#E3F2FD" />
+        <text x="160" y="22" textAnchor="middle" fill="#1565C0" fontSize="14" fontWeight="600">
+          {t.step4Title}
+        </text>
+
+        {/* Formwork sides */}
+        <rect x="30" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="272" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+
+        {/* Gravel base */}
+        <rect x="48" y="155" width="224" height="15" fill="#A09080" />
+
+        {/* Level concrete */}
+        <rect x="48" y="115" width="224" height="40" fill="#9E9E9E" />
+
+        {/* Smooth surface finish (lighter) */}
+        <rect x="48" y="115" width="224" height="5" fill="#BDBDBD" />
+
+        {/* Rebar */}
+        {[80, 120, 160, 200, 240].map((x, i) => (
+          <circle key={`rebar4-${i}`} cx={x} cy="140" r="4" fill="#5D4037" />
+        ))}
+
+        {/* Float tool - animated */}
+        <g style={{ animation: 'pour-float 12s infinite' }}>
+          {/* Float blade */}
+          <rect x="100" y="100" width="70" height="12" fill="#D4A574" stroke="#8B6914" strokeWidth="1.5" rx="2" />
+          {/* Handle */}
+          <rect x="130" y="75" width="10" height="27" fill="#8B4513" rx="2" />
+        </g>
+
+        {/* Smooth arrow direction */}
+        <g>
+          <path d="M180 90 L220 90" stroke="#4CAF50" strokeWidth="2" />
+          <polygon points="215 86, 215 94, 225 90" fill="#4CAF50" />
+        </g>
+
+        {/* Labels */}
+        <text x="160" y="138" textAnchor="middle" fill="#FFF" fontSize="10" fontWeight="600">{t.concrete}</text>
+
+        {/* Thickness dimension */}
+        <g>
+          <line x1="295" y1="115" x2="295" y2="155" stroke="#1565C0" strokeWidth="2" />
+          <line x1="288" y1="115" x2="302" y2="115" stroke="#1565C0" strokeWidth="2" />
+          <line x1="288" y1="155" x2="302" y2="155" stroke="#1565C0" strokeWidth="2" />
+        </g>
+        <rect x="255" y="125" width="50" height="18" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="280" y="138" textAnchor="middle" fill="#1565C0" fontSize="10" fontWeight="700">{t.thickness}</text>
+
+        {/* Checkmark */}
+        <g transform="translate(285, 85)">
+          <circle cx="0" cy="0" r="14" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="2" />
+          <path d="M-6 0 L-2 4 L6 -4" stroke="#4CAF50" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+
+        {/* Phase label */}
+        <rect x="20" y="215" width="280" height="45" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="4" />
+        <text x="160" y="233" textAnchor="middle" fill="#0D47A1" fontSize="11" fontWeight="600">
+          {t.phase4Label1}
+        </text>
+        <text x="160" y="250" textAnchor="middle" fill="#0D47A1" fontSize="10">
+          {t.phase4Label2}
+        </text>
+      </svg>
+    </div>
+  );
+};
+
+// Keep SmoothingAnimation as alias for backwards compatibility (but concrete_pour now includes smoothing)
+export const SmoothingAnimation = ConcretePourAnimation;
 
 // ============================================================================
 // MEASURING - Simple layout view
@@ -2348,6 +2646,8 @@ export const IllustrationMap: Record<string, React.FC<AnimationProps>> = {
   'gravel_base': GravelBaseAnimation,
   'formwork': FormworkAnimation,
   'rebar': RebarAnimation,
+  'concrete_pour': ConcretePourAnimation,
+  'smoothing': ConcretePourAnimation,
 };
 
 // ============================================================================
