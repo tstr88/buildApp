@@ -1260,33 +1260,17 @@ export const GravelBaseAnimation: React.FC<AnimationProps> = ({ size = 320, temp
           0%, 80% { opacity: 0; }
           85%, 100% { opacity: 1; }
         }
-        @keyframes gravel-pour {
-          0%, 5% { transform: translateY(-30px); opacity: 0; }
-          15% { transform: translateY(0); opacity: 1; }
-          25% { transform: translateY(0); opacity: 1; }
+        @keyframes gravel-pile-appear {
+          0%, 5% { opacity: 0; transform: scale(0.8); }
+          15%, 25% { opacity: 1; transform: scale(1); }
         }
-        @keyframes gravel-pile-grow {
-          0%, 5% { transform: scaleY(0); }
-          15%, 25% { transform: scaleY(1); }
+        @keyframes gravel-rake-move {
+          0%, 30% { transform: translateX(-60px); }
+          55% { transform: translateX(60px); }
         }
-        @keyframes gravel-rake {
-          0%, 30% { transform: translateX(0) rotate(0deg); }
-          35% { transform: translateX(40px) rotate(5deg); }
-          40% { transform: translateX(-30px) rotate(-5deg); }
-          45% { transform: translateX(30px) rotate(3deg); }
-          50% { transform: translateX(-20px) rotate(-3deg); }
-          55% { transform: translateX(0) rotate(0deg); }
-        }
-        @keyframes gravel-spread {
-          0%, 30% { d: path('M60 140 Q100 100 160 120 Q220 90 260 140'); }
-          50%, 100% { d: path('M60 130 L260 130'); }
-        }
-        @keyframes gravel-level-tool {
-          0%, 60% { transform: translateX(0); }
-          65% { transform: translateX(60px); }
-          70% { transform: translateX(-40px); }
-          75% { transform: translateX(40px); }
-          80% { transform: translateX(0); }
+        @keyframes gravel-uneven-to-flat {
+          0%, 30% { d: path('M48 155 Q90 115 130 135 Q170 105 210 130 Q250 110 272 155 L272 155 L48 155 Z'); }
+          55% { d: path('M48 155 L48 130 L272 130 L272 155 Z'); }
         }
         @keyframes gravel-compactor {
           0%, 85% { transform: translateY(0); }
@@ -1310,7 +1294,7 @@ export const GravelBaseAnimation: React.FC<AnimationProps> = ({ size = 320, temp
         }
       `}</style>
 
-      {/* PHASE 1: Pour Gravel */}
+      {/* PHASE 1: Add Gravel - Simple pile showing gravel added */}
       <svg
         width="100%"
         height="100%"
@@ -1330,38 +1314,33 @@ export const GravelBaseAnimation: React.FC<AnimationProps> = ({ size = 320, temp
         </text>
 
         {/* Formwork sides */}
-        <rect x="30" y="90" width="18" height="80" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
-        <rect x="272" y="90" width="18" height="80" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="30" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="272" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
 
         {/* Compacted soil base */}
-        <rect x="48" y="140" width="224" height="30" fill="#8B7355" />
-        <text x="160" y="160" textAnchor="middle" fill="#FFF" fontSize="10" fontWeight="500">{t.soil}</text>
+        <rect x="48" y="155" width="224" height="15" fill="#8B7355" />
+        <text x="160" y="167" textAnchor="middle" fill="#FFF" fontSize="9" fontWeight="500">{t.soil}</text>
 
-        {/* Wheelbarrow dumping gravel */}
-        <g style={{ animation: 'gravel-pour 12s infinite', transformOrigin: '160px 60px' }}>
-          {/* Wheelbarrow body */}
-          <path d="M120 50 L200 50 L190 75 L130 75 Z" fill="#607D8B" stroke="#455A64" strokeWidth="2" />
-          {/* Wheel */}
-          <circle cx="160" cy="80" r="10" fill="#333" stroke="#222" strokeWidth="2" />
-          {/* Gravel in wheelbarrow */}
-          <path d="M125 50 Q160 35 195 50" fill="#A09080" />
-        </g>
-
-        {/* Falling gravel stream */}
-        <g style={{ animation: 'gravel-pour 12s infinite' }}>
-          <ellipse cx="160" cy="95" rx="15" ry="8" fill="#A09080" />
-          <ellipse cx="160" cy="105" rx="12" ry="6" fill="#A09080" opacity="0.8" />
-          <ellipse cx="160" cy="115" rx="10" ry="5" fill="#A09080" opacity="0.6" />
-        </g>
-
-        {/* Gravel pile growing */}
-        <g style={{ animation: 'gravel-pile-grow 12s infinite', transformOrigin: '160px 140px' }}>
-          <path d="M100 140 Q130 100 160 110 Q190 100 220 140 Z" fill="#A09080" />
+        {/* Gravel pile - uneven mound */}
+        <g style={{ animation: 'gravel-pile-appear 12s infinite' }}>
+          <path d="M48 155 Q90 115 130 135 Q170 105 210 130 Q250 110 272 155 L272 155 L48 155 Z" fill="#A09080" />
           {/* Gravel texture dots */}
-          {[110, 130, 150, 170, 190, 210].map((x, i) => (
-            <circle key={`dot-${i}`} cx={x} cy={130 - (i % 3) * 5} r="3" fill="#706050" />
+          {[70, 100, 130, 160, 190, 220, 250].map((x, i) => (
+            <circle key={`dot-${i}`} cx={x} cy={140 - (i % 3) * 8} r="4" fill="#706050" />
+          ))}
+          {[85, 115, 145, 175, 205, 235].map((x, i) => (
+            <circle key={`dot2-${i}`} cx={x} cy={148 - (i % 2) * 6} r="3" fill="#706050" />
           ))}
         </g>
+
+        {/* Depth dimension */}
+        <g>
+          <line x1="290" y1="110" x2="290" y2="155" stroke="#1565C0" strokeWidth="2" />
+          <line x1="283" y1="110" x2="297" y2="110" stroke="#1565C0" strokeWidth="2" />
+          <line x1="283" y1="155" x2="297" y2="155" stroke="#1565C0" strokeWidth="2" />
+        </g>
+        <rect x="248" y="120" width="50" height="20" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="273" y="135" textAnchor="middle" fill="#1565C0" fontSize="10" fontWeight="700">{t.depth}</text>
 
         {/* Phase label */}
         <g style={{ animation: 'gravel-phase-label 12s infinite' }}>
@@ -1372,7 +1351,7 @@ export const GravelBaseAnimation: React.FC<AnimationProps> = ({ size = 320, temp
         </g>
       </svg>
 
-      {/* PHASE 2: Spread Evenly */}
+      {/* PHASE 2: Spread Evenly - Rake spreading with gravel becoming flat */}
       <svg
         width="100%"
         height="100%"
@@ -1392,29 +1371,33 @@ export const GravelBaseAnimation: React.FC<AnimationProps> = ({ size = 320, temp
         </text>
 
         {/* Formwork sides */}
-        <rect x="30" y="90" width="18" height="80" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
-        <rect x="272" y="90" width="18" height="80" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="30" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="272" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
 
         {/* Compacted soil base */}
-        <rect x="48" y="140" width="224" height="30" fill="#8B7355" />
+        <rect x="48" y="155" width="224" height="15" fill="#8B7355" />
 
-        {/* Uneven gravel being spread */}
-        <path d="M48 140 Q80 110 120 125 Q160 105 200 120 Q240 110 272 140 L272 140 L48 140 Z" fill="#A09080" />
+        {/* Gravel being spread - animates from uneven to flat */}
+        <path
+          d="M48 155 Q90 115 130 135 Q170 105 210 130 Q250 110 272 155 L272 155 L48 155 Z"
+          fill="#A09080"
+          style={{ animation: 'gravel-uneven-to-flat 12s infinite' }}
+        />
 
         {/* Gravel texture */}
         {[60, 90, 120, 150, 180, 210, 240].map((x, i) => (
-          <circle key={`tex-${i}`} cx={x} cy={125 + (i % 3) * 5} r="4" fill="#706050" />
+          <circle key={`tex-${i}`} cx={x} cy={142} r="4" fill="#706050" />
         ))}
 
-        {/* Rake tool */}
-        <g style={{ transformOrigin: '160px 80px', animation: 'gravel-rake 12s infinite' }}>
+        {/* Rake tool - moves across */}
+        <g style={{ animation: 'gravel-rake-move 12s infinite' }}>
           {/* Handle */}
-          <rect x="155" y="45" width="8" height="60" fill="#8B4513" rx="2" />
+          <rect x="156" y="50" width="8" height="55" fill="#8B4513" rx="2" />
           {/* Rake head */}
-          <rect x="130" y="103" width="60" height="8" fill="#607D8B" rx="2" />
+          <rect x="135" y="103" width="50" height="7" fill="#607D8B" rx="2" />
           {/* Rake tines */}
-          {[135, 147, 159, 171, 183].map((x, i) => (
-            <rect key={`tine-${i}`} x={x} y="111" width="4" height="12" fill="#455A64" />
+          {[140, 150, 160, 170, 180].map((x, i) => (
+            <rect key={`tine-${i}`} x={x} y="110" width="3" height="10" fill="#455A64" />
           ))}
         </g>
 
@@ -1428,7 +1411,7 @@ export const GravelBaseAnimation: React.FC<AnimationProps> = ({ size = 320, temp
         </text>
       </svg>
 
-      {/* PHASE 3: Level Surface */}
+      {/* PHASE 3: Level Surface - Static level showing bubble centered */}
       <svg
         width="100%"
         height="100%"
@@ -1448,39 +1431,51 @@ export const GravelBaseAnimation: React.FC<AnimationProps> = ({ size = 320, temp
         </text>
 
         {/* Formwork sides */}
-        <rect x="30" y="90" width="18" height="80" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
-        <rect x="272" y="90" width="18" height="80" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="30" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="272" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
 
         {/* Compacted soil base */}
-        <rect x="48" y="145" width="224" height="25" fill="#8B7355" />
+        <rect x="48" y="155" width="224" height="15" fill="#8B7355" />
 
         {/* Level gravel layer */}
-        <rect x="48" y="115" width="224" height="30" fill="#A09080" />
-        <text x="160" y="135" textAnchor="middle" fill="#FFF" fontSize="11" fontWeight="600">{t.gravel}</text>
+        <rect x="48" y="130" width="224" height="25" fill="#A09080" />
+        <text x="160" y="147" textAnchor="middle" fill="#FFF" fontSize="10" fontWeight="600">{t.gravel}</text>
 
         {/* Gravel texture */}
         {[60, 85, 110, 135, 160, 185, 210, 235, 260].map((x, i) => (
-          <circle key={`tex-${i}`} cx={x} cy={125 + (i % 2) * 8} r="3" fill="#706050" />
+          <circle key={`tex-${i}`} cx={x} cy={140} r="3" fill="#706050" />
         ))}
 
         {/* Level line */}
-        <line x1="48" y1="115" x2="272" y2="115" stroke="#1565C0" strokeWidth="2" strokeDasharray="8,4" />
+        <line x1="48" y1="130" x2="272" y2="130" stroke="#1565C0" strokeWidth="2" strokeDasharray="8,4" />
 
-        {/* Spirit level tool */}
-        <g style={{ animation: 'gravel-level-tool 12s infinite' }}>
-          <rect x="100" y="70" width="120" height="25" fill="#FFD54F" stroke="#F9A825" strokeWidth="2" rx="4" />
-          <rect x="145" y="76" width="30" height="13" fill="#81D4FA" stroke="#0288D1" strokeWidth="1" rx="2" />
-          <circle cx="160" cy="82" r="4" fill="#4CAF50" />
+        {/* Spirit level tool - static, showing level */}
+        <g>
+          {/* Level body */}
+          <rect x="90" y="80" width="140" height="28" fill="#FFD54F" stroke="#F9A825" strokeWidth="2" rx="4" />
+          {/* Bubble vial */}
+          <rect x="145" y="86" width="30" height="16" fill="#81D4FA" stroke="#0288D1" strokeWidth="1" rx="3" />
+          {/* Center lines in vial */}
+          <line x1="158" y1="86" x2="158" y2="102" stroke="#0288D1" strokeWidth="1" />
+          <line x1="162" y1="86" x2="162" y2="102" stroke="#0288D1" strokeWidth="1" />
+          {/* Bubble - centered (level!) */}
+          <circle cx="160" cy="94" r="5" fill="#4CAF50" />
+        </g>
+
+        {/* Checkmark indicating level */}
+        <g transform="translate(235, 85)">
+          <circle cx="0" cy="0" r="12" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="2" />
+          <path d="M-5 0 L-2 3 L5 -4" stroke="#4CAF50" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
         </g>
 
         {/* Depth dimension */}
         <g>
-          <line x1="290" y1="115" x2="290" y2="145" stroke="#1565C0" strokeWidth="2" />
-          <line x1="283" y1="115" x2="297" y2="115" stroke="#1565C0" strokeWidth="2" />
-          <line x1="283" y1="145" x2="297" y2="145" stroke="#1565C0" strokeWidth="2" />
+          <line x1="290" y1="130" x2="290" y2="155" stroke="#1565C0" strokeWidth="2" />
+          <line x1="283" y1="130" x2="297" y2="130" stroke="#1565C0" strokeWidth="2" />
+          <line x1="283" y1="155" x2="297" y2="155" stroke="#1565C0" strokeWidth="2" />
         </g>
-        <rect x="248" y="118" width="50" height="20" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
-        <text x="273" y="133" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">{t.depth}</text>
+        <rect x="248" y="133" width="50" height="18" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="273" y="146" textAnchor="middle" fill="#1565C0" fontSize="10" fontWeight="700">{t.depth}</text>
 
         {/* Phase label */}
         <rect x="20" y="215" width="280" height="45" fill="#E8F5E9" stroke="#4CAF50" strokeWidth="1" rx="4" />
@@ -1512,59 +1507,59 @@ export const GravelBaseAnimation: React.FC<AnimationProps> = ({ size = 320, temp
         </text>
 
         {/* Formwork sides */}
-        <rect x="30" y="90" width="18" height="80" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
-        <rect x="272" y="90" width="18" height="80" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="30" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
+        <rect x="272" y="100" width="18" height="70" fill="#D4A574" stroke="#8B6914" strokeWidth="2" />
 
         {/* Compacted soil base */}
-        <rect x="48" y="145" width="224" height="25" fill="#8B7355" />
+        <rect x="48" y="155" width="224" height="15" fill="#8B7355" />
 
         {/* Compacted gravel layer */}
-        <rect x="48" y="120" width="224" height="25" fill="#A09080" />
-        <line x1="48" y1="120" x2="272" y2="120" stroke="#706050" strokeWidth="3" />
+        <rect x="48" y="135" width="224" height="20" fill="#A09080" />
+        <line x1="48" y1="135" x2="272" y2="135" stroke="#706050" strokeWidth="3" />
 
         {/* Gravel texture - more compressed */}
         {[55, 75, 95, 115, 135, 155, 175, 195, 215, 235, 255].map((x, i) => (
-          <circle key={`tex-${i}`} cx={x} cy={132} r="2.5" fill="#706050" />
+          <circle key={`tex-${i}`} cx={x} cy={145} r="2.5" fill="#706050" />
         ))}
 
         {/* Plate compactor */}
         <g style={{ animation: 'gravel-compactor 12s infinite' }}>
           {/* Handle */}
-          <rect x="150" y="45" width="10" height="35" fill="#424242" rx="2" />
-          <rect x="145" y="40" width="20" height="10" fill="#616161" rx="3" />
+          <rect x="150" y="55" width="10" height="30" fill="#424242" rx="2" />
+          <rect x="145" y="50" width="20" height="10" fill="#616161" rx="3" />
           {/* Engine housing */}
-          <rect x="130" y="80" width="50" height="22" fill="#FF5722" rx="4" />
-          <rect x="140" y="85" width="30" height="7" fill="#BF360C" rx="2" />
+          <rect x="130" y="85" width="50" height="20" fill="#FF5722" rx="4" />
+          <rect x="140" y="90" width="30" height="6" fill="#BF360C" rx="2" />
           {/* Base plate */}
-          <rect x="120" y="102" width="70" height="12" fill="#607D8B" rx="2" />
+          <rect x="120" y="105" width="70" height="10" fill="#607D8B" rx="2" />
         </g>
 
         {/* Vibration lines */}
         <g style={{ animation: 'gravel-vibration 12s infinite' }}>
           {[135, 155, 175].map((x, i) => (
             <g key={`vib-${i}`}>
-              <line x1={x} y1="117" x2={x} y2="125" stroke="#FF5722" strokeWidth="2" />
-              <polygon points={`${x-4} 125, ${x+4} 125, ${x} 132`} fill="#FF5722" />
+              <line x1={x} y1="118" x2={x} y2="128" stroke="#FF5722" strokeWidth="2" />
+              <polygon points={`${x-4} 128, ${x+4} 128, ${x} 135`} fill="#FF5722" />
             </g>
           ))}
         </g>
 
         {/* Compression arrows on sides */}
         <g style={{ animation: 'gravel-vibration 12s infinite' }}>
-          <path d="M70 100 L70 115" stroke="#1565C0" strokeWidth="2" />
-          <polygon points="66 115, 74 115, 70 125" fill="#1565C0" />
-          <path d="M250 100 L250 115" stroke="#1565C0" strokeWidth="2" />
-          <polygon points="246 115, 254 115, 250 125" fill="#1565C0" />
+          <path d="M70 115 L70 130" stroke="#1565C0" strokeWidth="2" />
+          <polygon points="66 130, 74 130, 70 138" fill="#1565C0" />
+          <path d="M250 115 L250 130" stroke="#1565C0" strokeWidth="2" />
+          <polygon points="246 130, 254 130, 250 138" fill="#1565C0" />
         </g>
 
         {/* Depth dimension */}
         <g>
-          <line x1="290" y1="120" x2="290" y2="145" stroke="#1565C0" strokeWidth="2" />
-          <line x1="283" y1="120" x2="297" y2="120" stroke="#1565C0" strokeWidth="2" />
-          <line x1="283" y1="145" x2="297" y2="145" stroke="#1565C0" strokeWidth="2" />
+          <line x1="290" y1="135" x2="290" y2="155" stroke="#1565C0" strokeWidth="2" />
+          <line x1="283" y1="135" x2="297" y2="135" stroke="#1565C0" strokeWidth="2" />
+          <line x1="283" y1="155" x2="297" y2="155" stroke="#1565C0" strokeWidth="2" />
         </g>
-        <rect x="248" y="122" width="50" height="20" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
-        <text x="273" y="137" textAnchor="middle" fill="#1565C0" fontSize="11" fontWeight="700">{t.depth}</text>
+        <rect x="248" y="138" width="50" height="16" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="3" />
+        <text x="273" y="150" textAnchor="middle" fill="#1565C0" fontSize="10" fontWeight="700">{t.depth}</text>
 
         {/* Phase label */}
         <rect x="20" y="215" width="280" height="45" fill="#E3F2FD" stroke="#1565C0" strokeWidth="1" rx="4" />
