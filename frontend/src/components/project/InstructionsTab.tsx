@@ -7,6 +7,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icons } from '../icons/Icons';
+import { InstructionIllustration } from '../instructions/AnimatedIllustrations';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme/tokens';
 
 interface InstructionStep {
@@ -16,6 +17,7 @@ interface InstructionStep {
   description_ka: string;
   description_en: string;
   image_url?: string;
+  illustration_type?: string; // CSS animation type: 'digging', 'post_install', 'concrete_mixing', etc.
   duration_minutes?: number;
   difficulty?: 'easy' | 'medium' | 'hard';
   tools_needed?: string[];
@@ -437,25 +439,20 @@ export const InstructionsTab: React.FC<InstructionsTabProps> = ({
                     {isGeorgian ? step.description_ka : step.description_en}
                   </p>
 
-                  {/* Image Placeholder */}
-                  {step.image_url && (
+                  {/* Animated Illustration */}
+                  {step.illustration_type && (
                     <div style={{
                       width: '100%',
-                      height: '200px',
-                      backgroundColor: colors.neutral[100],
+                      backgroundColor: colors.neutral[50],
                       borderRadius: borderRadius.lg,
                       marginBottom: spacing[4],
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      border: `1px dashed ${colors.border.default}`,
+                      padding: spacing[4],
+                      border: `1px solid ${colors.border.light}`,
                     }}>
-                      <div style={{ textAlign: 'center', color: colors.text.tertiary }}>
-                        <Icons.Image size={32} />
-                        <p style={{ margin: 0, marginTop: spacing[2], fontSize: typography.fontSize.sm }}>
-                          {isGeorgian ? 'ილუსტრაცია' : 'Illustration'}
-                        </p>
-                      </div>
+                      <InstructionIllustration type={step.illustration_type} size={180} />
                     </div>
                   )}
 

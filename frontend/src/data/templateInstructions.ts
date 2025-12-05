@@ -11,6 +11,7 @@ export interface InstructionStep {
   description_ka: string;
   description_en: string;
   image_url?: string;
+  illustration_type?: string; // CSS animation type: 'digging', 'post_install', 'concrete_mixing', etc.
   duration_minutes?: number;
   difficulty?: 'easy' | 'medium' | 'hard';
   tools_needed?: string[];
@@ -76,7 +77,7 @@ export function generateFenceInstructions(inputs: {
         title_en: 'Preparation & Planning',
         description_ka: `გაზომეთ და მონიშნეთ ${length}მ სიგრძის ღობის ტრასა. დაგჭირდებათ ${postCount} ბოძი, რომლებიც განთავსდება ყოველ 2.5 მეტრში.`,
         description_en: `Measure and mark the ${length}m fence line. You'll need ${postCount} posts, placed every 2.5 meters.`,
-        image_url: '/instructions/fence/step1-planning.svg',
+        illustration_type: 'measuring',
         duration_minutes: 30,
         difficulty: 'easy',
         tools_needed: ['საზომი რულეტკა', 'თოკი', 'პალები', 'ჩაქუჩი'],
@@ -111,7 +112,7 @@ export function generateFenceInstructions(inputs: {
         title_en: 'Check Underground Utilities',
         description_ka: 'სავალდებულო ნაბიჯი! შეამოწმეთ მიწისქვეშა გაზის, წყლის, ელექტროობისა და ინტერნეტის კაბელების მდებარეობა.',
         description_en: 'Mandatory step! Check the location of underground gas, water, electricity, and internet cables.',
-        image_url: '/instructions/fence/step2-utilities.svg',
+        illustration_type: 'measuring',
         duration_minutes: 60,
         difficulty: 'easy',
         substeps: [
@@ -143,7 +144,7 @@ export function generateFenceInstructions(inputs: {
         title_en: 'Dig Post Holes',
         description_ka: `გათხარეთ ${postCount} ორმო ${holeDepth}სმ სიღრმით და 25სმ დიამეტრით. ${isSloped ? 'დახრილ რელიეფზე ორმოები უფრო ღრმა უნდა იყოს.' : ''}`,
         description_en: `Dig ${postCount} holes ${holeDepth}cm deep and 25cm in diameter. ${isSloped ? 'On sloped terrain, holes need to be deeper.' : ''}`,
-        image_url: '/instructions/fence/step3-digging.svg',
+        illustration_type: 'digging',
         duration_minutes: postCount * 15,
         difficulty: isSloped ? 'hard' : 'medium',
         tools_needed: ['ბრჯები', 'თოხი', 'საზომი', 'ნიჩაბი'],
@@ -176,7 +177,7 @@ export function generateFenceInstructions(inputs: {
         title_en: 'Set Posts',
         description_ka: `დააყენეთ ${height}მ სიმაღლის მეტალის ბოძები. თითოეული ბოძი უნდა იყოს ვერტიკალურად და ერთ ხაზზე დანარჩენებთან.`,
         description_en: `Install ${height}m high metal posts. Each post must be vertical and aligned with the others.`,
-        image_url: '/instructions/fence/step4-posts.svg',
+        illustration_type: 'post_install',
         duration_minutes: postCount * 10,
         difficulty: 'medium',
         tools_needed: ['დონე', 'თოკი', 'დროებითი საყრდენები'],
@@ -213,7 +214,7 @@ export function generateFenceInstructions(inputs: {
         title_en: 'Pour Concrete',
         description_ka: 'ჩაასხით M300 ბეტონი ბოძების ირგვლივ. დატოვეთ 24-48 საათი გამაგრებისთვის.',
         description_en: 'Pour M300 concrete around the posts. Allow 24-48 hours for curing.',
-        image_url: '/instructions/fence/step5-concrete.svg',
+        illustration_type: 'concrete_mixing',
         duration_minutes: postCount * 8,
         difficulty: 'medium',
         tools_needed: ['ბეტონის მიქსერი ან თაიგული', 'წყალი', 'ნიჩაბი'],
@@ -253,7 +254,7 @@ export function generateFenceInstructions(inputs: {
         title_en: 'Install Horizontal Rails',
         description_ka: `მიამაგრეთ ჰორიზონტალური ლარტყები ბოძებზე. ${height >= 2 ? '3 ლარტყი რეკომენდირებულია 2მ-ზე მაღალი ღობისთვის.' : '2 ლარტყი საკმარისია.'}`,
         description_en: `Attach horizontal rails to the posts. ${height >= 2 ? '3 rails are recommended for fences over 2m.' : '2 rails are sufficient.'}`,
-        image_url: '/instructions/fence/step6-rails.svg',
+        illustration_type: 'leveling',
         duration_minutes: Math.ceil(length / 2.5) * 5,
         difficulty: 'medium',
         tools_needed: ['შედუღების აპარატი ან ხრახნები', 'დონე', 'საზომი'],
@@ -282,7 +283,7 @@ export function generateFenceInstructions(inputs: {
         description_en: isWood
           ? `Attach wood panels to horizontal rails. Leave 5mm gap between panels for expansion.`
           : `Attach metal sheets to rails. Sheets should overlap by 5cm.`,
-        image_url: isWood ? '/instructions/fence/step7-wood.svg' : '/instructions/fence/step7-metal.svg',
+        illustration_type: 'panel_attach',
         duration_minutes: Math.ceil(length * height / 2) * 3,
         difficulty: 'easy',
         tools_needed: isWood ? ['ხრახნი ან დრელი', 'ხრახნები'] : ['ხრახნები', 'დრელი'],
@@ -311,7 +312,7 @@ export function generateFenceInstructions(inputs: {
         description_en: gates === 'car'
           ? 'Install vehicle gate with heavy-duty hinges. The gate should open freely.'
           : 'Install walk gate. Make sure it opens and closes freely.',
-        image_url: gates === 'car' ? '/instructions/fence/step8-cargate.svg' : '/instructions/fence/step8-walkgate.svg',
+        illustration_type: 'gate_install',
         duration_minutes: gates === 'car' ? 120 : 60,
         difficulty: 'medium' as const,
         tools_needed: ['დრელი', 'ხრახნები', 'დონე'],
@@ -340,7 +341,7 @@ export function generateFenceInstructions(inputs: {
         title_en: 'Finishing & Inspection',
         description_ka: 'შეამოწმეთ მთელი ღობე, დაამაგრეთ ნებისმიერი ფხვიერი ელემენტი და გაასუფთავეთ სამუშაო ადგილი.',
         description_en: 'Inspect the entire fence, tighten any loose elements, and clean up the work area.',
-        image_url: '/instructions/fence/step-final.svg',
+        illustration_type: 'completion',
         duration_minutes: 30,
         difficulty: 'easy',
         substeps: [
@@ -439,7 +440,7 @@ export function generateSlabInstructions(inputs: {
         title_en: 'Site Preparation',
         description_ka: `გაასუფთავეთ და გაასწორეთ ${length}მ × ${width}მ ფართობი. მოაშორეთ ბალახი, ფესვები და ზედაპირული ნიადაგი (ტოპსოილი) 15-20სმ სიღრმეზე.`,
         description_en: `Clear and level a ${length}m × ${width}m area. Remove grass, roots, and topsoil to 15-20cm depth.`,
-        image_url: '/instructions/slab/step1-preparation.svg',
+        illustration_type: 'digging',
         duration_minutes: area * 5,
         difficulty: 'easy',
         tools_needed: ['თოხი', 'ნიჩაბი', 'ხელის თვლები', 'საზომი'],
@@ -476,7 +477,7 @@ export function generateSlabInstructions(inputs: {
         title_en: 'Add Gravel Base',
         description_ka: `მოათავსეთ ${gravelDepth}სმ ხრეშის (ღორღის) ფენა და კარგად დაამაგრეთ ვიბროტამპით ან ხელით.`,
         description_en: `Place ${gravelDepth}cm gravel layer and compact well with a plate compactor or by hand.`,
-        image_url: '/instructions/slab/step2-gravel.svg',
+        illustration_type: 'leveling',
         duration_minutes: area * 3,
         difficulty: 'easy',
         tools_needed: ['ხელის თვლები', 'ფოცხი', 'ვიბროტამპი (სასურველი)'],
@@ -512,7 +513,7 @@ export function generateSlabInstructions(inputs: {
         title_en: 'Set Formwork',
         description_ka: `დააყენეთ ხის ყალიბი ${thickness}სმ სიმაღლეზე. ყალიბი უნდა იყოს მტკიცე და წყალგაუმტარი.`,
         description_en: `Set wooden formwork at ${thickness}cm height. Formwork must be sturdy and watertight.`,
-        image_url: '/instructions/slab/step3-formwork.svg',
+        illustration_type: 'measuring',
         duration_minutes: (length + width) * 4,
         difficulty: 'medium',
         tools_needed: ['ხერხი', 'ჩაქუჩი', 'ლურსმნები', 'დონე', 'კვადრატი'],
@@ -554,7 +555,7 @@ export function generateSlabInstructions(inputs: {
         description_en: isRebar
           ? `Arrange rebar in a grid pattern with 15×15cm cells. Rebar should be in the lower 1/3 of the slab.`
           : `Place wire mesh. Mesh should be raised 3-5cm from the ground.`,
-        image_url: isRebar ? '/instructions/slab/step4-rebar.svg' : '/instructions/slab/step4-mesh.svg',
+        illustration_type: 'rebar',
         duration_minutes: area * 2,
         difficulty: isRebar ? 'hard' as const : 'medium' as const,
         tools_needed: isRebar ? ['არმატურის საჭრელი', 'მავთული', 'ფიქსატორები'] : ['საჭრელი', 'ფიქსატორები'],
@@ -607,7 +608,7 @@ export function generateSlabInstructions(inputs: {
         title_en: 'Pour Concrete',
         description_ka: `ჩაასხით ${grade.toUpperCase()} ბეტონი (დაგჭირდებათ დაახლოებით ${(volume * 1.05).toFixed(1)}მ³). ${needsPump ? 'რეკომენდირებულია ბეტონის ტუმბოს გამოყენება.' : 'შესაძლებელია ხელით ჩასხმა.'}`,
         description_en: `Pour ${grade.toUpperCase()} concrete (you'll need approximately ${(volume * 1.05).toFixed(1)}m³). ${needsPump ? 'Concrete pump is recommended.' : 'Manual pouring is possible.'}`,
-        image_url: '/instructions/slab/step5-pouring.svg',
+        illustration_type: 'concrete_pour',
         duration_minutes: Math.max(60, volume * 20),
         difficulty: 'hard',
         tools_needed: ['ბეტონის მიქსერი', 'თვლები ან ტუმბო', 'ვიბრატორი', 'ფოცხი'],
@@ -655,7 +656,7 @@ export function generateSlabInstructions(inputs: {
         title_en: 'Level Surface',
         description_ka: 'გაასწორეთ ბეტონის ზედაპირი რეიკით და ხელის ფლოუტით. ზედაპირი უნდა იყოს თანაბარი და გლუვი.',
         description_en: 'Level the concrete surface with a screed and hand float. Surface should be even and smooth.',
-        image_url: '/instructions/slab/step6-leveling.svg',
+        illustration_type: 'smoothing',
         duration_minutes: area * 2,
         difficulty: 'medium',
         tools_needed: ['რეიკა (სწორი ფიცარი)', 'ხელის ფლოუტი', 'დონე'],
@@ -688,7 +689,7 @@ export function generateSlabInstructions(inputs: {
         title_en: 'Curing & Care',
         description_ka: 'დაფარეთ ფილა პლასტმასით ან სველი ქსოვილით. შეინახეთ ნესტიანად 7 დღის განმავლობაში.',
         description_en: 'Cover slab with plastic or wet burlap. Keep moist for 7 days.',
-        image_url: '/instructions/slab/step7-curing.svg',
+        illustration_type: 'curing',
         duration_minutes: 30,
         difficulty: 'easy',
         tools_needed: ['პლასტმასის ფირი', 'შლანგი'],
@@ -729,7 +730,7 @@ export function generateSlabInstructions(inputs: {
         title_en: 'Remove Formwork',
         description_ka: 'მოხსენით ყალიბი 24-48 საათის შემდეგ. ფრთხილად იმოქმედეთ, რომ არ დააზიანოთ კიდეები.',
         description_en: 'Remove formwork after 24-48 hours. Be careful not to damage the edges.',
-        image_url: '/instructions/slab/step8-removal.svg',
+        illustration_type: 'completion',
         duration_minutes: (length + width) * 2,
         difficulty: 'easy',
         tools_needed: ['ჩაქუჩი', 'სოლი', 'ფრჩხილების ამომყვანი'],
