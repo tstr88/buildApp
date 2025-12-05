@@ -443,32 +443,23 @@ export const ProjectMaterials: React.FC = () => {
       const allToolsHaveRentalId = order.tools.every(t => t.rental_tool_id != null && t.rental_tool_id !== '');
 
       if (type === 'direct' && allToolsHaveRentalId) {
-        if (order.tools.length === 1) {
-          // Single tool - navigate to direct booking page
-          navigate(`/rentals/book/${order.tools[0].rental_tool_id}`, {
-            state: {
-              project_id: projectId,
-              duration_days: order.tools[0].rental_duration_days,
-            },
-          });
-        } else {
-          // Multiple tools - use RFQ flow with rental_tool_ids
-          const rfqData = {
+        // Navigate to booking page for first tool, pass all tools info
+        const firstTool = order.tools[0];
+        navigate(`/rentals/book/${firstTool.rental_tool_id}`, {
+          state: {
             project_id: projectId,
-            supplier_id: order.supplier_id,
-            tools: order.tools.map(t => ({
+            duration_days: firstTool.rental_duration_days,
+            // Pass all tools for multi-tool booking
+            all_tools: order.tools.map(t => ({
               project_tool_id: t.id,
               rental_tool_id: t.rental_tool_id,
               name: t.name,
-              category: t.category,
               duration_days: t.rental_duration_days,
             })),
-          };
-          sessionStorage.setItem('rental_rfq_prefill', JSON.stringify(rfqData));
-          navigate('/rentals/rfq/create');
-        }
+          },
+        });
       } else {
-        // RFQ flow
+        // RFQ flow - for tools without rental_tool_id
         const rfqData = {
           project_id: projectId,
           supplier_id: order.supplier_id,
