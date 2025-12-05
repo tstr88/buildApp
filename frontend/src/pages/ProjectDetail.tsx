@@ -777,54 +777,278 @@ function RentalsTab({ rentals }: { rentals: ProjectDetailType['rentals'] }) {
   );
 }
 
-// Materials Tab Component - redirects to full materials page
+// Materials Tab Component - embedded materials list
 function MaterialsTab({ projectId, navigate }: { projectId: string; navigate: (path: string) => void }) {
-  // Redirect to materials page on mount
+  const { t } = useTranslation();
+  const [materials, setMaterials] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    navigate(`/projects/${projectId}/materials?tab=materials`);
-  }, [projectId, navigate]);
+    const fetchMaterials = async () => {
+      try {
+        const token = localStorage.getItem('buildapp_auth_token');
+        const response = await fetch(`${window.location.origin.replace(':5173', ':3001')}/api/buyers/projects/${projectId}/materials`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const result = await response.json();
+          setMaterials(result.data?.materials || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch materials:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMaterials();
+  }, [projectId]);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: spacing[8] }}>
+        <div style={{
+          width: '32px', height: '32px',
+          border: `3px solid ${colors.border.light}`,
+          borderTop: `3px solid ${colors.primary[600]}`,
+          borderRadius: borderRadius.full,
+          animation: 'spin 1s linear infinite',
+        }} />
+      </div>
+    );
+  }
+
+  if (materials.length === 0) {
+    return (
+      <div style={{
+        backgroundColor: colors.neutral[0],
+        borderRadius: borderRadius.lg,
+        border: `1px solid ${colors.border.light}`,
+        padding: spacing[8],
+        textAlign: 'center',
+      }}>
+        <div style={{ marginBottom: spacing[3], display: 'flex', justifyContent: 'center' }}>
+          <Icons.Package size={48} color={colors.text.tertiary} />
+        </div>
+        <p style={{ color: colors.text.secondary, marginBottom: spacing[4] }}>
+          {t('projects.detail.noMaterials', 'No materials added yet')}
+        </p>
+        <button
+          onClick={() => navigate(`/projects/${projectId}/materials`)}
+          style={{
+            padding: `${spacing[2]} ${spacing[4]}`,
+            backgroundColor: colors.primary[600],
+            color: colors.text.inverse,
+            border: 'none',
+            borderRadius: borderRadius.md,
+            cursor: 'pointer',
+            fontWeight: typography.fontWeight.medium,
+          }}
+        >
+          {t('projects.detail.addMaterials', 'Add Materials')}
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: spacing[8],
-    }}>
-      <div style={{
-        width: '32px',
-        height: '32px',
-        border: `3px solid ${colors.border.light}`,
-        borderTop: `3px solid ${colors.primary[600]}`,
-        borderRadius: borderRadius.full,
-        animation: 'spin 1s linear infinite',
-      }} />
+    <div>
+      <button
+        onClick={() => navigate(`/projects/${projectId}/materials`)}
+        style={{
+          width: '100%',
+          padding: spacing[3],
+          backgroundColor: colors.primary[600],
+          color: colors.text.inverse,
+          border: 'none',
+          borderRadius: borderRadius.lg,
+          fontWeight: typography.fontWeight.medium,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: spacing[2],
+          cursor: 'pointer',
+          marginBottom: spacing[4],
+        }}
+      >
+        <Icons.Settings size={18} />
+        {t('projects.detail.manageMaterials', 'Manage Materials & Suppliers')}
+      </button>
+      {materials.map((material, index) => (
+        <div key={material.id} style={{
+          backgroundColor: colors.neutral[0],
+          borderRadius: borderRadius.lg,
+          border: `1px solid ${colors.border.light}`,
+          padding: spacing[4],
+          marginBottom: index < materials.length - 1 ? spacing[3] : 0,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h4 style={{ margin: 0, fontWeight: typography.fontWeight.medium, color: colors.text.primary }}>
+                {material.name}
+              </h4>
+              <p style={{ margin: `${spacing[1]} 0 0`, fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                {material.quantity} {material.unit}
+                {material.supplier_name && ` • ${material.supplier_name}`}
+              </p>
+            </div>
+            <span style={{
+              padding: `${spacing[1]} ${spacing[2]}`,
+              borderRadius: borderRadius.base,
+              fontSize: typography.fontSize.xs,
+              fontWeight: typography.fontWeight.medium,
+              backgroundColor: material.status === 'ordered' || material.status === 'delivered' ? '#D1FAE5' :
+                             material.status === 'in_cart' ? '#DBEAFE' : colors.neutral[100],
+              color: material.status === 'ordered' || material.status === 'delivered' ? '#065F46' :
+                     material.status === 'in_cart' ? '#1E40AF' : colors.text.secondary,
+            }}>
+              {t(`projects.materialStatus.${material.status}`, material.status)}
+            </span>
+          </div>
+          {material.estimated_total && (
+            <div style={{ marginTop: spacing[2], fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+              {material.estimated_total.toLocaleString()} ₾
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
 
-// Tools Tab Component - redirects to full materials page with tools tab
+// Tools Tab Component - embedded tools list
 function ToolsTab({ projectId, navigate }: { projectId: string; navigate: (path: string) => void }) {
-  // Redirect to materials page with tools tab on mount
+  const { t } = useTranslation();
+  const [tools, setTools] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    navigate(`/projects/${projectId}/materials?tab=tools`);
-  }, [projectId, navigate]);
+    const fetchTools = async () => {
+      try {
+        const token = localStorage.getItem('buildapp_auth_token');
+        const response = await fetch(`${window.location.origin.replace(':5173', ':3001')}/api/buyers/projects/${projectId}/tools`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const result = await response.json();
+          setTools(result.data?.tools || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch tools:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTools();
+  }, [projectId]);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: spacing[8] }}>
+        <div style={{
+          width: '32px', height: '32px',
+          border: `3px solid ${colors.border.light}`,
+          borderTop: `3px solid ${colors.primary[600]}`,
+          borderRadius: borderRadius.full,
+          animation: 'spin 1s linear infinite',
+        }} />
+      </div>
+    );
+  }
+
+  if (tools.length === 0) {
+    return (
+      <div style={{
+        backgroundColor: colors.neutral[0],
+        borderRadius: borderRadius.lg,
+        border: `1px solid ${colors.border.light}`,
+        padding: spacing[8],
+        textAlign: 'center',
+      }}>
+        <div style={{ marginBottom: spacing[3], display: 'flex', justifyContent: 'center' }}>
+          <Icons.Wrench size={48} color={colors.text.tertiary} />
+        </div>
+        <p style={{ color: colors.text.secondary, marginBottom: spacing[4] }}>
+          {t('projects.detail.noTools', 'No tool rentals added yet')}
+        </p>
+        <button
+          onClick={() => navigate(`/projects/${projectId}/materials?tab=tools`)}
+          style={{
+            padding: `${spacing[2]} ${spacing[4]}`,
+            backgroundColor: colors.primary[600],
+            color: colors.text.inverse,
+            border: 'none',
+            borderRadius: borderRadius.md,
+            cursor: 'pointer',
+            fontWeight: typography.fontWeight.medium,
+          }}
+        >
+          {t('projects.detail.addTools', 'Add Tool Rentals')}
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: spacing[8],
-    }}>
-      <div style={{
-        width: '32px',
-        height: '32px',
-        border: `3px solid ${colors.border.light}`,
-        borderTop: `3px solid ${colors.primary[600]}`,
-        borderRadius: borderRadius.full,
-        animation: 'spin 1s linear infinite',
-      }} />
+    <div>
+      <button
+        onClick={() => navigate(`/projects/${projectId}/materials?tab=tools`)}
+        style={{
+          width: '100%',
+          padding: spacing[3],
+          backgroundColor: colors.primary[600],
+          color: colors.text.inverse,
+          border: 'none',
+          borderRadius: borderRadius.lg,
+          fontWeight: typography.fontWeight.medium,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: spacing[2],
+          cursor: 'pointer',
+          marginBottom: spacing[4],
+        }}
+      >
+        <Icons.Settings size={18} />
+        {t('projects.detail.manageTools', 'Manage Tools & Suppliers')}
+      </button>
+      {tools.map((tool, index) => (
+        <div key={tool.id} style={{
+          backgroundColor: colors.neutral[0],
+          borderRadius: borderRadius.lg,
+          border: `1px solid ${colors.border.light}`,
+          padding: spacing[4],
+          marginBottom: index < tools.length - 1 ? spacing[3] : 0,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h4 style={{ margin: 0, fontWeight: typography.fontWeight.medium, color: colors.text.primary }}>
+                {tool.name}
+              </h4>
+              <p style={{ margin: `${spacing[1]} 0 0`, fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                {tool.rental_duration_days} {t('common.days', 'days')}
+                {tool.supplier_name && ` • ${tool.supplier_name}`}
+              </p>
+            </div>
+            <span style={{
+              padding: `${spacing[1]} ${spacing[2]}`,
+              borderRadius: borderRadius.base,
+              fontSize: typography.fontSize.xs,
+              fontWeight: typography.fontWeight.medium,
+              backgroundColor: tool.status === 'ordered' || tool.status === 'delivered' ? '#D1FAE5' :
+                             tool.status === 'rfq_sent' ? '#DBEAFE' : colors.neutral[100],
+              color: tool.status === 'ordered' || tool.status === 'delivered' ? '#065F46' :
+                     tool.status === 'rfq_sent' ? '#1E40AF' : colors.text.secondary,
+            }}>
+              {t(`projects.toolStatus.${tool.status}`, tool.status)}
+            </span>
+          </div>
+          {tool.estimated_total && (
+            <div style={{ marginTop: spacing[2], fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+              {tool.estimated_total.toLocaleString()} ₾
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
